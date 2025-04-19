@@ -1,189 +1,180 @@
-/* style.css - Consolidated Version 2 */
+/* style.css - Dark Mode Only Version */
 
-/* --- :root, Global Styles, Header, Main (Keep as before) --- */
+/* --- Dark Mode Variables Defined as Base --- */
 :root {
-    /* Material Design Color Palette (Example: Indigo Primary, Pink Accent) */
-    --primary-color: #3f51b5; /* Indigo */
-    --primary-color-dark: #303f9f;
-    --primary-color-light: #c5cae9;
-    --accent-color: #e91e63;  /* Pink */
-    --text-primary-color: #212121;
-    --text-secondary-color: #757575;
-    --divider-color: #bdbdbd;
-    --background-color: #f5f5f5; /* Light grey background */
-    --card-background-color: #ffffff; /* Default card background (used by sections) */
-    --button-text-color: #ffffff;
-    --pastel-color-1: #e8eaf6; /* Light Indigo/Lavender for fixtures */
-    --pastel-color-2: #e0f2f1; /* Light Mint for fixtures */
-    --elevation-1: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-    --elevation-2: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --primary-color: #7986cb;           /* Lighter Indigo */
+    --primary-color-dark: #5c6bc0;
+    --primary-color-light-hover: rgba(255, 255, 255, 0.08); /* Hover background for buttons */
+    --accent-color: #f06292;             /* Lighter Pink */
+    --accent-color-darker: #ec407a;       /* Darker pink for hover */
+    --text-primary-color: rgba(255, 255, 255, 0.87); /* Whiteish */
+    --text-secondary-color: rgba(255, 255, 255, 0.60); /* Greyish */
+    --divider-color: rgba(255, 255, 255, 0.12);  /* Subtle white divider */
+    --background-color: #121212;           /* Very dark grey */
+    --card-background-color: #1e1e1e;           /* Slightly lighter grey for cards */
+    --button-text-color: rgba(255, 255, 255, 0.87);
+    --pastel-color-1: #2a2a2a;           /* Dark grey for alternating cards */
+    --pastel-color-2: #2f2f2f;           /* Slightly different dark grey */
+    --disabled-bg-color: rgba(255, 255, 255, 0.12);
+    --disabled-text-color: rgba(255, 255, 255, 0.3);
+    /* Shadows are less impactful, use subtle ones or rely on bg differences */
+    --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.2); /* Reduced shadow */
+    --elevation-2: 0 2px 4px 0 rgba(0, 0, 0, 0.2); /* Reduced shadow */
 }
+
+/* --- Global Styles --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Roboto', sans-serif; line-height: 1.6; background-color: var(--background-color); color: var(--text-primary-color); font-size: 16px; }
-header { background-color: var(--primary-color); color: var(--button-text-color); padding: 1.5rem 1rem; box-shadow: var(--elevation-2); text-align: center; }
-header h1 { font-weight: 500; font-size: 1.75rem; }
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    background-color: var(--background-color);
+    color: var(--text-primary-color);
+    font-size: 16px;
+}
+
+/* --- Header --- */
+header {
+    background-color: var(--card-background-color); /* Use card color for header */
+    color: var(--text-primary-color);
+    padding: 1rem 1rem;
+    box-shadow: var(--elevation-2);
+    text-align: center;
+    /* Removed flex properties as button is gone */
+}
+header h1 {
+    font-weight: 500;
+    font-size: 1.5rem;
+    margin: 0; /* Center title if needed */
+}
+
+/* --- Main Content Area --- */
 main { max-width: 900px; margin: 2rem auto; padding: 1rem; }
-section { background-color: var(--card-background-color); padding: 1.5rem; border-radius: 4px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; /* Consistent spacing */ }
-section h2 { font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0; }
+section {
+    background-color: var(--card-background-color);
+    padding: 1.5rem;
+    border-radius: 4px;
+    box-shadow: var(--elevation-1);
+    margin-bottom: 1.5rem;
+}
+section h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text-primary-color);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--divider-color);
+    margin-top: 0;
+}
 
 /* --- Calendar Navigation --- */
-#calendar-nav {
-    padding: 1rem; /* Slightly more padding to accommodate status */
-    /* Inherits card styles */
-}
-
-.calendar-container {
-    display: flex;
-    justify-content: space-around;
-    gap: 5px;
-    padding: 0;
-    margin-bottom: 0;
-    flex-wrap: wrap; /* Allow wrapping */
-}
-
-.calendar-day-container { /* NEW: Wrapper for button + status */
-    display: flex;
-    flex-direction: column; /* Stack button and status */
-    align-items: center; /* Center items horizontally */
-    flex: 1; /* Distribute space */
-    min-width: 70px; /* Minimum width per day */
-}
-
-.calendar-container button { /* Style for the day button itself */
-    width: 100%; /* Make button fill its container */
-    padding: 10px 5px;
-    border: none;
-    background-color: transparent;
-    color: var(--primary-color);
-    cursor: pointer;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 0.85rem;
-    line-height: 1.3;
-    transition: background-color 0.3s ease;
-    font-weight: 500;
-    margin-bottom: 4px; /* Space between button and status */
+#calendar-nav { padding: 1rem; }
+.calendar-container { display: flex; justify-content: space-around; gap: 5px; padding: 0; margin-bottom: 0; flex-wrap: wrap; }
+.calendar-day-container { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 70px; }
+.calendar-container button {
+    width: 100%; padding: 10px 5px; border: none; background-color: transparent;
+    color: var(--primary-color); /* Use lighter primary */
+    cursor: pointer; border-radius: 4px; text-align: center; font-size: 0.85rem; line-height: 1.3; transition: background-color 0.3s ease; font-weight: 500; margin-bottom: 4px;
 }
 .calendar-container button b { font-weight: 700; }
-.calendar-container button:hover { background-color: var(--primary-color-light); }
-.calendar-container button.active { background-color: var(--primary-color); color: var(--button-text-color); font-weight: 700; box-shadow: var(--elevation-1); }
+.calendar-container button:hover {
+    background-color: var(--primary-color-light-hover); /* Use subtle white hover */
+}
+.calendar-container button.active {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    font-weight: 700; box-shadow: var(--elevation-1);
+}
 .calendar-container button:disabled { color: var(--text-secondary-color); background-color: transparent; cursor: not-allowed; opacity: 0.6; }
-
-.day-pick-status { /* NEW: Style for pick status below day button */
-    font-size: 0.75rem; /* Smaller text */
-    color: var(--text-secondary-color);
-    text-align: center;
-    height: 3em; /* Allocate space even if empty */
-    line-height: 1.4;
-    overflow: hidden; /* Prevent long text overflowing badly */
-    padding: 0 2px;
-}
-.day-pick-status b { /* Bolder text for team/score */
-    color: var(--primary-color-dark);
-}
-
-
-/* --- REMOVED Styles for .info-filter-container, #current-day-info, #filters --- */
+.day-pick-status { font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; height: 3em; line-height: 1.4; overflow: hidden; padding: 0 2px; }
+.day-pick-status b { color: var(--primary-color); } /* Use lighter primary for bold text */
 
 
 /* --- Daily League Slicer Area --- */
-#available-fixtures .slicer-area {
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--divider-color);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-}
-#available-fixtures .slicer-area label { /* Label for "Filter by League:" */
-    font-weight: 500;
-    color: var(--text-secondary-color);
-    flex-shrink: 0;
-    margin-right: 5px;
-}
-
-/* Re-use slicer container and button styles */
-.slicer-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    flex-grow: 1;
-}
-
+#available-fixtures .slicer-area { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
+.slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
 button.league-slicer {
-    padding: 6px 12px;
-    border: 1px solid var(--divider-color);
-    background-color: var(--card-background-color);
-    color: var(--text-secondary-color);
-    border-radius: 16px; /* Pill shape */
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    box-shadow: none;
-    text-transform: none;
+    padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent; /* Make slicers transparent */
+    color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; box-shadow: none; text-transform: none;
 }
-button.league-slicer:hover { background-color: #eeeeee; border-color: #bbbbbb; }
-button.league-slicer.active { background-color: var(--primary-color-light); border-color: var(--primary-color); color: var(--primary-color-dark); font-weight: 700; }
+button.league-slicer:hover {
+    background-color: var(--primary-color-light-hover); /* Subtle hover */
+    border-color: var(--text-secondary-color); /* Slightly enhance border on hover */
+}
+button.league-slicer.active {
+    background-color: var(--primary-color); /* Use main primary */
+    color: var(--button-text-color); /* Light text */
+    border-color: var(--primary-color);
+    font-weight: 700;
+}
 
 
-/* --- Fixture List & Cards (Keep as before, including alternating pastels) --- */
-#available-fixtures {
-    padding-top: 1rem; /* Adjust padding since filters are inside */
-}
-#fixture-list { display: grid; gap: 1rem; margin-top: 0; /* Remove margin as slicers are above */ }
-.fixture { border-radius: 4px; padding: 1rem; box-shadow: var(--elevation-1); transition: box-shadow 0.3s ease; color: var(--text-primary-color); }
-.fixture:nth-child(odd) { background-color: var(--pastel-color-1); }
-.fixture:nth-child(even) { background-color: var(--pastel-color-2); }
-.fixture:hover { box-shadow: var(--elevation-2); }
+/* --- Fixture List & Cards --- */
+#available-fixtures { padding-top: 1rem; }
+#fixture-list { display: grid; gap: 1rem; margin-top: 0; }
+.fixture { border-radius: 4px; padding: 1rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease; color: var(--text-primary-color); }
+.fixture:nth-child(odd) { background-color: var(--pastel-color-1); } /* Dark pastel 1 */
+.fixture:nth-child(even) { background-color: var(--pastel-color-2); } /* Dark pastel 2 */
+.fixture:hover { background-color: #2c2c2c; /* Slightly lighter than card bg */ }
 .fixture .teams { font-weight: 500; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-primary-color); }
 .fixture .details { font-size: 0.9rem; color: var(--text-secondary-color); margin-bottom: 0.75rem; }
 
-/* --- Buttons inside Fixtures (Keep as before) --- */
-#fixture-list button { padding: 8px 16px; margin: 8px 8px 0 0; border: none; border-radius: 4px; cursor: pointer; background-color: var(--primary-color); color: var(--button-text-color); text-transform: uppercase; font-weight: 500; font-size: 0.875rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease; }
-#fixture-list button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
-#fixture-list button:disabled { background-color: rgba(0, 0, 0, 0.12); color: rgba(0, 0, 0, 0.26); box-shadow: none; cursor: not-allowed; }
-#fixture-list button.selected-team { background-color: var(--accent-color); color: var(--button-text-color); font-weight: 700; }
-#fixture-list button.selected-team:hover { background-color: #c2185b; }
+/* --- Buttons inside Fixtures --- */
+#fixture-list button {
+    padding: 8px 16px; margin: 8px 8px 0 0; border: none; border-radius: 4px; cursor: pointer;
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+    text-transform: uppercase; font-weight: 500; font-size: 0.875rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+#fixture-list button:hover:not(:disabled) {
+    background-color: var(--primary-color-dark);
+    box-shadow: var(--elevation-2);
+}
+#fixture-list button:disabled {
+     background-color: var(--disabled-bg-color);
+     color: var(--disabled-text-color);
+     box-shadow: none; cursor: not-allowed;
+}
+#fixture-list button.selected-team {
+    background-color: var(--accent-color);
+    color: var(--text-primary-color); /* Use primary text color for better contrast */
+    font-weight: 700;
+}
+#fixture-list button.selected-team:hover {
+     background-color: var(--accent-color-darker);
+}
 
 
-/* --- Scoring History (Keep as before) --- */
-#scoring-history { /* Inherits card styles */ }
+/* --- Scoring History --- */
 #score-list { list-style: none; padding: 0; }
-#score-list li { background-color: #e8eaf6; margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem; }
+#score-list li {
+    background-color: var(--pastel-color-1); /* Use one of the dark card bg */
+    margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem;
+    color: var(--text-primary-color);
+}
 
-
-/* --- Footer (Keep as before) --- */
+/* --- Footer --- */
 footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem; color: var(--text-secondary-color); }
 
-
-/* --- Responsiveness Adjustments --- */
+/* --- Responsiveness (Keep as before) --- */
 @media (max-width: 768px) {
-    /* REMOVED .info-filter-container stacking styles */
-
     main { padding: 0.5rem; margin: 1rem auto; }
     section { padding: 1rem; }
     section h2 { font-size: 1.3rem; }
-    header h1 { font-size: 1.5rem; }
-
-    .calendar-container { /* Still allow wrapping */ flex-wrap: wrap; }
-    .calendar-day-container { min-width: 65px; /* Adjust min-width */ } /* Adjust day container */
-    .calendar-container button { font-size: 0.8rem; } /* Smaller button text */
-    .day-pick-status { font-size: 0.7rem; height: 3.5em; } /* Adjust status text size */
-
-    #available-fixtures .slicer-area { flex-direction: column; align-items: flex-start; } /* Stack label and slicers */
+    header { padding: 0.8rem 1rem; }
+    header h1 { font-size: 1.3rem; text-align: left; } /* Align left now button is gone */
+    .calendar-container { flex-wrap: wrap; }
+    .calendar-day-container { min-width: 65px; }
+    .calendar-container button { font-size: 0.8rem; }
+    .day-pick-status { font-size: 0.7rem; height: 3.5em; }
+    #available-fixtures .slicer-area { flex-direction: column; align-items: flex-start; }
     #available-fixtures .slicer-area label { margin-bottom: 0.5rem; }
-
     #fixture-list button { padding: 6px 12px; font-size: 0.8rem; }
 }
-
 @media (max-width: 480px) {
      body { font-size: 15px; }
-     header { padding: 1rem 0.5rem; }
-     header h1 { font-size: 1.3rem; }
+     header h1 { font-size: 1.2rem; }
      section h2 { font-size: 1.2rem; }
      .calendar-day-container { min-width: 55px; }
-     .day-pick-status { height: 4em; } /* More height if needed */
+     .day-pick-status { height: 4em; }
 }
