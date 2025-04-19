@@ -136,6 +136,33 @@ button.league-slicer.active {
 /* --- Footer --- */
 footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem; color: var(--text-secondary-color); }
 
+/* Styling for the calculated points span */
+.fixture-points {
+    flex-shrink: 0; /* Don't shrink */
+    font-size: 0.75rem;
+    font-weight: 700; /* Bold points */
+    padding: 4px 8px; /* Similar vertical padding to button, adjust horizontal */
+    border-radius: 4px;
+    text-align: right; /* Align text right */
+    min-width: 65px; /* Approx width similar to button, adjust as needed */
+    line-height: 1.4;
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.fixture-points.positive {
+    color: #81C784; /* Light Green (adjust for theme if needed) */
+}
+
+.fixture-points.negative {
+    color: var(--error-text-color); /* Use existing error red */
+}
+
+/* Ensure team-row accommodates points span - already has min-height */
+.team-row {
+    /* Keep existing styles */
+    min-height: 28px; /* Might need slight adjustment based on final size */
+}
+
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
     #fixture-list { grid-template-columns: 1fr; padding: 0 1rem 1rem 1rem; }
