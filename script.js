@@ -1,40 +1,53 @@
-// script.js - FINAL CORRECTED VERSION
+// script.js - Using flagcdn.com Images (Map inside script)
 
 // --- Constants and Helpers ---
 const now = new Date("2025-04-19T12:00:00Z"); // Keep fixed date for demo consistency
 const oneHour = 60 * 60 * 1000;
 const oneDay = 24 * oneHour;
+
 function getDateString(date) {
     const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     return adjustedDate.toISOString().split('T')[0];
 }
 
-// Function to get flag icon CSS class
-function getFlagClass(countryName) {
-    // Map country name to flag-icon-css codes (lowercase)
-    // Check codes at: https://flagicons.lipis.dev/
-    const countryCodeMap = {
-        "England": "gb", // Uses Great Britain flag code
-        "Spain": "es",
-        "Germany": "de",
-        "Italy": "it",
-        "France": "fr",
-        "Portugal": "pt",
-        "Netherlands": "nl",
-        "Belgium": "be",
-        "Turkey": "tr",
-        "Scotland": "gb-sct", // Specific code for Scotland flag
-        "UEFA": "eu" // European Union flag for UEFA competitions
-        // Add more countries as needed, ensure codes are lowercase
-    };
-    const code = countryCodeMap[countryName];
-    // Ensure countryName exists and has a code before returning classes
-    return code ? `fi fi-${code}` : ""; // Return classes "fi fi-xx" or empty string if no match
+// --- Flag Mapping & URL Generation (Using flagcdn.com) ---
+const flagCodeMap = { // Maps Country Name to lowercase 2-letter ISO code
+    "England": "gb",
+    "Spain": "es",
+    "Germany": "de",
+    "Italy": "it",
+    "France": "fr",
+    "Portugal": "pt",
+    "Netherlands": "nl",
+    "Belgium": "be",
+    "Turkey": "tr",
+    "Scotland": "gb", // Using UK flag code for Scotland with flagcdn
+    "UEFA": "eu" // flagcdn supports 'eu'
+    // Add other countries if needed based on your data
+};
+
+/**
+ * Gets the flag image URL from flagcdn.com based on country name.
+ * @param {string} countryName - The name of the country (e.g., "England").
+ * @returns {string} The image URL or an empty string if no code found.
+ */
+function getFlagUrl(countryName) {
+    const code = flagCodeMap[countryName];
+    if (code) {
+        // Use w20 for 20px width PNGs
+        return `https://flagcdn.com/w20/${code}.png`;
+    }
+    return ""; // Return empty string if no code found
 }
 
-// --- Fake Data (Expanded version needed here) ---
-const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
-    // --- Thursday, Apr 17, 2025 (2 days ago) ---
+
+// --- Fake Data (Expanded version) ---
+const fakeFixtures = [ /* ... PASTE YOUR EXPANDED FAKE FIXTURES ARRAY HERE ... */
+    // Make sure this array is pasted here, otherwise the page will be empty!
+    // Example structure:
+    { fixtureId: 101, competition: "Premier League", country: "England", kickOffTime: new Date(now.getTime() + 2 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 1, name: "Man Reds" }, awayTeam: { id: 2, name: "Lon Blues" }, odds: { homeWin: 2.5, draw: 3.4, awayWin: 2.8 }, result: null },
+    { fixtureId: 305, competition: "Bundesliga", country: "Germany", kickOffTime: new Date(now.getTime() - 1 * oneDay + 18.5 * oneHour).toISOString(), status: 'FINISHED', homeTeam: { id: 56, name: "Leipzig Bulls" }, awayTeam: { id: 57, name: "Hoffenheim Village" }, odds: { homeWin: 1.8, draw: 4.0, awayWin: 4.2 }, result: { homeScore: 2, awayScore: 2 } },
+    // ... (Include all ~30 fixtures)
     {
         fixtureId: 301, competition: "Europa League", country: "UEFA", kickOffTime: new Date(now.getTime() - 2 * oneDay + 17 * oneHour).toISOString(), status: 'FINISHED',
         homeTeam: { id: 50, name: "Roma Gladiators" }, awayTeam: { id: 51, name: "Leverkusen Works" }, odds: { homeWin: 2.8, draw: 3.5, awayWin: 2.5 }, result: { homeScore: 1, awayScore: 1 }
@@ -47,25 +60,13 @@ const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
         fixtureId: 303, competition: "Pro League", country: "Belgium", kickOffTime: new Date(now.getTime() - 2 * oneDay + 18 * oneHour).toISOString(), status: 'FINISHED',
         homeTeam: { id: 54, name: "Club Brugge" }, awayTeam: { id: 55, name: "Anderlecht Royals" }, odds: { homeWin: 2.1, draw: 3.6, awayWin: 3.2 }, result: { homeScore: 3, awayScore: 1 }
     },
-
-    // --- Friday, Apr 18, 2025 (Yesterday) ---
     {
         fixtureId: 304, competition: "Premier League", country: "England", kickOffTime: new Date(now.getTime() - 1 * oneDay + 19 * oneHour).toISOString(), status: 'FINISHED',
         homeTeam: { id: 5, name: "Mersey Reds" }, awayTeam: { id: 6, name: "Man Citizens" }, odds: { homeWin: 2.2, draw: 3.5, awayWin: 3.1 }, result: { homeScore: 3, awayScore: 1 }
     },
-    {
-        fixtureId: 305, competition: "Bundesliga", country: "Germany", kickOffTime: new Date(now.getTime() - 1 * oneDay + 18.5 * oneHour).toISOString(), status: 'FINISHED',
-        homeTeam: { id: 56, name: "Leipzig Bulls" }, awayTeam: { id: 57, name: "Hoffenheim Village" }, odds: { homeWin: 1.8, draw: 4.0, awayWin: 4.2 }, result: { homeScore: 2, awayScore: 2 }
-    },
      {
         fixtureId: 306, competition: "Serie A", country: "Italy", kickOffTime: new Date(now.getTime() - 1 * oneDay + 19.5 * oneHour).toISOString(), status: 'FINISHED',
         homeTeam: { id: 58, name: "Inter Serpents" }, awayTeam: { id: 59, name: "Lazio Eagles" }, odds: { homeWin: 1.6, draw: 4.2, awayWin: 5.0 }, result: { homeScore: 1, awayScore: 0 }
-    },
-
-    // --- Saturday, Apr 19, 2025 (Today) ---
-    {
-        fixtureId: 101, competition: "Premier League", country: "England", kickOffTime: new Date(now.getTime() + 2 * oneHour).toISOString(), status: 'SCHEDULED',
-        homeTeam: { id: 1, name: "Man Reds" }, awayTeam: { id: 2, name: "Lon Blues" }, odds: { homeWin: 2.5, draw: 3.4, awayWin: 2.8 }, result: null
     },
     {
         fixtureId: 102, competition: "La Liga", country: "Spain", kickOffTime: new Date(now.getTime() + 4 * oneHour).toISOString(), status: 'SCHEDULED',
@@ -87,8 +88,6 @@ const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
         fixtureId: 309, competition: "Ligue 1", country: "France", kickOffTime: new Date(now.getTime() + 8 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 64, name: "Monaco Princes" }, awayTeam: { id: 65, name: "Lille Dogs" }, odds: { homeWin: 1.9, draw: 3.5, awayWin: 4.1 }, result: null
     },
-
-    // --- Sunday, Apr 20, 2025 (Tomorrow) ---
      {
         fixtureId: 201, competition: "Serie A", country: "Italy", kickOffTime: new Date(now.getTime() + 1 * oneDay + 3 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 9, name: "Milan Devils" }, awayTeam: { id: 10, name: "Turin Zebras" }, odds: { homeWin: 3.1, draw: 3.3, awayWin: 2.3 }, result: null
@@ -113,8 +112,6 @@ const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
         fixtureId: 312, competition: "Scottish Premiership", country: "Scotland", kickOffTime: new Date(now.getTime() + 1 * oneDay + 1 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 70, name: "Celtic Hoops" }, awayTeam: { id: 71, name: "Rangers Gers" }, odds: { homeWin: 1.9, draw: 3.7, awayWin: 3.8 }, result: null
     },
-
-    // --- Monday, Apr 21, 2025 (In 2 days) ---
     {
         fixtureId: 313, competition: "Serie A", country: "Italy", kickOffTime: new Date(now.getTime() + 2 * oneDay + 18.75 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 72, name: "Napoli Blues" }, awayTeam: { id: 50, name: "Roma Gladiators" }, odds: { homeWin: 2.0, draw: 3.5, awayWin: 3.6 }, result: null
@@ -127,8 +124,6 @@ const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
         fixtureId: 315, competition: "Pro League", country: "Belgium", kickOffTime: new Date(now.getTime() + 2 * oneDay + 18 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 75, name: "Gent Buffalos" }, awayTeam: { id: 76, name: "Standard Liege" }, odds: { homeWin: 1.9, draw: 3.4, awayWin: 4.0 }, result: null
     },
-
-    // --- Tuesday, Apr 22, 2025 (In 3 days) ---
     {
         fixtureId: 316, competition: "Champions League", country: "UEFA", kickOffTime: new Date(now.getTime() + 3 * oneDay + 19 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 7, name: "Bavarian Stars" }, awayTeam: { id: 4, name: "Catalan Giants" }, odds: { homeWin: 1.7, draw: 4.0, awayWin: 4.5 }, result: null
@@ -141,7 +136,6 @@ const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
         fixtureId: 318, competition: "Süper Lig", country: "Turkey", kickOffTime: new Date(now.getTime() + 3 * oneDay + 17 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 77, name: "Besiktas Eagles" }, awayTeam: { id: 78, name: "Trabzonspor Storm" }, odds: { homeWin: 2.1, draw: 3.4, awayWin: 3.3 }, result: null
     },
-     // --- Wednesday, Apr 23, 2025 (In 4 days - Will not show with 5-day view) ---
       {
         fixtureId: 319, competition: "Scottish Premiership", country: "Scotland", kickOffTime: new Date(now.getTime() + 4 * oneDay + 18.5 * oneHour).toISOString(), status: 'SCHEDULED',
         homeTeam: { id: 79, name: "Hearts Jambos" }, awayTeam: { id: 80, name: "Hibernian Hibees" }, odds: { homeWin: 2.5, draw: 3.2, awayWin: 2.8 }, result: null
@@ -165,20 +159,7 @@ const fixtureListDiv = document.getElementById('fixture-list');
 const leagueSlicerContainer = document.getElementById('league-slicer-container');
 const scoreListUl = document.getElementById('score-list');
 
-
 // --- Core Functions ---
-
-// Function to get flag icon CSS class
-function getFlagClass(countryName) {
-    const countryCodeMap = {
-        "England": "gb", "Spain": "es", "Germany": "de", "Italy": "it",
-        "France": "fr", "Portugal": "pt", "Netherlands": "nl", "Belgium": "be",
-        "Turkey": "tr", "Scotland": "gb-sct", "UEFA": "eu"
-    };
-    const code = countryCodeMap[countryName];
-    return code ? `fi fi-${code}` : "";
-}
-
 
 /**
  * Generates calendar navigation (Yesterday, Today, +3 Days) with pick status.
@@ -234,11 +215,12 @@ function generateCalendar() {
 }
 
 /**
- * Populates league slicers based ONLY on leagues available for the selected day.
+ * Populates league slicers based ONLY on leagues available for the selected day. (Uses flagcdn)
  */
 function populateDailyLeagueSlicers() {
     const selectedDateStr = getDateString(selectedDate);
-    const leaguesToday = new Map();
+    const leaguesToday = new Map(); // Map: leagueName -> countryName
+
     fakeFixtures.forEach(fixture => {
         if (getDateString(new Date(fixture.kickOffTime)) === selectedDateStr) {
             if (!leaguesToday.has(fixture.competition)) {
@@ -246,7 +228,9 @@ function populateDailyLeagueSlicers() {
             }
         }
     });
-    leagueSlicerContainer.innerHTML = '';
+
+    leagueSlicerContainer.innerHTML = ''; // Clear
+
     if (leaguesToday.size > 0) {
          const allButton = document.createElement('button');
          allButton.textContent = 'All Leagues';
@@ -256,18 +240,27 @@ function populateDailyLeagueSlicers() {
          allButton.addEventListener('click', handleSlicerClick);
          leagueSlicerContainer.appendChild(allButton);
     }
+
     const sortedLeagues = [...leaguesToday.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
     sortedLeagues.forEach(([league, country]) => {
         const button = document.createElement('button');
-        const flagClasses = getFlagClass(country);
-        // Use innerHTML with correct template literal syntax for class
-        button.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${league}`; // Corrected this line
+        const flagUrl = getFlagUrl(country); // Use flagcdn URL function
+        let flagHtml = '';
+        if (flagUrl) {
+            // Create img tag if URL exists
+            flagHtml = `<img src="${flagUrl}" alt="${country} flag" class="inline-flag">&nbsp;`;
+        }
+        // Use innerHTML to add the image (or nothing) and the league name
+        button.innerHTML = `${flagHtml}${league}`;
+
         button.classList.add('league-slicer');
         if (selectedLeagueFilter === league) button.classList.add('active');
         button.dataset.league = league;
         button.addEventListener('click', handleSlicerClick);
         leagueSlicerContainer.appendChild(button);
     });
+
     const slicerArea = document.getElementById('daily-league-slicers');
      if (slicerArea) {
          slicerArea.style.display = leaguesToday.size > 0 ? 'flex' : 'none';
@@ -278,19 +271,14 @@ function populateDailyLeagueSlicers() {
  * Handles clicks on league slicer buttons.
  */
 function handleSlicerClick(event) {
-    // Ensure we get the button even if the click is on the inner span/text
     const clickedButton = event.target.closest('button.league-slicer');
-    if (!clickedButton || clickedButton.dataset.league === selectedLeagueFilter) return; // Prevent re-filter
-
-    selectedLeagueFilter = clickedButton.dataset.league; // Update state
-
-    // Update active class on slicer buttons
+    if (!clickedButton || clickedButton.dataset.league === selectedLeagueFilter) return;
+    selectedLeagueFilter = clickedButton.dataset.league;
     document.querySelectorAll('#league-slicer-container .league-slicer').forEach(btn => {
         btn.classList.remove('active');
     });
     clickedButton.classList.add('active');
-
-    updateDisplayedFixtures(); // Re-filter
+    updateDisplayedFixtures();
 }
 
 /**
@@ -310,13 +298,13 @@ function updateDisplayedFixtures() {
 }
 
 /**
- * Renders the list of fixtures using the condensed layout (Corrected button logic and detailsTop.innerHTML).
+ * Renders the list of fixtures using the condensed layout. (Uses flagcdn images)
  */
 function displayFixtures(fixtures, currentTime) {
-    fixtureListDiv.innerHTML = ''; // Clear previous list
+    fixtureListDiv.innerHTML = '';
 
     if (!fixtures || fixtures.length === 0) {
-        fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>'; // Span across grid columns if empty
+        fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>';
         return;
     }
 
@@ -332,12 +320,17 @@ function displayFixtures(fixtures, currentTime) {
 
         // --- Build Internal Structure ---
 
-        // Top Details (with Flag Icon) - CORRECTED SYNTAX
+        // Top Details (with Flag Image)
         const detailsTop = document.createElement('div');
         detailsTop.classList.add('fixture-details-top');
-        const flagClasses = getFlagClass(fixture.country);
-        // Use innerHTML with correct template literal syntax for variables and class attribute
-        detailsTop.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${fixture.competition} (${fixture.country}) - ${timeString}`;
+        const flagUrl = getFlagUrl(fixture.country); // Get image URL
+        let flagHtml = '';
+        if (flagUrl) {
+             // Create img tag if URL exists
+            flagHtml = `<img src="${flagUrl}" alt="${fixture.country} flag" class="inline-flag">&nbsp;`;
+        }
+        // Use innerHTML to include the image (or nothing) and text
+        detailsTop.innerHTML = `${flagHtml}${fixture.competition} (${fixture.country}) - ${timeString}`;
         fixtureElement.appendChild(detailsTop);
 
 
@@ -374,7 +367,6 @@ function displayFixtures(fixtures, currentTime) {
     });
 }
 
-
 /**
  * Handles the logic when a user clicks a team selection button.
  */
@@ -402,7 +394,6 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     generateCalendar();
     updateDisplayedFixtures();
 }
-
 
 /**
  * Calculates the score for a finished fixture based on the user's selection.
