@@ -44,42 +44,29 @@ section h2 { font-size: 1.5rem; font-weight: 500; color: var(--text-primary-colo
 
 /* --- Calendar Navigation --- */
 #calendar-nav {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    /* border removed */
-    background-color: transparent;
-    box-shadow: none;
-    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem; border-radius: 6px; background-color: transparent;
+    box-shadow: none; margin-bottom: 1.5rem; border: none; /* Border removed */
 }
+
+/* Keep .calendar-container styles */
 .calendar-container {
-    display: flex;
-    justify-content: flex-start; /* Align days left */
-    gap: 8px;
-    padding: 0 2px 4px 2px; /* Padding for scrollbar */
-    margin-bottom: 0;
-    flex-wrap: nowrap; /* Prevent wrapping */
-    overflow-x: auto; /* Allow horizontal scroll */
-    -webkit-overflow-scrolling: touch; /* Momentum scrolling iOS */
-    scrollbar-width: thin; /* Firefox scrollbar */
-    scrollbar-color: var(--text-secondary-color) transparent; /* Firefox scrollbar color */
+    display: flex; justify-content: flex-start; gap: 8px;
+    padding: 0 2px 4px 2px; margin-bottom: 0; flex-wrap: nowrap;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; scrollbar-color: var(--text-secondary-color) transparent;
 }
-/* Optional: Webkit scrollbar styling */
 .calendar-container::-webkit-scrollbar { height: 4px; }
 .calendar-container::-webkit-scrollbar-track { background: transparent; }
 .calendar-container::-webkit-scrollbar-thumb { background-color: var(--text-secondary-color); border-radius: 2px; }
 
-.calendar-day-container { /* Wrapper if still needed, can be removed */
-    /* display: flex; */ /* Handled by button now */
-    /* flex-direction: column; */
-    /* align-items: center; */
-    /* min-width: 85px; */ /* Defined on button */
-}
 
-/* Calendar Button Style */
+/* Modify this rule for button.calendar-day */
 button.calendar-day {
-    /* flex: 1; */ /* REMOVED */
-    min-width: 85px; /* Set explicit min-width */
-    width: auto; /* Allow natural width based on content/padding */
+    /* --- ADD THIS LINE BACK --- */
+    flex-grow: 1; /* Allow buttons to expand to fill available space */
+    /* --- Keep the rest --- */
+    min-width: 85px; /* Still prevents buttons from becoming too small */
+    width: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -93,26 +80,25 @@ button.calendar-day {
     text-align: center;
     transition: all 0.2s ease-out;
     font-weight: 500;
-    flex-shrink: 0; /* Prevent button from shrinking too much */
+    /* flex-shrink: 0; */ /* Can usually remove when using flex-grow */
 }
+
+/* Keep other .calendar-day styles (:hover, .active) */
 button.calendar-day:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-primary-color); color: var(--text-primary-color); }
-/* Active Calendar Button Style (Uses Red Accent) */
 button.calendar-day.active { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; border-color: var(--accent-color-darker); box-shadow: var(--elevation-1); }
 button.calendar-day.active span { color: var(--accent-color-text) !important; opacity: 0.95; }
 button.calendar-day.active b { color: var(--accent-color-text) !important; opacity: 1.0; }
 button.calendar-day:disabled { color: var(--disabled-text-color); background-color: var(--card-background-color); cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
 
-/* Styling for individual lines within the button */
+/* Keep .cal-line-* styles */
 .cal-line { display: block; width: 100%; text-align: center; line-height: 1.35; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 2px; }
 .cal-line-1 { font-size: 0.75rem; font-weight: 700; color: var(--text-primary-color); text-transform: uppercase; margin-bottom: 3px; }
-.cal-line-1 b { /* Style for "Today" part */ }
+.cal-line-1 b {}
 .cal-line-2 { font-size: 0.7rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; margin-bottom: 3px; }
 .cal-line-2 b { color: var(--text-primary-color); font-weight: 700; }
 .cal-line-3 { font-size: 0.65rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; }
-.cal-line-3 b { color: var(--text-primary-color); font-weight: 700; } /* Score color */
-/* Active state score color */
+.cal-line-3 b { color: var(--text-primary-color); font-weight: 700; }
 button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !important; }
-/* Style for non-scheduled status */
 .cal-line-3 span[style*="color:var(--error-text-color)"] { color: var(--error-text-color) !important; font-style: italic; }
 
 
