@@ -203,17 +203,23 @@ function generateCalendar() {
  */
 function populateDailyLeagueSlicers() {
     const selectedDateStr = getDateString(selectedDate);
-    const leaguesToday = new Set();
+    // Store league and its associated country
+    const leaguesToday = new Map(); // Map: leagueName -> countryName
 
+    // Find unique leagues and their countries for the selected day
     fakeFixtures.forEach(fixture => {
         if (getDateString(new Date(fixture.kickOffTime)) === selectedDateStr) {
-            leaguesToday.add(fixture.competition);
+            // Only add league if not already present
+            if (!leaguesToday.has(fixture.competition)) {
+                leaguesToday.set(fixture.competition, fixture.country);
+            }
         }
     });
 
-    leagueSlicerContainer.innerHTML = ''; // Clear
+    leagueSlicerContainer.innerHTML = ''; // Clear previous slicers
 
-    // Create "All Leagues" button only if there are leagues today
+    // Create "All Leagues" button (no flag)
+    // Add it only if there are specific leagues to filter
     if (leaguesToday.size > 0) {
         const allButton = document.createElement('button');
         allButton.textContent = 'All Leagues';
@@ -224,21 +230,56 @@ function populateDailyLeagueSlicers() {
         leagueSlicerContainer.appendChild(allButton);
     }
 
-    [...leaguesToday].sort().forEach(league => {
+    // Sort leagues alphabetically for consistent order before creating buttons
+    const sortedLeagues = [...leaguesToday.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+    // Create slicers for leagues available today, now with flags
+    sortedLeagues.forEach(([league, country]) => { // Destructure Map entry [leagueName, countryName]
         const button = document.createElement('button');
-        button.textContent = league;
+        const flag = getFlagEmoji(country); // Get the flag emoji
+
+        // Use innerHTML to correctly render the emoji next to the text
+        // Adding a non-breaking space (&nbsp;) for slight separation
+        button.innerHTML = `${flag}&nbsp;${league}`;
+
         button.classList.add('league-slicer');
         if (selectedLeagueFilter === league) button.classList.add('active');
-        button.dataset.league = league;
+        button.dataset.league = league; // Store league name in data attribute
         button.addEventListener('click', handleSlicerClick);
         leagueSlicerContainer.appendChild(button);
     });
 
     // Hide the whole slicer area if no leagues are available for the day
     const slicerArea = document.getElementById('daily-league-slicers');
-    if (slicerArea) { // Ensure element exists
+     if (slicerArea) { // Ensure element exists
         slicerArea.style.display = leaguesToday.size > 0 ? 'flex' : 'none';
     }
+}
+
+// --- Helper Functions ---
+// Keep existing getDateString function...
+function getDateString(date) {
+    const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    return adjustedDate.toISOString().split('T')[0];
+}
+
+// NEW: Function to get flag emoji based on country name
+function getFlagEmoji(countryName) {
+    const countryMap = {
+        "England": "🇬🇧",
+        "Spain": "🇪🇸",
+        "Germany": "🇩🇪",
+        "Italy": "🇮🇹",
+        "France": "🇫🇷",
+        "Portugal": "🇵🇹",
+        "Netherlands": "🇳🇱",
+        "Belgium": "🇧🇪",
+        "Turkey": "🇹🇷",
+        "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+        "UEFA": "🇪🇺" // Using EU flag for UEFA competitions
+        // Add more mappings if needed for other countries in your data
+    };
+    return countryMap[countryName] || "🏳️"; // Return mapped emoji or a default white flag
 }
 
 /**
@@ -278,10 +319,10 @@ function updateDisplayedFixtures() {
  * Renders the list of fixtures using the condensed layout (Corrected button logic).
  */
 function displayFixtures(fixtures, currentTime) {
-    fixtureListDiv.innerHTML = '';
+    fixtureListDiv.innerHTML = ''; // Clear previous list
 
     if (!fixtures || fixtures.length === 0) {
-        fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>';
+        fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>'; // Span across grid columns if empty
         return;
     }
 
@@ -295,30 +336,70 @@ function displayFixtures(fixtures, currentTime) {
         const canSelect = fixture.status === 'SCHEDULED' && kickOff > currentTime;
         const timeString = kickOff.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
-        // Top Details
+        // --- Build Internal Structure ---
+
+        // Top Details (with Flag)
         const detailsTop = document.createElement('div');
         detailsTop.classList.add('fixture-details-top');
-        detailsTop.textContent = `${fixture.competition} (${fixture.country}) - ${timeString}`;
+        const flag = getFlagEmoji(fixture.country); // Get flag
+        // Add flag before the text content
+        detailsTop.textContent = `${flag} ${fixture.competition} (${fixture.country}) - ${timeString}`;
         fixtureElement.appendChild(detailsTop);
 
         // Home Team Row
-        const homeRow = document.createElement('div'); homeRow.classList.add('team-row');
-        const homeName = document.createElement('span'); homeName.classList.add('team-name'); homeName.textContent = fixture.homeTeam.name; homeRow.appendChild(homeName);
-        const homeScoreSpan = document.createElement('span'); homeScoreSpan.classList.add('team-score');
-        if (fixture.status === 'FINISHED' && fixture.result !== null) homeScoreSpan.textContent = fixture.result.homeScore; else homeScoreSpan.innerHTML = '&nbsp;'; homeRow.appendChild(homeScoreSpan);
-        const homeOdd = document.createElement('span'); homeOdd.classList.add('team-odd'); homeOdd.textContent = fixture.odds.homeWin.toFixed(2); homeRow.appendChild(homeOdd);
-        const homeButton = document.createElement('button'); homeButton.classList.add('pick-button'); homeButton.textContent = "Pick"; homeButton.disabled = !canSelect; homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
-        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) { homeButton.classList.add('selected-team'); homeButton.textContent = "Picked"; } homeRow.appendChild(homeButton);
+        const homeRow = document.createElement('div');
+        homeRow.classList.add('team-row');
+        const homeName = document.createElement('span');
+        homeName.classList.add('team-name');
+        homeName.textContent = fixture.homeTeam.name;
+        homeRow.appendChild(homeName);
+        const homeScoreSpan = document.createElement('span');
+        homeScoreSpan.classList.add('team-score');
+        if (fixture.status === 'FINISHED' && fixture.result !== null) { homeScoreSpan.textContent = fixture.result.homeScore; }
+        else { homeScoreSpan.innerHTML = '&nbsp;'; }
+        homeRow.appendChild(homeScoreSpan);
+        const homeOdd = document.createElement('span');
+        homeOdd.classList.add('team-odd');
+        homeOdd.textContent = fixture.odds.homeWin.toFixed(2);
+        homeRow.appendChild(homeOdd);
+        const homeButton = document.createElement('button');
+        homeButton.classList.add('pick-button');
+        homeButton.textContent = "Pick";
+        homeButton.disabled = !canSelect;
+        homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
+        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) {
+            homeButton.classList.add('selected-team');
+            homeButton.textContent = "Picked";
+        }
+        homeRow.appendChild(homeButton);
         fixtureElement.appendChild(homeRow);
 
         // Away Team Row
-        const awayRow = document.createElement('div'); awayRow.classList.add('team-row');
-        const awayName = document.createElement('span'); awayName.classList.add('team-name'); awayName.textContent = fixture.awayTeam.name; awayRow.appendChild(awayName);
-        const awayScoreSpan = document.createElement('span'); awayScoreSpan.classList.add('team-score');
-        if (fixture.status === 'FINISHED' && fixture.result !== null) awayScoreSpan.textContent = fixture.result.awayScore; else awayScoreSpan.innerHTML = '&nbsp;'; awayRow.appendChild(awayScoreSpan);
-        const awayOdd = document.createElement('span'); awayOdd.classList.add('team-odd'); awayOdd.textContent = fixture.odds.awayWin.toFixed(2); awayRow.appendChild(awayOdd);
-        const awayButton = document.createElement('button'); awayButton.classList.add('pick-button'); awayButton.textContent = "Pick"; awayButton.disabled = !canSelect; awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
-        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) { awayButton.classList.add('selected-team'); awayButton.textContent = "Picked"; } awayRow.appendChild(awayButton);
+        const awayRow = document.createElement('div');
+        awayRow.classList.add('team-row');
+        const awayName = document.createElement('span');
+        awayName.classList.add('team-name');
+        awayName.textContent = fixture.awayTeam.name;
+        awayRow.appendChild(awayName);
+        const awayScoreSpan = document.createElement('span');
+        awayScoreSpan.classList.add('team-score');
+        if (fixture.status === 'FINISHED' && fixture.result !== null) { awayScoreSpan.textContent = fixture.result.awayScore; }
+        else { awayScoreSpan.innerHTML = '&nbsp;'; }
+        awayRow.appendChild(awayScoreSpan);
+        const awayOdd = document.createElement('span');
+        awayOdd.classList.add('team-odd');
+        awayOdd.textContent = fixture.odds.awayWin.toFixed(2);
+        awayRow.appendChild(awayOdd);
+        const awayButton = document.createElement('button');
+        awayButton.classList.add('pick-button');
+        awayButton.textContent = "Pick";
+        awayButton.disabled = !canSelect;
+        awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
+        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) {
+            awayButton.classList.add('selected-team');
+            awayButton.textContent = "Picked";
+        }
+        awayRow.appendChild(awayButton);
         fixtureElement.appendChild(awayRow);
 
          // Bottom Details (Status only, if needed)
@@ -330,6 +411,7 @@ function displayFixtures(fixtures, currentTime) {
         }
         if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
 
+        // Append the fully constructed fixture card to the list
         fixtureListDiv.appendChild(fixtureElement);
     });
 }
