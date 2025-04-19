@@ -1,36 +1,37 @@
-/* style.css - Yellow Pastel / 3-Column Layout (Complete) */
+/* style.css - Midnight Shadows Dark Theme */
 
-/* --- Yellow/Amber Pastel Color Palette --- */
+/* --- Midnight Shadows Palette --- */
 :root {
-    /* Yellows & Ambers */
-    --primary-color: #FFF59D; /* Pale Yellow - Used for active calendar/slicer */
-    --primary-color-dark: #FFEE58; /* Brighter Yellow - Used for main action buttons */
-    --primary-color-text: #424242; /* Darker grey text for contrast on pale yellow */
-    --accent-color: #FFD54F; /* Amber/Gold - Used for selected fixture button */
-    --accent-color-darker: #FFC107; /* Darker Amber/Gold */
-    --accent-color-text: #212121; /* Black text for contrast on amber */
+    /* Dark Blues & Greys */
+    --background-color: #1a1a2e; /* Very dark blue/purple */
+    --card-background-color: #16213e; /* Very dark blue */
+    --primary-color: #0f3460; /* Dark saturated blue */
+    --primary-color-dark: #144a8c; /* Slightly lighter blue for hover */
+    --primary-color-light-hover: rgba(249, 249, 249, 0.08); /* Subtle light hover */
 
-    /* Neutrals */
-    --text-primary-color: #212121; /* Dark Grey/Black for main text */
-    --text-secondary-color: #757575; /* Medium Grey for secondary text */
-    --background-color: #fdfdfd; /* Very light off-white background */
-    --card-background-color: #ffffff; /* White for cards/sections */
-    --divider-color: #eeeeee; /* Lighter grey dividers */
-    --error-text-color: #E53935; /* Red for errors */
+    /* Accent Red */
+    --accent-color: #e94560; /* Vibrant Red */
+    --accent-color-darker: #d73c53; /* Darker red for hover */
+    --accent-color-text: #ffffff; /* White text on red */
 
-    /* Fixture Backgrounds */
-    --pastel-color-1: #FFFDE7; /* Very Pale Yellow */
-    --pastel-color-2: #FAFAFA; /* Off White/Very Light Grey */
+    /* Text & Dividers */
+    --text-primary-color: #f9f9f9; /* Off-white */
+    --text-secondary-color: rgba(249, 249, 249, 0.7); /* Dimmer off-white */
+    --divider-color: rgba(249, 249, 249, 0.12); /* Subtle light divider */
+    --error-text-color: #ff8a80; /* Light red for errors */
+
+    /* Fixture Backgrounds (Dark Alternating) */
+    --pastel-color-1: #1b2a4a; /* Dark blue shade 1 */
+    --pastel-color-2: #1d2d4f; /* Dark blue shade 2 */
 
     /* Button States */
-    --button-text-color: var(--text-primary-color); /* Dark text on yellow buttons by default */
-    --button-hover-bg: rgba(0, 0, 0, 0.04);
-    --disabled-bg-color: rgba(0, 0, 0, 0.08);
-    --disabled-text-color: rgba(0, 0, 0, 0.26);
+    --button-text-color: var(--text-primary-color); /* Light text on dark blue buttons */
+    --disabled-bg-color: rgba(249, 249, 249, 0.12);
+    --disabled-text-color: rgba(249, 249, 249, 0.3);
 
-    /* Elevation/Shadows (Subtle) */
-    --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --elevation-2: 0 3px 6px 0 rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    /* Elevation/Shadows (Subtle for Dark) */
+    --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 1px 0 rgba(0, 0, 0, 0.14);
+    --elevation-2: 0 2px 4px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.14);
 }
 
 /* --- Global Styles --- */
@@ -52,11 +53,7 @@ header {
     text-align: center;
     border-bottom: 1px solid var(--divider-color);
 }
-header h1 {
-    font-weight: 500;
-    font-size: 1.5rem;
-    margin: 0;
-}
+header h1 { font-weight: 500; font-size: 1.5rem; margin: 0; }
 
 /* --- Main Content Area --- */
 main { max-width: 900px; margin: 2rem auto; padding: 1rem; }
@@ -66,98 +63,75 @@ section {
     border-radius: 6px;
     box-shadow: var(--elevation-1);
     margin-bottom: 1.5rem;
-    border: 1px solid var(--divider-color);
+    border: 1px solid var(--divider-color); /* Keep subtle border */
 }
-section h2 { /* Styling for remaining H2s */
-    font-size: 1.5rem;
-    font-weight: 500;
-    color: var(--text-primary-color);
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--divider-color);
-    margin-top: 0;
+section h2 { /* For remaining H2s */
+    font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color);
+    margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0;
 }
 
 /* --- Calendar Navigation --- */
 #calendar-nav {
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    border: 1px solid var(--divider-color);
-    background-color: transparent;
-    box-shadow: none;
+    padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--divider-color);
+    background-color: transparent; box-shadow: none;
 }
 .calendar-container { display: flex; justify-content: space-around; gap: 8px; padding: 0; margin-bottom: 0; flex-wrap: wrap; }
 .calendar-day-container { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 75px; }
 
 /* Calendar Button Style */
 .calendar-container button {
-    width: 100%; padding: 8px 5px; border: 1px solid transparent;
-    background: linear-gradient(145deg, #ffffff, #f9f9f9);
-    color: var(--text-secondary-color);
-    cursor: pointer; border-radius: 4px;
-    text-align: center; font-size: 0.8rem; line-height: 1.3; font-weight: 500; margin-bottom: 4px;
-    transition: all 0.2s ease-out;
-    box-shadow: inset 0 -1px 1px rgba(0,0,0,0.05), 0 1px 1px rgba(0,0,0,0.05);
+    width: 100%; padding: 8px 5px; border: 1px solid var(--divider-color);
+    background-color: transparent; color: var(--text-secondary-color);
+    cursor: pointer; border-radius: 4px; text-align: center; font-size: 0.8rem; line-height: 1.3; font-weight: 500; margin-bottom: 4px; transition: all 0.2s ease-out;
 }
 .calendar-container button b { font-weight: 700; color: var(--text-primary-color); }
 .calendar-container button:hover {
-    border-color: var(--divider-color);
+    background-color: var(--primary-color-light-hover);
+    border-color: var(--text-primary-color);
     color: var(--text-primary-color);
-    transform: translateY(-1px);
-    box-shadow: inset 0 -1px 1px rgba(0,0,0,0.05), 0 2px 3px rgba(0,0,0,0.1);
 }
-/* Active Calendar Button Style */
+/* Active Calendar Button Style (Uses Red Accent) */
 .calendar-container button.active {
-    background: var(--primary-color); /* Pale Yellow */
-    color: var(--primary-color-text); /* Darker text on yellow */
-    font-weight: 700;
-    border-color: #FFECB3; /* Lighter yellow border */
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
-    transform: translateY(0);
+    background-color: var(--accent-color); /* Red Accent */
+    color: var(--accent-color-text); /* White text */
+    font-weight: 700; border-color: var(--accent-color); box-shadow: var(--elevation-1);
 }
-.calendar-container button:disabled { color: var(--disabled-text-color); background: var(--disabled-bg-color); cursor: not-allowed; opacity: 0.7; box-shadow: none; transform: none; border-color: transparent; }
+.calendar-container button:disabled { color: var(--disabled-text-color); background: transparent; cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
 .day-pick-status { font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; height: 3em; line-height: 1.4; overflow: hidden; padding: 0 2px; }
-.day-pick-status b { color: var(--text-primary-color); }
+.day-pick-status b { color: var(--text-primary-color); } /* White bold text */
 
 
 /* --- Daily League Slicer Area --- */
-#available-fixtures .slicer-area {
-    padding: 1rem 0;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--divider-color);
-    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
-}
+#available-fixtures .slicer-area { padding: 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 #available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
 .slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
 button.league-slicer {
     padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent;
     color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none;
 }
-button.league-slicer:hover { background-color: var(--button-hover-bg); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
+button.league-slicer:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
 /* Active League Slicer Style */
-button.league-slicer.active { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--primary-color-text); font-weight: 700; }
+button.league-slicer.active {
+    background-color: var(--primary-color); /* Dark Blue */
+    border-color: var(--primary-color);
+    color: var(--button-text-color); /* White text */
+    font-weight: 700;
+}
 
 
 /* --- Fixture List & Cards --- */
-#available-fixtures {
-    padding-top: 0; border: none; box-shadow: none; background: none; padding: 0; margin-bottom: 1.5rem;
-}
-
-#fixture-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Three columns */
-    gap: 0.8rem;
-    margin-top: 0;
-}
-
+#available-fixtures { padding-top: 0; border: none; box-shadow: none; background: none; padding: 0; margin-bottom: 1.5rem; }
+#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; }
 .fixture {
     border-radius: 6px; padding: 0.6rem 0.8rem; box-shadow: var(--elevation-1);
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    color: var(--text-primary-color); border: 1px solid var(--divider-color); display: flex; flex-direction: column;
+    color: var(--text-primary-color); border: 1px solid var(--divider-color);
+    display: flex; flex-direction: column;
 }
-.fixture:nth-child(odd) { background-color: var(--pastel-color-1); } /* Very Pale Yellow */
-.fixture:nth-child(even) { background-color: var(--pastel-color-2); } /* Off White */
-.fixture:hover { background-color: #f5f5f5; border-color: #ddd; transform: translateY(-2px); box-shadow: var(--elevation-2); }
+/* Dark alternating backgrounds */
+.fixture:nth-child(odd) { background-color: var(--pastel-color-1); }
+.fixture:nth-child(even) { background-color: var(--pastel-color-2); }
+.fixture:hover { background-color: #3a415a; /* Slightly lighter dark blue */ border-color: #4a5578; transform: translateY(-2px); box-shadow: var(--elevation-2); }
 /* Top Details */
 .fixture-details-top { text-align: left; font-size: 0.7rem; color: var(--text-secondary-color); margin-bottom: 0.4rem; border-bottom: 1px dashed var(--divider-color); padding-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Team Row */
@@ -166,15 +140,23 @@ button.league-slicer.active { background-color: var(--primary-color); border-col
 .team-score { font-weight: 700; font-size: 0.9rem; color: var(--text-primary-color); min-width: 20px; text-align: center; flex-shrink: 0; margin-left: 0.5rem; }
 .team-odd { flex-basis: 45px; flex-shrink: 0; text-align: right; font-weight: 500; font-size: 0.85rem; color: var(--text-secondary-color); }
 /* Pick button */
-.pick-button { flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer; background-color: var(--primary-color-dark); color: var(--button-text-color); text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; }
-.pick-button:hover:not(:disabled) { background-color: #FDD835; box-shadow: var(--elevation-2); }
+.pick-button {
+    flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer;
+    background-color: var(--primary-color); /* Use the dark blue */
+    color: var(--button-text-color); /* White text */
+    text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4;
+}
+.pick-button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
 .pick-button:disabled { background-color: var(--disabled-bg-color); color: var(--disabled-text-color); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+/* Selected Pick Button Style (Red Accent) */
 .pick-button.selected-team { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; }
 .pick-button.selected-team:hover { background-color: var(--accent-color-darker); }
 /* Bottom Details */
 .fixture-details-bottom { font-size: 0.75rem; color: var(--text-secondary-color); margin-top: 0.3rem; text-align: left; padding-top: 0.3rem; border-top: 1px dashed var(--divider-color); }
 .fixture-details-bottom em { color: var(--text-primary-color); font-style: normal; font-weight: 500; }
 .fixture-details-bottom span[style*="color:red"] { color: var(--error-text-color) !important; font-style: italic; }
+
 
 /* --- Scoring History --- */
 #scoring-history {} /* Inherits section styles */
@@ -186,9 +168,7 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    /* Switch to single column */
-    #fixture-list { grid-template-columns: 1fr; }
-    /* Keep other 768px styles */
+    #fixture-list { grid-template-columns: 1fr; } /* Single column */
     main { padding: 0.5rem; margin: 1rem auto; }
     section { padding: 1rem; }
     section h2 { font-size: 1.3rem; }
@@ -202,15 +182,15 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
     #available-fixtures .slicer-area label { margin-bottom: 0.5rem; }
 }
 @media (max-width: 480px) {
-    body { font-size: 15px; }
-    header h1 { font-size: 1.2rem; }
-    section h2 { font-size: 1.2rem; }
-    .calendar-day-container { min-width: 55px; }
-    .day-pick-status { height: 4em; }
-    .team-name { font-size: 0.85rem; }
-    .team-score { font-size: 0.85rem; min-width: 15px;}
-    .team-odd { flex-basis: 40px; font-size: 0.8rem; }
-    .pick-button { padding: 3px 8px; font-size: 0.65rem; }
-    .fixture-details-top { font-size: 0.65rem;}
-    .fixture-details-bottom { font-size: 0.7rem; }
+     body { font-size: 15px; }
+     header h1 { font-size: 1.2rem; }
+     section h2 { font-size: 1.2rem; }
+     .calendar-day-container { min-width: 55px; }
+     .day-pick-status { height: 4em; }
+     .team-name { font-size: 0.85rem; }
+     .team-score { font-size: 0.85rem; min-width: 15px;}
+     .team-odd { flex-basis: 40px; font-size: 0.8rem; }
+     .pick-button { padding: 3px 8px; font-size: 0.65rem; }
+     .fixture-details-top { font-size: 0.65rem;}
+     .fixture-details-bottom { font-size: 0.7rem; }
 }
