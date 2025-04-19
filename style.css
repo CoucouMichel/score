@@ -1,85 +1,134 @@
-/* style.css - Attempt to fit calendar on mobile by shrinking */
+/* style.css - Final Version: Midnight Shadows, 3-Col, Aligned Header Logo */
 
-/* --- :root Palette (Keep as before - Midnight Shadows / Yellow Accent) --- */
+/* --- Midnight Shadows Palette --- */
 :root {
-    --background-color: #1a1a2e; --card-background-color: #16213e;
-    --primary-color: #0f3460; --primary-color-dark: #144a8c;
-    --primary-color-light-hover: rgba(249, 249, 249, 0.08);
-    --accent-color: #e94560; --accent-color-darker: #d73c53; --accent-color-text: #ffffff;
-    --text-primary-color: #f9f9f9; --text-secondary-color: rgba(249, 249, 249, 0.7);
-    --divider-color: rgba(249, 249, 249, 0.12); --error-text-color: #ff8a80;
-    --pastel-color-1: #1b2a4a; --pastel-color-2: #1d2d4f;
-    --button-text-color: var(--text-primary-color);
-    --disabled-bg-color: rgba(249, 249, 249, 0.12); --disabled-text-color: rgba(249, 249, 249, 0.3);
+    /* Dark Blues & Greys */
+    --background-color: #1a1a2e; /* Very dark blue/purple */
+    --card-background-color: #16213e; /* Very dark blue */
+    --primary-color: #0f3460; /* Dark saturated blue */
+    --primary-color-dark: #144a8c; /* Slightly lighter blue for hover */
+    --primary-color-light-hover: rgba(249, 249, 249, 0.08); /* Subtle light hover */
+    /* Accent Red */
+    --accent-color: #e94560; /* Vibrant Red */
+    --accent-color-darker: #d73c53; /* Darker red for hover */
+    --accent-color-text: #ffffff; /* White text on red */
+    /* Text & Dividers */
+    --text-primary-color: #f9f9f9; /* Off-white */
+    --text-secondary-color: rgba(249, 249, 249, 0.7); /* Dimmer off-white */
+    --divider-color: rgba(249, 249, 249, 0.12); /* Subtle light divider */
+    --error-text-color: #ff8a80; /* Light red for errors */
+    /* Fixture Backgrounds (Dark Alternating) */
+    --pastel-color-1: #1b2a4a; /* Dark blue shade 1 */
+    --pastel-color-2: #1d2d4f; /* Dark blue shade 2 */
+    /* Button States */
+    --button-text-color: var(--text-primary-color); /* Light text on dark blue buttons */
+    --disabled-bg-color: rgba(249, 249, 249, 0.12);
+    --disabled-text-color: rgba(249, 249, 249, 0.3);
+    /* Elevation/Shadows (Subtle for Dark) */
     --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 1px 0 rgba(0, 0, 0, 0.14);
     --elevation-2: 0 2px 4px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.14);
 }
 
-/* --- Global, Header, Main, Section, H2 (Keep as before) --- */
+/* --- Global Styles --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Roboto', sans-serif; line-height: 1.6; background-color: var(--background-color); color: var(--text-primary-color); font-size: 16px; }
-/* style.css */
 
+/* --- Header --- */
 header {
     background-color: var(--card-background-color);
-    color: var(--text-primary-color);
-    padding: 0.5rem 1rem; /* Keep padding */
+    padding: 0.5rem 0; /* Vertical padding only */
     box-shadow: var(--elevation-2);
-    /* text-align: center; */ /* No longer needed */
     border-bottom: 1px solid var(--divider-color);
+    min-height: 60px; /* Ensure consistent height */
+}
+/* Wrapper to constrain header content */
+.header-content {
+    max-width: 1100px; /* Match max-width of main */
+    margin: 0 auto; /* Center the content wrapper */
+    padding: 0 1rem; /* Horizontal padding matching main */
     display: flex;
-    /* MODIFIED: Align items (logo) to the start (left) */
-    justify-content: flex-start;
     align-items: center;
-    min-height: 60px;
+    justify-content: flex-start; /* Align logo left */
+    min-height: calc(60px - 1rem); /* Ensure inner content fills height */
 }
-
-/* Keep the #logo-image rule as it was */
+/* Logo style */
 #logo-image {
-    height: 40px;
+    height: 40px; /* Adjust as needed */
     width: auto;
-    /* display: block; */ /* Should be okay to remove this if header is flex */
 }
 
-/* Keep the rest of your CSS */
-main { max-width: 900px; margin: 2rem auto; padding: 1rem; }
-section { background-color: var(--card-background-color); padding: 1.5rem; border-radius: 6px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; border: 1px solid var(--divider-color); }
-section h2 { font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0; }
+/* --- Main Content Area --- */
+main {
+    max-width: 1100px; /* Matches header content width */
+    margin: 2rem auto;
+    padding: 0 1rem; /* Horizontal padding */
+}
+
+/* --- Sections within Main --- */
+section {
+    background-color: var(--card-background-color);
+    /* MODIFIED: Remove horizontal padding, keep vertical */
+    padding: 1.5rem 0;
+    border-radius: 6px;
+    box-shadow: var(--elevation-1);
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--divider-color);
+}
+/* Specific section adjustments */
+#calendar-nav {
+    padding: 0.75rem 0; /* Remove horizontal padding */
+    border: none;
+    box-shadow: none;
+    background: none;
+     margin-bottom: 1.5rem;
+}
+#available-fixtures {
+    padding: 0; /* Remove all padding */
+    border: none;
+    box-shadow: none;
+    background: none;
+     margin-bottom: 1.5rem;
+}
+#scoring-history {
+     padding: 1.5rem 0; /* Remove horizontal padding */
+}
+
+/* Adjust H2 padding since section padding changed */
+section h2 {
+     padding-left: 1rem; /* Add padding matching main container */
+     padding-right: 1rem;
+     font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color);
+     margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0;
+}
+/* Remove padding from h2 inside #available-fixtures as padding is handled by inner elements */
+#available-fixtures h2 {
+    padding-left: 0;
+    padding-right: 0;
+    /* Remove bottom border/padding if slicers provide separation */
+    /* border-bottom: none; */
+    /* padding-bottom: 0; */
+    /* margin-bottom: 0; */
+}
 
 /* --- Calendar Navigation --- */
-#calendar-nav { padding: 0.5rem 0rem; border-radius: 6px; background-color: transparent; box-shadow: none; margin-bottom: 1.5rem; border: none; }
-.calendar-container {
-    display: flex; justify-content: flex-start; gap: 6px; /* Slightly smaller gap */
-    padding: 0; margin-bottom: 0;
-    flex-wrap: nowrap; /* Keep on one line */
-    /* overflow-x: auto; */ /* REMOVED - attempt to fit by shrinking */
-}
-/* REMOVED scrollbar styling */
-
-button.calendar-day {
-    flex-grow: 1; /* Allow buttons to expand on desktop */
-    flex-shrink: 1; /* Allow buttons to shrink on mobile */
-    flex-basis: 0; /* Start from zero basis for even shrinking/growing */
-    min-width: 70px; /* Absolute minimum width */
-    width: auto;
-    display: flex; flex-direction: column; align-items: center; justify-content: space-around;
-    padding: 0.5rem 0.1rem; /* Reduced padding */
-    border: 1px solid var(--divider-color); background-color: var(--card-background-color);
-    color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center;
-    transition: all 0.2s ease-out; font-weight: 500;
-}
+.calendar-container { display: flex; justify-content: flex-start; gap: 8px; padding: 0 2px 4px 2px; margin-bottom: 0; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--text-secondary-color) transparent; }
+.calendar-container::-webkit-scrollbar { height: 4px; }
+.calendar-container::-webkit-scrollbar-track { background: transparent; }
+.calendar-container::-webkit-scrollbar-thumb { background-color: var(--text-secondary-color); border-radius: 2px; }
+/* Calendar Button */
+button.calendar-day { flex-grow: 1; min-width: 85px; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.6rem 0.25rem; border: 1px solid var(--divider-color); background-color: var(--card-background-color); color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center; transition: all 0.2s ease-out; font-weight: 500; }
 button.calendar-day:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-primary-color); color: var(--text-primary-color); }
 button.calendar-day.active { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; border-color: var(--accent-color-darker); box-shadow: var(--elevation-1); }
 button.calendar-day.active span { color: var(--accent-color-text) !important; opacity: 0.95; }
 button.calendar-day.active b { color: var(--accent-color-text) !important; opacity: 1.0; }
 button.calendar-day:disabled { color: var(--disabled-text-color); background-color: var(--card-background-color); cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
-
-.cal-line { display: block; width: 100%; text-align: center; line-height: 1.3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 2px; }
-.cal-line-1 { font-size: 0.7rem; font-weight: 700; color: var(--text-primary-color); text-transform: uppercase; margin-bottom: 1px; }
+/* Calendar Lines */
+.cal-line { display: block; width: 100%; text-align: center; line-height: 1.35; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 2px; }
+.cal-line-1 { font-size: 0.75rem; font-weight: 700; color: var(--text-primary-color); text-transform: uppercase; margin-bottom: 3px; }
 .cal-line-1 b {}
-.cal-line-2 { font-size: 0.65rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.1em; margin-bottom: 1px; }
+.cal-line-2 { font-size: 0.7rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; margin-bottom: 3px; }
 .cal-line-2 b { color: var(--text-primary-color); font-weight: 700; }
-.cal-line-3 { font-size: 0.6rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.1em; }
+.cal-line-3 { font-size: 0.65rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; }
 .cal-line-3 b { color: var(--text-primary-color); font-weight: 700; }
 button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !important; }
 .cal-line-3 span[style*="color:var(--error-text-color)"] { color: var(--error-text-color) !important; font-style: italic; }
@@ -91,36 +140,40 @@ button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !impo
 .slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
 button.league-slicer { padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent; color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none; display: inline-flex; align-items: center;}
 button.league-slicer:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
-button.league-slicer.active { background-color: var(--primary-color); /* Dark Blue */ border-color: var(--primary-color); color: var(--button-text-color); /* White text */ font-weight: 700; }
+button.league-slicer.active { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--button-text-color); font-weight: 700; }
 
 /* Styling for flag images */
 .inline-flag { width: 20px; height: auto; vertical-align: middle; margin-right: 0.5em; display: inline-block; }
 
 
 /* --- Fixture List & Cards --- */
-#available-fixtures { padding-top: 0; border: none; box-shadow: none; background: none; padding: 0; margin-bottom: 1.5rem; }
-#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; }
+#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; padding: 0; /* No padding needed here */ }
 .fixture { border-radius: 6px; padding: 0.6rem 0.8rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; color: var(--text-primary-color); border: 1px solid var(--divider-color); display: flex; flex-direction: column; }
 .fixture:nth-child(odd) { background-color: var(--pastel-color-1); }
 .fixture:nth-child(even) { background-color: var(--pastel-color-2); }
 .fixture:hover { background-color: #3a415a; border-color: #4a5578; transform: translateY(-2px); box-shadow: var(--elevation-2); }
+/* Top Details */
 .fixture-details-top { text-align: left; font-size: 0.7rem; color: var(--text-secondary-color); margin-bottom: 0.4rem; border-bottom: 1px dashed var(--divider-color); padding-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
+/* Team Row */
 .team-row { display: flex; align-items: center; padding: 0.2rem 0; gap: 0.5rem; }
 .team-name { flex-grow: 1; margin-right: auto; font-weight: 500; font-size: 0.85rem; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .team-score { font-weight: 700; font-size: 0.8rem; min-width: 22px; text-align: center; flex-shrink: 0; margin-left: 0.5rem; padding: 1px 5px; border-radius: 4px; line-height: 1.4; display: inline-block; background-color: transparent; color: transparent; visibility: hidden; transition: background-color 0.2s ease, color 0.2s ease, visibility 0s ease 0.2s; }
-.team-score.has-score { background-color: var(--accent-color); color: var(--accent-color-text); visibility: visible; } /* Red background for score */
+.team-score.has-score { background-color: var(--accent-color); /* Red score box */ color: var(--accent-color-text); visibility: visible; }
 .team-odd { flex-basis: 45px; flex-shrink: 0; text-align: right; font-weight: 500; font-size: 0.85rem; color: var(--text-secondary-color); }
+/* Pick button */
 .pick-button { flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer; background-color: var(--primary-color); color: var(--button-text-color); text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; }
 .pick-button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
 .pick-button:disabled { background-color: var(--disabled-bg-color); color: var(--disabled-text-color); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
 .pick-button.selected-team { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; }
 .pick-button.selected-team:hover { background-color: var(--accent-color-darker); }
+/* Bottom Details */
 .fixture-details-bottom { font-size: 0.75rem; color: var(--text-secondary-color); margin-top: 0.3rem; text-align: left; padding-top: 0.3rem; border-top: 1px dashed var(--divider-color); min-height: 1.2em; }
 .fixture-details-bottom em { color: var(--text-primary-color); font-style: normal; font-weight: 500; }
 .fixture-details-bottom span[style*="color:red"] { color: var(--error-text-color) !important; font-style: italic; }
 
+
 /* --- Scoring History --- */
-#scoring-history {}
+#scoring-history {} /* Inherits section styles */
 #score-list { list-style: none; padding: 0; }
 #score-list li { background-color: var(--pastel-color-1); margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem; color: var(--text-primary-color); border: 1px solid var(--divider-color); }
 
@@ -129,36 +182,29 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    main { max-width: 95%; }
     #fixture-list { grid-template-columns: 1fr; }
-    section { padding: 1rem; }
-    section h2 { font-size: 1.3rem; }
-    header { padding: 0.8rem 1rem; }
+    main { max-width: 95%; padding: 0 0.5rem; /* Adjust mobile padding */ margin: 1rem auto; }
+    section { padding: 1rem 0.5rem; /* Adjust mobile section padding */ }
+    section h2 { padding-left: 0.5rem; padding-right: 0.5rem; font-size: 1.3rem;} /* Adjust mobile h2 padding */
+    header { padding: 0.8rem 0.5rem; } /* Adjust mobile header padding */
     header h1 { font-size: 1.3rem; }
-    /* Calendar mobile adjustments */
-    .calendar-container { gap: 4px; } /* Reduce gap */
-    button.calendar-day { min-width: 65px; padding: 0.4rem 0.1rem;} /* Further reduce min-width and padding */
-    .cal-line-1 { font-size: 0.65rem; margin-bottom: 1px; }
-    .cal-line-2 { font-size: 0.6rem; min-height: 1.1em; margin-bottom: 1px;}
-    .cal-line-3 { font-size: 0.6rem; min-height: 1.1em; }
-    /* Keep other 768px styles */
-    #available-fixtures .slicer-area { flex-direction: column; align-items: flex-start; }
+    .header-content { padding: 0 0.5rem; } /* Match mobile main padding */
+    .calendar-day-container { min-width: 75px; }
+    button.calendar-day { min-width: 75px; }
+    .calendar-container button { font-size: 0.8rem; }
+    .day-pick-status { font-size: 0.7rem; height: 3.5em; }
+    #available-fixtures .slicer-area { flex-direction: column; align-items: flex-start; padding-left: 0.5rem; padding-right: 0.5rem; /* Add padding back for mobile */ }
     #available-fixtures .slicer-area label { margin-bottom: 0.5rem; }
 }
 @media (max-width: 480px) {
-     body { font-size: 14px; }
+     body { font-size: 15px; }
      header h1 { font-size: 1.2rem; }
-     section h2 { font-size: 1.1rem; }
-     /* Even more calendar shrinking */
-     .calendar-container { gap: 3px; }
-     button.calendar-day { min-width: 55px; } /* Smallest practical min-width */
-     .cal-line-1 { font-size: 0.6rem; }
-     .cal-line-2 { font-size: 0.55rem; }
-     .cal-line-3 { font-size: 0.55rem; }
-     .day-pick-status { /* Already covered by .cal-line styles */ }
-     /* Keep other 480px styles */
-     .team-name { font-size: 0.8rem; }
-     .team-score { font-size: 0.8rem; min-width: 15px;}
+     section h2 { font-size: 1.2rem; }
+     .calendar-day-container { min-width: 70px; }
+     button.calendar-day { min-width: 70px; }
+     .day-pick-status { height: 4em; }
+     .team-name { font-size: 0.85rem; }
+     .team-score { font-size: 0.85rem; min-width: 15px;}
      .team-odd { flex-basis: 35px; font-size: 0.75rem; }
      .pick-button { padding: 2px 6px; font-size: 0.6rem; }
      .fixture-details-top { font-size: 0.6rem;}
