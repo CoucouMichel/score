@@ -147,27 +147,30 @@ const scoreListUl = document.getElementById('score-list');
 // --- Core Functions ---
 
 /**
- * Generates the weekly calendar navigation buttons, including pick status below each day.
+ * Generates the weekly calendar navigation buttons (Yesterday, Today, +3 Days),
+ * including pick status below each day (without "Picked:").
  */
 function generateCalendar() {
     weekViewContainer.innerHTML = ''; // Clear previous calendar
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    for (let i = -3; i <= 3; i++) {
+    // MODIFIED LOOP: Show 5 days: Yesterday (i=-1) to Day+3 (i=3)
+    for (let i = -1; i <= 3; i++) {
         const date = new Date(today.getTime() + i * oneDay);
         const dateStr = getDateString(date);
 
-        // Create a container for the button and its status
+        // Create container for button + status
         const dayContainer = document.createElement('div');
         dayContainer.classList.add('calendar-day-container');
 
-        // Create the day button
+        // Create day button
         const button = document.createElement('button');
         let buttonText = `${dayNames[date.getDay()]}<br>${date.getDate()}`;
+        // Adjust special labels for the new range
         if (i === 0) buttonText = `<b>Today</b><br>${date.getDate()}`;
         else if (i === -1) buttonText = `Yesterday<br>${date.getDate()}`;
-        else if (i === 1) buttonText = `Tomorrow<br>${date.getDate()}`;
+        // No "Tomorrow" label needed if i=1 isn't special anymore
         button.innerHTML = buttonText;
         button.dataset.date = dateStr;
         if (getDateString(selectedDate) === dateStr) {
@@ -177,14 +180,13 @@ function generateCalendar() {
         // --- Calendar Day Click Handler ---
         button.addEventListener('click', () => {
             selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            selectedLeagueFilter = 'ALL'; // Reset league filter when changing day
-            generateCalendar();         // Re-render calendar (updates highlights & statuses)
-            populateDailyLeagueSlicers(); // Re-populate slicers for the NEW day
-            updateDisplayedFixtures();    // Update fixture list for the new day (with 'ALL' leagues)
-            // No need to call updateSelectionStatus separately anymore
+            selectedLeagueFilter = 'ALL'; // Reset league filter
+            generateCalendar();         // Re-render calendar
+            populateDailyLeagueSlicers(); // Re-populate slicers
+            updateDisplayedFixtures();    // Update fixture list
         });
 
-        // Create the pick status display element
+        // Create pick status display element
         const statusDiv = document.createElement('div');
         statusDiv.classList.add('day-pick-status');
         const selection = userSelections[dateStr];
@@ -193,15 +195,17 @@ function generateCalendar() {
         if (selection) {
             const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
             if (fixture) {
-                statusText = `Picked: <b>${selection.teamName}</b>`;
+                // MODIFIED: Removed "Picked:" prefix
+                statusText = `<b>${selection.teamName}</b>`;
                 if (fixture.status === 'FINISHED' && fixture.result) {
                     const score = calculateScore(selection, fixture);
+                    // Append score/status on new line for clarity if needed by CSS height
                     statusText += (score !== null) ? `<br>Score: <b>${score.toFixed(2)}</b>` : `<br>Score pending`;
                 } else if (fixture.status !== 'SCHEDULED') {
                     statusText += `<br>(${fixture.status})`;
                 }
             } else {
-                statusText = "Pick Error"; // Indicates data inconsistency
+                statusText = "Pick Error";
             }
         }
         statusDiv.innerHTML = statusText;
