@@ -1,10 +1,10 @@
-// admin.js - Fetches from API-Football and saves to Firestore
+// admin.js - Fetches single dates from API-Football and saves to Firestore
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getFirestore, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 // --- Configuration ---
-// Paste the SAME firebaseConfig object you use in script.js
+// !! IMPORTANT: Paste the SAME firebaseConfig object you use in script.js !!
 const firebaseConfig = {
     apiKey: "AIzaSyAi_qvjnZlDo6r0Nu14JPs1XAvu_bRQmoM", // Use YOUR actual key
     authDomain: "oddscore-5ed5e.firebaseapp.com",    // Use YOUR domain
@@ -14,7 +14,8 @@ const firebaseConfig = {
     appId: "1:582289870654:web:bb025764a8d37f697f266f",  // Use YOUR App ID
     measurementId: "G-HCKHYJ0HZD"                  // Optional
 };
-const apiFootballKey = "059a4068b815413430d82f026d549d2f"; // <<< YOUR API-FOOTBALL KEY
+// !! IMPORTANT: Paste YOUR API-Football Key !!
+const apiFootballKey = "059a4068b815413430d82f026d549d2f";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -27,154 +28,225 @@ const fetchSingleButton = document.getElementById('fetch-single-button');
 const singleDateInput = document.getElementById('single-date-input');
 const statusDiv = document.getElementById('status');
 
-// Set default date for single fetch input
-const today = new Date();
-const yyyy = today.getFullYear();
-const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-const dd = String(today.getDate()).padStart(2, '0');
-singleDateInput.value = `${yyyy}-${mm}-${dd}`;
-
-
 // --- Helper: getDateString ---
 function getDateString(date) {
+    if (!(date instanceof Date) || isNaN(date)) return null;
     const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     return adjustedDate.toISOString().split('T')[0];
 }
 
-// --- API Fetch Function (Slightly modified for date range) ---
-async function fetchApiFootballRange(fromDateStr, toDateStr) {
-    console.log(`Workspaceing from API-Football for ${fromDateStr} to ${toDateStr}...`);
-const currentSeason = 2024; // Or adjust if needed for the API
-const url = `https://v3.football.api-sports.io/fixtures?from=<span class="math-inline">\{fromDateStr\}&to\=</span>{toDateStr}&season=${currentSeason}`;
-    // Add &season=YYYY if needed
+// Set default date for single fetch input
+const todayForInput = new Date();
+const yyyy = todayForInput.getFullYear();
+const mm = String(todayForInput.getMonth() + 1).padStart(2, '0');
+const dd = String(todayForInput.getDate()).padStart(2, '0');
+if(singleDateInput) singleDateInput.value = `${yyyy}-${mm}-${dd}`;
+
+
+// --- API Fetch Function (Fetches SINGLE date) ---
+/**
+ * Fetches fixtures for a specific date from API-Football.
+ * @param {string} dateStr - The date in 'YYYY-MM-DD' format.
+ * @returns {Promise<Array|null>} Array of mapped fixtures or null on fetch error.
+ */
+async function fetchApiFootballDate(dateStr) {
+    if (!dateStr) return null;
+    console.log(`Workspaceing from API-Football for single date: ${dateStr}...`);
+    // Use the 'date' parameter, remove 'from', 'to', 'season'
+    const url = `https://v3.football.api-sports.io/fixtures?date=${dateStr}`;
+
     try {
         const response = await fetch(url, { method: 'GET', headers: { 'x-apisports-key': apiFootballKey }});
-        if (!response.ok) { /* ... Error handling ... */ throw new Error(`API Request Failed: ${response.status}`); }
-        const apiResult = await response.json();
-        console.log(`Raw API Response for ${fromDateStr} to ${toDateStr}:`, apiResult); // Log the actual data received
-        if (!apiResult || !Array.isArray(apiResult.response) || apiResult.results === 0) {
-             console.log(`No fixtures found for ${fromDateStr} to ${toDateStr}.`); return [];
+
+        // Log remaining requests if header exists
+        const requestsRemaining = response.headers.get('x-requests-remaining');
+        if (requestsRemaining) console.log(`API Requests Remaining: ${requestsRemaining}`);
+
+        if (!response.ok) {
+             const errorData = await response.json().catch(() => ({}));
+             console.error(`API-Football Error for date ${dateStr}:`, errorData);
+             let errorMsg = `API Request Failed! Status: ${response.status}`;
+             if (errorData?.message) { errorMsg += ` - ${errorData.message}`; }
+             else if (errorData?.errors && typeof errorData.errors === 'object' && Object.keys(errorData.errors).length > 0) { errorMsg += ` Details: ${JSON.stringify(errorData.errors)}`; }
+             else if (Array.isArray(errorData?.errors) && errorData.errors.length > 0) { errorMsg += ` Details: ${errorData.errors.join(', ')}`; }
+             // Check for the specific season/plan error from before
+             if (errorMsg.toLowerCase().includes("plan") || errorMsg.toLowerCase().includes("season")) {
+                 errorMsg += " (Free plan might restrict access to this date/season?)";
+             }
+             throw new Error(errorMsg);
         }
-        // Use the SAME mapping function (you might want to put this in a shared file later)
+
+        const apiResult = await response.json();
+        // console.log(`Raw API Response for ${dateStr}:`, apiResult); // Keep commented unless debugging specific date
+
+        if (!apiResult || !Array.isArray(apiResult.response) || apiResult.results === 0) {
+             console.log(`No fixtures found for ${dateStr} from API.`);
+             return []; // Return empty array for no results
+        }
+        // Map the results
         const mappedFixtures = mapApiFootballToFixtures(apiResult.response);
         return mappedFixtures;
+
     } catch (error) {
-        console.error("Error fetching API-Football data:", error);
-        statusDiv.textContent = `Error fetching: ${error.message}`;
-        statusDiv.className = 'error';
+        console.error(`Error fetching API-Football data for ${dateStr}:`, error);
+        if (statusDiv) { // Update status only if element exists
+             statusDiv.textContent = `Error fetching ${dateStr}: ${error.message}`;
+             statusDiv.className = 'error';
+        }
         return null; // Indicate failure
     }
 }
 
-// --- Mapping Function (Copy from script.js or shared file) ---
+// --- Mapping Function (Includes League Filter) ---
+// League IDs to include (Update as needed)
 const DESIRED_LEAGUE_IDS = [ 39, 140, 135, 78, 61, 2, 3 ]; // EPL, LaLiga, SerieA, Bund, L1, UCL, UEL
+
 function mapApiFootballToFixtures(apiFixtures) {
-    // *** PASTE THE mapApiFootballToFixtures function code from script.js here ***
-    // Make sure it includes the DESIRED_LEAGUE_IDS filter and odds placeholders/logic
-     if (!Array.isArray(apiFixtures)) return [];
-     return apiFixtures.map(item => { /* ... mapping logic ... */ }).filter(f => f !== null);
+    // console.log("Mapping API fixtures:", apiFixtures); // Uncomment for deep debug
+    if (!Array.isArray(apiFixtures)) return [];
+    return apiFixtures.map(item => {
+        try {
+            const fixture = item.fixture;
+            const league = item.league;
+            const teams = item.teams;
+            const goals = item.goals;
+
+            // Filter by desired league ID
+            if (!league || !DESIRED_LEAGUE_IDS.includes(league.id)) { return null; }
+
+            // Basic validation
+            if (!fixture?.id || !league?.name || !teams?.home?.id || !teams?.home?.name || !teams?.away?.id || !teams?.away?.name || !fixture?.date) {
+                 console.warn("Skipping fixture due to missing core data:", item); return null;
+            }
+
+            // Status Mapping
+            let internalStatus = 'SCHEDULED';
+            const statusShort = fixture?.status?.short;
+            if (['FT', 'AET', 'PEN'].includes(statusShort)) internalStatus = 'FINISHED';
+            else if (['HT', '1H', '2H', 'ET', 'BT', 'P', 'INT', 'LIVE'].includes(statusShort)) internalStatus = 'LIVE';
+            else if (['PST', 'SUSP', 'CANC', 'ABD', 'AWD', 'WO'].includes(statusShort)) internalStatus = fixture.status.long || 'UNKNOWN';
+            else if (statusShort === 'TBD' || statusShort === 'NS') internalStatus = 'SCHEDULED';
+
+            // Odds Placeholder (Replace with actual extraction if available)
+            let homeWin = 2.00, draw = 3.00, awayWin = 4.00;
+            // TODO: Add logic here to parse item.bookmakers or item.odds if present
+
+            return {
+                fixtureId: String(fixture.id), competition: league.name, country: league.country,
+                kickOffTime: fixture.date, status: internalStatus,
+                homeTeam: { id: String(teams.home.id), name: teams.home.name },
+                awayTeam: { id: String(teams.away.id), name: teams.away.name },
+                odds: { homeWin, draw, awayWin },
+                result: internalStatus === 'FINISHED' ? { homeScore: goals.home, awayScore: goals.away } : null
+            };
+        } catch(mapError){ console.error("Error mapping API fixture:", mapError, "Item:", item); return null; }
+    }).filter(fixture => fixture !== null);
 }
 
 // --- Firestore Saving Function ---
 async function saveFixturesToFirestore(fixturesData) {
     if (!fixturesData || fixturesData.length === 0) {
-        statusDiv.textContent = "No valid fixtures found to save.";
-        statusDiv.className = '';
-        return;
+        statusDiv.textContent = "No valid fixtures found to save."; statusDiv.className = ''; return;
     }
-    statusDiv.textContent = "Processing fixtures...";
-    statusDiv.className = '';
-
-    // Group fixtures by date
+    statusDiv.textContent = "Processing fixtures..."; statusDiv.className = '';
     const fixturesByDate = {};
-    fixturesData.forEach(fixture => {
-        try {
-            const dateStr = getDateString(new Date(fixture.kickOffTime));
-            if (!fixturesByDate[dateStr]) {
-                fixturesByDate[dateStr] = [];
-            }
-            fixturesByDate[dateStr].push(fixture);
-        } catch (e) {
-            console.error("Error processing kickoff time for fixture:", fixture, e);
-        }
-    });
-
+    fixturesData.forEach(fixture => { try { const d = getDateString(new Date(fixture.kickOffTime)); if(!d) return; if (!fixturesByDate[d]) fixturesByDate[d] = []; fixturesByDate[d].push(fixture); } catch (e) { console.error(e); }});
     console.log("Fixtures grouped by date:", fixturesByDate);
     statusDiv.textContent = `Saving fixtures for ${Object.keys(fixturesByDate).length} dates...`;
-
-    // Use WriteBatch for potentially many updates
-    const batch = writeBatch(db);
-    let operations = 0;
-
+    const batch = writeBatch(db); let operations = 0;
     for (const dateStr in fixturesByDate) {
-        const docRef = doc(db, "fixturesByDate", dateStr); // Document ID = YYYY-MM-DD
-        // Store the array of fixtures for that date
-        // Using setDoc will OVERWRITE existing data for that date
-        batch.set(docRef, { fixtures: fixturesByDate[dateStr] });
+        const docRef = doc(db, "fixturesByDate", dateStr);
+        batch.set(docRef, { fixtures: fixturesByDate[dateStr], fetchedAt: new Date().toISOString() }, { merge: true }); // Use merge option
         operations++;
-        // Firestore batch limit is 500 operations
-        if (operations >= 490) { // Commit batch early if near limit
-             console.log("Committing partial batch...");
-             await batch.commit();
-             batch = writeBatch(db); // Start new batch
-             operations = 0;
-             statusDiv.textContent = `Saving... (batch ${operations}...)`;
-        }
+        if (operations >= 490) { console.log("Committing partial batch..."); await batch.commit(); batch = writeBatch(db); operations = 0; statusDiv.textContent = `Saving... (batch ${operations}...)`; }
     }
-
     try {
-        await batch.commit(); // Commit any remaining operations
-        console.log("Firestore successfully updated!");
-        statusDiv.textContent = `Successfully saved fixtures for ${Object.keys(fixturesByDate).length} dates.`;
-        statusDiv.className = 'success';
+        await batch.commit(); console.log("Firestore successfully updated!");
+        statusDiv.textContent = `Successfully saved/merged fixtures for ${Object.keys(fixturesByDate).length} dates.`; statusDiv.className = 'success';
     } catch (error) {
         console.error("Error writing batch to Firestore: ", error);
-        statusDiv.textContent = `Error saving to Firestore: ${error.message}`;
-        statusDiv.className = 'error';
+        statusDiv.textContent = `Error saving to Firestore: ${error.message}`; statusDiv.className = 'error';
     }
 }
 
 
 // --- Event Listeners ---
-fetchButton.addEventListener('click', async () => {
-    statusDiv.textContent = "Fetching next 14 days...";
-    statusDiv.className = '';
-    fetchButton.disabled = true;
-    fetchSingleButton.disabled = true;
+if (fetchButton) {
+    fetchButton.addEventListener('click', async () => {
+        statusDiv.textContent = "Fetching next 14 days (1 call per day)...";
+        statusDiv.className = '';
+        fetchButton.disabled = true; fetchSingleButton.disabled = true;
 
-    const today = new Date();
-    const fromDateStr = getDateString(today);
-    const toDate = new Date(today);
-    toDate.setDate(today.getDate() + 14);
-    const toDateStr = getDateString(toDate);
+        const today = new Date(); // Use actual today
+        const allFetchedFixtures = [];
+        let fetchErrors = 0;
+        const promises = [];
 
-    const fixtures = await fetchApiFootballRange(fromDateStr, toDateStr);
-    if (fixtures) { // Check if fetch succeeded (returned array, not null)
-        await saveFixturesToFirestore(fixtures);
-    }
+        // Create fetch promises for the next 14 days
+        for (let i = 0; i < 14; i++) {
+            const targetDate = new Date(today);
+            targetDate.setDate(today.getDate() + i);
+            const dateStr = getDateString(targetDate);
+            if (dateStr) { // Ensure date string is valid
+                 promises.push(fetchApiFootballDate(dateStr)); // Call single-date fetch
+            }
+        }
 
-    fetchButton.disabled = false;
-    fetchSingleButton.disabled = false;
-});
+        // Execute all promises
+        const results = await Promise.allSettled(promises); // Use allSettled to get all results/errors
 
-fetchSingleButton.addEventListener('click', async () => {
-    const dateToFetch = singleDateInput.value;
-    if (!dateToFetch) {
-        statusDiv.textContent = "Please select a date.";
-        statusDiv.className = 'error';
-        return;
-    }
-    statusDiv.textContent = `Workspaceing single date: ${dateToFetch}...`;
-    statusDiv.className = '';
-    fetchButton.disabled = true;
-    fetchSingleButton.disabled = true;
+        // Process results
+        results.forEach((result, index) => {
+             const dayNum = index + 1;
+             if (result.status === 'fulfilled' && result.value !== null) {
+                 console.log(`Day ${dayNum} fetch successful.`);
+                 if (Array.isArray(result.value)) {
+                     allFetchedFixtures.push(...result.value);
+                 }
+             } else {
+                 fetchErrors++;
+                 console.error(`Day ${dayNum} fetch failed:`, result.reason || "Unknown error");
+             }
+        });
 
-    // Fetch only one day (from=date, to=date)
-    const fixtures = await fetchApiFootballRange(dateToFetch, dateToFetch);
-     if (fixtures) { // Check if fetch succeeded
-        await saveFixturesToFirestore(fixtures); // Save just this day's fixtures
-    }
 
-    fetchButton.disabled = false;
-    fetchSingleButton.disabled = false;
-});
+        statusDiv.textContent = `Finished fetching ${14 - fetchErrors}/14 days. Found ${allFetchedFixtures.length} total valid fixtures.`;
+
+        if (allFetchedFixtures.length > 0) {
+            await saveFixturesToFirestore(allFetchedFixtures); // Save combined results
+        } else {
+            statusDiv.textContent += " Nothing to save.";
+            statusDiv.className = fetchErrors > 0 ? 'error' : '';
+        }
+
+        fetchButton.disabled = false; fetchSingleButton.disabled = false;
+    });
+} else {
+    console.error("Fetch 14 Days Button not found!");
+}
+
+if (fetchSingleButton) {
+    fetchSingleButton.addEventListener('click', async () => {
+        const dateToFetch = singleDateInput.value;
+        if (!dateToFetch) { statusDiv.textContent = "Please select a date."; statusDiv.className = 'error'; return; }
+        statusDiv.textContent = `Workspaceing single date: ${dateToFetch}...`; statusDiv.className = '';
+        fetchButton.disabled = true; fetchSingleButton.disabled = true;
+
+        const fixtures = await fetchApiFootballDate(dateToFetch); // Use new single-date fetch
+         if (fixtures) { // Check if fetch didn't return null (error)
+            await saveFixturesToFirestore(fixtures); // Save just this day's fixtures
+        } else {
+             statusDiv.textContent = `Workspace failed for ${dateToFetch}. Check console.`; statusDiv.className = 'error';
+        }
+
+        fetchButton.disabled = false; fetchSingleButton.disabled = false;
+    });
+} else {
+     console.error("Fetch Single Date Button not found!");
+}
+
+// Initial check
+if (!fetchButton || !fetchSingleButton || !singleDateInput || !statusDiv) {
+    console.error("One or more admin page elements are missing!");
+    if(statusDiv) statusDiv.textContent = "Error: Page elements missing.";
+}
