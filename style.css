@@ -1,4 +1,4 @@
-/* style.css - Midnight Shadows Dark Theme / 3-Column */
+/* style.css - Final Version with Non-Wrapping Calendar */
 
 /* --- Midnight Shadows Palette --- */
 :root {
@@ -8,27 +8,22 @@
     --primary-color: #0f3460; /* Dark saturated blue */
     --primary-color-dark: #144a8c; /* Slightly lighter blue for hover */
     --primary-color-light-hover: rgba(249, 249, 249, 0.08); /* Subtle light hover */
-
     /* Accent Red */
     --accent-color: #e94560; /* Vibrant Red */
     --accent-color-darker: #d73c53; /* Darker red for hover */
     --accent-color-text: #ffffff; /* White text on red */
-
     /* Text & Dividers */
     --text-primary-color: #f9f9f9; /* Off-white */
     --text-secondary-color: rgba(249, 249, 249, 0.7); /* Dimmer off-white */
     --divider-color: rgba(249, 249, 249, 0.12); /* Subtle light divider */
     --error-text-color: #ff8a80; /* Light red for errors */
-
     /* Fixture Backgrounds (Dark Alternating) */
     --pastel-color-1: #1b2a4a; /* Dark blue shade 1 */
     --pastel-color-2: #1d2d4f; /* Dark blue shade 2 */
-
     /* Button States */
     --button-text-color: var(--text-primary-color); /* Light text on dark blue buttons */
     --disabled-bg-color: rgba(249, 249, 249, 0.12);
     --disabled-text-color: rgba(249, 249, 249, 0.3);
-
     /* Elevation/Shadows (Subtle for Dark) */
     --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 1px 0 rgba(0, 0, 0, 0.14);
     --elevation-2: 0 2px 4px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.14);
@@ -36,66 +31,60 @@
 
 /* --- Global Styles --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    font-family: 'Roboto', sans-serif;
-    line-height: 1.6;
-    background-color: var(--background-color);
-    color: var(--text-primary-color);
-    font-size: 16px;
-}
+body { font-family: 'Roboto', sans-serif; line-height: 1.6; background-color: var(--background-color); color: var(--text-primary-color); font-size: 16px; }
 
 /* --- Header --- */
-header {
-    background-color: var(--card-background-color);
-    color: var(--text-primary-color);
-    padding: 1rem 1rem;
-    box-shadow: var(--elevation-2);
-    text-align: center;
-    border-bottom: 1px solid var(--divider-color);
-}
+header { background-color: var(--card-background-color); color: var(--text-primary-color); padding: 1rem 1rem; box-shadow: var(--elevation-2); text-align: center; border-bottom: 1px solid var(--divider-color); }
 header h1 { font-weight: 500; font-size: 1.5rem; margin: 0; }
 
 /* --- Main Content Area --- */
-main { max-width: 1000px; /* Increased width for 3 columns */ margin: 2rem auto; padding: 1rem; }
-section {
-    background-color: var(--card-background-color);
-    padding: 1.5rem;
-    border-radius: 6px;
-    box-shadow: var(--elevation-1);
-    margin-bottom: 1.5rem;
-}
-section h2 { /* For remaining H2s */
-    font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color);
-    margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0;
-}
+main { max-width: 1100px; margin: 2rem auto; padding: 1rem; }
+section { background-color: var(--card-background-color); padding: 1.5rem; border-radius: 6px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; border: 1px solid var(--divider-color); }
+section h2 { font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0; }
 
+/* --- Calendar Navigation --- */
 #calendar-nav {
-    padding: 0.5rem; /* Less padding around the ribbon */
+    padding: 0.5rem 1rem;
     border-radius: 6px;
+    /* border removed */
     background-color: transparent;
     box-shadow: none;
-    margin-bottom: 1.5rem; /* Keep space below */
+    margin-bottom: 1.5rem;
 }
-
 .calendar-container {
     display: flex;
-    justify-content: space-around;
-    gap: 6px;
-    padding: 0;
+    justify-content: flex-start; /* Align days left */
+    gap: 8px;
+    padding: 0 2px 4px 2px; /* Padding for scrollbar */
     margin-bottom: 0;
-    flex-wrap: nowrap;
-    overflow-x: auto; /* Allow horizontal scroll on small screens if needed */
+    flex-wrap: nowrap; /* Prevent wrapping */
+    overflow-x: auto; /* Allow horizontal scroll */
+    -webkit-overflow-scrolling: touch; /* Momentum scrolling iOS */
+    scrollbar-width: thin; /* Firefox scrollbar */
+    scrollbar-color: var(--text-secondary-color) transparent; /* Firefox scrollbar color */
+}
+/* Optional: Webkit scrollbar styling */
+.calendar-container::-webkit-scrollbar { height: 4px; }
+.calendar-container::-webkit-scrollbar-track { background: transparent; }
+.calendar-container::-webkit-scrollbar-thumb { background-color: var(--text-secondary-color); border-radius: 2px; }
+
+.calendar-day-container { /* Wrapper if still needed, can be removed */
+    /* display: flex; */ /* Handled by button now */
+    /* flex-direction: column; */
+    /* align-items: center; */
+    /* min-width: 85px; */ /* Defined on button */
 }
 
-/* Style for the clickable day button */
+/* Calendar Button Style */
 button.calendar-day {
-    flex: 1;
-    min-width: 85px; /* Adjust min width */
+    /* flex: 1; */ /* REMOVED */
+    min-width: 85px; /* Set explicit min-width */
+    width: auto; /* Allow natural width based on content/padding */
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-around; /* Adjust spacing */
-    padding: 0.5rem 0.25rem; /* Adjust padding */
+    justify-content: space-around;
+    padding: 0.6rem 0.25rem;
     border: 1px solid var(--divider-color);
     background-color: var(--card-background-color);
     color: var(--text-secondary-color);
@@ -104,216 +93,69 @@ button.calendar-day {
     text-align: center;
     transition: all 0.2s ease-out;
     font-weight: 500;
+    flex-shrink: 0; /* Prevent button from shrinking too much */
 }
+button.calendar-day:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-primary-color); color: var(--text-primary-color); }
+/* Active Calendar Button Style (Uses Red Accent) */
+button.calendar-day.active { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; border-color: var(--accent-color-darker); box-shadow: var(--elevation-1); }
+button.calendar-day.active span { color: var(--accent-color-text) !important; opacity: 0.95; }
+button.calendar-day.active b { color: var(--accent-color-text) !important; opacity: 1.0; }
+button.calendar-day:disabled { color: var(--disabled-text-color); background-color: var(--card-background-color); cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
 
-button.calendar-day:hover {
-    background-color: var(--primary-color-light-hover);
-    border-color: var(--text-primary-color);
-    color: var(--text-primary-color);
-}
-
-/* Style for the ACTIVE day button (using red accent) */
-button.calendar-day.active {
-    background-color: var(--accent-color);
-    color: var(--accent-color-text);
-    font-weight: 700;
-    border-color: var(--accent-color-darker);
-    box-shadow: var(--elevation-1);
-}
-button.calendar-day.active span { /* Ensure text inside active is light */
-    color: var(--accent-color-text) !important;
-    opacity: 0.95; /* Slightly reduce opacity for non-bold */
-}
-button.calendar-day.active b { /* Ensure bold text inside active is light */
-    color: var(--accent-color-text) !important;
-    opacity: 1.0;
-}
-
-
-/* Styling for individual lines within the button (Now 3 lines) */
-.cal-line {
-    display: block;
-    width: 100%;
-    text-align: center;
-    line-height: 1.35; /* Adjust line height */
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    padding: 0 2px; /* Add slight horizontal padding */
-}
-
-.cal-line-1 { /* Combined Day + Date */
-    font-size: 0.75rem; /* Smaller day/date text */
-    font-weight: 700;
-    color: var(--text-primary-color);
-    text-transform: uppercase;
-    margin-bottom: 2px; /* Space below */
-}
-.cal-line-1 b { /* Style for "Today" part */
-    /* Inherits bold */
-}
-
-.cal-line-2 { /* Pick Status */
-    font-size: 0.7rem; /* Smaller pick status */
-    font-weight: 400;
-    color: var(--text-secondary-color);
-    min-height: 1.2em; /* Reserve space */
-     margin-bottom: 2px; /* Space below */
-}
-.cal-line-2 b { /* Team name */
-     color: var(--text-primary-color);
-     font-weight: 700;
-}
-
-.cal-line-3 { /* Odd / Score / Status */
-    font-size: 0.65rem; /* Even smaller */
-    font-weight: 400;
-    color: var(--text-secondary-color);
-    min-height: 1.2em; /* Reserve space */
-}
-.cal-line-3 b { /* Score */
-     color: var(--text-primary-color); /* White score text */
-     font-weight: 700;
-}
+/* Styling for individual lines within the button */
+.cal-line { display: block; width: 100%; text-align: center; line-height: 1.35; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 2px; }
+.cal-line-1 { font-size: 0.75rem; font-weight: 700; color: var(--text-primary-color); text-transform: uppercase; margin-bottom: 3px; }
+.cal-line-1 b { /* Style for "Today" part */ }
+.cal-line-2 { font-size: 0.7rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; margin-bottom: 3px; }
+.cal-line-2 b { color: var(--text-primary-color); font-weight: 700; }
+.cal-line-3 { font-size: 0.65rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; }
+.cal-line-3 b { color: var(--text-primary-color); font-weight: 700; } /* Score color */
 /* Active state score color */
-button.calendar-day.active .cal-line-3 b {
-    color: var(--accent-color-text) !important; /* Light score text on red */
-}
- /* Style for non-scheduled status */
-.cal-line-3 span[style*="color:var(--error-text-color)"] {
-    color: var(--error-text-color) !important;
-    font-style: italic;
-}
-
-
-/* Ensure active styles override correctly */
-button.calendar-day.active .cal-line {
-     color: var(--accent-color-text) !important; /* Override line colors */
-     opacity: 0.9; /* Slightly reduce opacity for non-bold lines */
-}
-button.calendar-day.active .cal-line b {
-    color: var(--accent-color-text) !important; /* Ensure bold text is also light */
-    opacity: 1.0;
-}
-button.calendar-day.active .cal-line-2 { /* Make date number stand out more */
-     opacity: 1.0;
-     font-weight: 700;
-}
+button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !important; }
+/* Style for non-scheduled status */
+.cal-line-3 span[style*="color:var(--error-text-color)"] { color: var(--error-text-color) !important; font-style: italic; }
 
 
 /* --- Daily League Slicer Area --- */
 #available-fixtures .slicer-area { padding: 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 #available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
 .slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
-button.league-slicer {
-    padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent;
-    color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none;
-}
+button.league-slicer { padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent; color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none; display: inline-flex; align-items: center;}
 button.league-slicer:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
 /* Active League Slicer Style */
-button.league-slicer.active {
-    background-color: var(--primary-color); /* Dark Blue */
-    border-color: var(--primary-color);
-    color: var(--button-text-color); /* White text */
-    font-weight: 700;
-}
+button.league-slicer.active { background-color: var(--primary-color); /* Dark Blue */ border-color: var(--primary-color); color: var(--button-text-color); /* White text */ font-weight: 700; }
+
+/* Styling for flag images */
+.inline-flag { width: 20px; height: auto; vertical-align: middle; margin-right: 0.5em; display: inline-block; }
 
 
 /* --- Fixture List & Cards --- */
 #available-fixtures { padding-top: 0; border: none; box-shadow: none; background: none; padding: 0; margin-bottom: 1.5rem; }
-#fixture-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Three columns */
-    gap: 0.8rem;
-    margin-top: 0;
-}
-.fixture {
-    border-radius: 6px; padding: 0.6rem 0.8rem; box-shadow: var(--elevation-1);
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    color: var(--text-primary-color); border: 1px solid var(--divider-color);
-    display: flex; flex-direction: column;
-}
-/* Dark alternating backgrounds */
+#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; }
+.fixture { border-radius: 6px; padding: 0.6rem 0.8rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; color: var(--text-primary-color); border: 1px solid var(--divider-color); display: flex; flex-direction: column; }
 .fixture:nth-child(odd) { background-color: var(--pastel-color-1); }
 .fixture:nth-child(even) { background-color: var(--pastel-color-2); }
 .fixture:hover { background-color: #3a415a; border-color: #4a5578; transform: translateY(-2px); box-shadow: var(--elevation-2); }
 /* Top Details */
-.fixture-details-top { text-align: left; font-size: 0.7rem; color: var(--text-secondary-color); margin-bottom: 0.4rem; border-bottom: 1px dashed var(--divider-color); padding-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fixture-details-top { text-align: left; font-size: 0.7rem; color: var(--text-secondary-color); margin-bottom: 0.4rem; border-bottom: 1px dashed var(--divider-color); padding-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
 /* Team Row */
-/* Row for Team / Score / Odd / Button */
-.team-row {
-    display: flex;
-    align-items: center;
-    padding: 0.2rem 0;
-    gap: 0.5rem;
-}
-
-.team-name {
-    flex-grow: 1;
-    margin-right: auto;
-    font-weight: 500;
-    /* MODIFIED: Smaller font size */
-    font-size: 0.85rem;
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Base style for the score span (invisible by default) */
-.team-score {
-    font-weight: 700;
-    font-size: 0.8rem; /* Smaller score font */
-    min-width: 22px;   /* Minimum width to maintain alignment */
-    text-align: center;
-    flex-shrink: 0;
-    margin-left: 0.5rem;
-    padding: 1px 5px;  /* Base padding */
-    border-radius: 4px; /* Rounded corners */
-    line-height: 1.4;
-    display: inline-block;
-    background-color: transparent; /* No background by default */
-    color: transparent; /* Hide empty space visually */
-    visibility: hidden; /* Hide element if empty */
-    transition: background-color 0.2s ease, color 0.2s ease, visibility 0s ease 0.2s; /* Smooth transition */
-}
-
-/* NEW: Style applied only when score exists (JS adds 'has-score' class) */
-.team-score.has-score {
-    background-color: var(--primary-color); /* Pale Yellow background */
-    color: var(--primary-color-text); /* Dark text for contrast */
-    visibility: visible; /* Make it visible */
-}
-
-
-.team-odd { /* Keep as is */
-    flex-basis: 45px;
-    flex-shrink: 0;
-    text-align: right;
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: var(--text-secondary-color);
-}
-
-.pick-button { /* Keep as is */
-    flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer;
-    background-color: var(--primary-color-dark); color: var(--button-text-color);
-    text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1);
-    transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4;
-}
-/* Keep .pick-button hover, disabled, selected-team styles */
-.pick-button:hover:not(:disabled) { background-color: #FDD835; box-shadow: var(--elevation-2); }
+.team-row { display: flex; align-items: center; padding: 0.2rem 0; gap: 0.5rem; }
+.team-name { flex-grow: 1; margin-right: auto; font-weight: 500; font-size: 0.9rem; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team-score { font-weight: 700; font-size: 0.9rem; color: var(--text-primary-color); min-width: 20px; text-align: center; flex-shrink: 0; margin-left: 0.5rem; }
+.team-odd { flex-basis: 45px; flex-shrink: 0; text-align: right; font-weight: 500; font-size: 0.85rem; color: var(--text-secondary-color); }
+/* Pick button */
+.pick-button { flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer; background-color: var(--primary-color); color: var(--button-text-color); text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; }
+.pick-button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
 .pick-button:disabled { background-color: var(--disabled-bg-color); color: var(--disabled-text-color); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
 .pick-button.selected-team { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; }
 .pick-button.selected-team:hover { background-color: var(--accent-color-darker); }
 /* Bottom Details */
-.fixture-details-bottom { font-size: 0.75rem; color: var(--text-secondary-color); margin-top: 0.3rem; text-align: left; padding-top: 0.3rem; border-top: 1px dashed var(--divider-color); min-height: 1.2em; /* Reserve space */ }
+.fixture-details-bottom { font-size: 0.75rem; color: var(--text-secondary-color); margin-top: 0.3rem; text-align: left; padding-top: 0.3rem; border-top: 1px dashed var(--divider-color); min-height: 1.2em; }
 .fixture-details-bottom em { color: var(--text-primary-color); font-style: normal; font-weight: 500; }
 .fixture-details-bottom span[style*="color:red"] { color: var(--error-text-color) !important; font-style: italic; }
 
-
 /* --- Scoring History --- */
-#scoring-history {} /* Inherits section styles */
+#scoring-history {}
 #score-list { list-style: none; padding: 0; }
 #score-list li { background-color: var(--pastel-color-1); margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem; color: var(--text-primary-color); border: 1px solid var(--divider-color); }
 
@@ -322,15 +164,15 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    /* Switch to single column */
     #fixture-list { grid-template-columns: 1fr; }
-    main { padding: 0.5rem; margin: 1rem auto; max-width: 95%; } /* Adjust max-width */
+    main { padding: 0.5rem; margin: 1rem auto; max-width: 95%; }
     section { padding: 1rem; }
     section h2 { font-size: 1.3rem; }
     header { padding: 0.8rem 1rem; }
     header h1 { font-size: 1.3rem; }
-    .calendar-container { flex-wrap: wrap; }
-    .calendar-day-container { min-width: 65px; }
+    .calendar-container { /* Allow wrapping again on mobile if needed, or keep scroll */ /* flex-wrap: wrap; */ }
+    .calendar-day-container { min-width: 75px; } /* Adjust min-width for mobile scroll */
+    button.calendar-day { min-width: 75px; } /* Match container */
     .calendar-container button { font-size: 0.8rem; }
     .day-pick-status { font-size: 0.7rem; height: 3.5em; }
     #available-fixtures .slicer-area { flex-direction: column; align-items: flex-start; }
@@ -340,7 +182,8 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
      body { font-size: 15px; }
      header h1 { font-size: 1.2rem; }
      section h2 { font-size: 1.2rem; }
-     .calendar-day-container { min-width: 55px; }
+     .calendar-day-container { min-width: 70px; } /* Further adjust */
+     button.calendar-day { min-width: 70px; }
      .day-pick-status { height: 4em; }
      .team-name { font-size: 0.85rem; }
      .team-score { font-size: 0.85rem; min-width: 15px;}
