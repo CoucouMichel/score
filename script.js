@@ -1,21 +1,16 @@
-// script.js - Consolidated Version
+// script.js - Consolidated Version 3
 
-// Set a fixed "now" for consistent testing relative to fake data dates
-// Using April 19, 2025 as our reference "today"
+// --- Constants and Helpers (Keep as before) ---
 const now = new Date("2025-04-19T12:00:00Z");
 const oneHour = 60 * 60 * 1000;
 const oneDay = 24 * oneHour;
-
-// Helper function to get date string in YYYY-MM-DD format (local time)
 function getDateString(date) {
-    // Adjust for timezone offset to get the correct local date string
     const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     return adjustedDate.toISOString().split('T')[0];
 }
 
-
-// --- FAKE GAME DATA (EXPANDED) ---
-const fakeFixtures = [
+// --- Fake Data (Keep expanded version as before) ---
+const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
     // --- Thursday, Apr 17, 2025 (2 days ago) ---
     {
         fixtureId: 301, competition: "Europa League", country: "UEFA", kickOffTime: new Date(now.getTime() - 2 * oneDay + 17 * oneHour).toISOString(), status: 'FINISHED',
@@ -134,88 +129,121 @@ const fakeFixtures = [
     },
 ];
 
-
 // --- State Variables ---
-// Initialize selectedDate to the start of "today" based on the 'now' variable
 let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-// let selectedCountry = 'ALL'; // REMOVED Country state
-let selectedLeagueFilter = 'ALL'; // For league slicers
-let userSelections = {}; // Stores user picks, keyed by date string "YYYY-MM-DD"
-let scoreHistory = {}; // Could be used later for persisting scores
-
+let selectedLeagueFilter = 'ALL'; // Only league filter remains
+let userSelections = {};
+let scoreHistory = {};
 
 // --- DOM Element References ---
 const weekViewContainer = document.getElementById('week-view');
 const fixtureListDiv = document.getElementById('fixture-list');
-// const countryFilterSelect = document.getElementById('country-filter'); // REMOVED Country dropdown reference
-const leagueSlicerContainer = document.getElementById('league-slicer-container');
-const selectedDateDisplay = document.getElementById('selected-date-display');
-const selectionStatusP = document.getElementById('selection-status');
+const leagueSlicerContainer = document.getElementById('league-slicer-container'); // Container for slicers inside #available-fixtures
 const fixtureListTitle = document.getElementById('fixture-list-title');
 const scoreListUl = document.getElementById('score-list');
+// REMOVED refs for #current-day-info, #selection-status, #filters
 
 
 // --- Core Functions ---
 
 /**
- * Generates the weekly calendar navigation buttons.
+ * Generates the weekly calendar navigation buttons, including pick status below each day.
  */
 function generateCalendar() {
     weekViewContainer.innerHTML = ''; // Clear previous calendar
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    // Display 7 days: 3 past, today, 3 future relative to 'now'
     for (let i = -3; i <= 3; i++) {
         const date = new Date(today.getTime() + i * oneDay);
         const dateStr = getDateString(date);
 
+        // Create a container for the button and its status
+        const dayContainer = document.createElement('div');
+        dayContainer.classList.add('calendar-day-container');
+
+        // Create the day button
         const button = document.createElement('button');
         let buttonText = `${dayNames[date.getDay()]}<br>${date.getDate()}`;
-
         if (i === 0) buttonText = `<b>Today</b><br>${date.getDate()}`;
         else if (i === -1) buttonText = `Yesterday<br>${date.getDate()}`;
         else if (i === 1) buttonText = `Tomorrow<br>${date.getDate()}`;
-
         button.innerHTML = buttonText;
         button.dataset.date = dateStr;
-
         if (getDateString(selectedDate) === dateStr) {
             button.classList.add('active');
         }
 
+        // --- Calendar Day Click Handler ---
         button.addEventListener('click', () => {
             selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            generateCalendar();
-            updateSelectedDateDisplay();
-            updateDisplayedFixtures();
-            updateSelectionStatus();
+            selectedLeagueFilter = 'ALL'; // Reset league filter when changing day
+            generateCalendar();         // Re-render calendar (updates highlights & statuses)
+            populateDailyLeagueSlicers(); // Re-populate slicers for the NEW day
+            updateDisplayedFixtures();    // Update fixture list for the new day (with 'ALL' leagues)
+            // No need to call updateSelectionStatus separately anymore
         });
 
-        weekViewContainer.appendChild(button);
+        // Create the pick status display element
+        const statusDiv = document.createElement('div');
+        statusDiv.classList.add('day-pick-status');
+        const selection = userSelections[dateStr];
+        let statusText = "No Pick"; // Default
+
+        if (selection) {
+            const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
+            if (fixture) {
+                statusText = `Picked: <b>${selection.teamName}</b>`;
+                if (fixture.status === 'FINISHED' && fixture.result) {
+                    const score = calculateScore(selection, fixture);
+                    statusText += (score !== null) ? `<br>Score: <b>${score.toFixed(2)}</b>` : `<br>Score pending`;
+                } else if (fixture.status !== 'SCHEDULED') {
+                    statusText += `<br>(${fixture.status})`;
+                }
+            } else {
+                statusText = "Pick Error"; // Indicates data inconsistency
+            }
+        }
+        statusDiv.innerHTML = statusText;
+
+        // Append button and status to their container
+        dayContainer.appendChild(button);
+        dayContainer.appendChild(statusDiv);
+
+        // Append the day container to the main calendar view
+        weekViewContainer.appendChild(dayContainer);
     }
 }
 
 /**
- * Populates the league slicer buttons. (Country filter removed)
+ * Populates the league slicer buttons based on leagues available
+ * ONLY for the currently selected day.
  */
-function populateFilters() {
-    const leagues = new Set();
-    fakeFixtures.forEach(fixture => leagues.add(fixture.competition));
+function populateDailyLeagueSlicers() {
+    const selectedDateStr = getDateString(selectedDate);
+    const leaguesToday = new Set();
+
+    // Filter fixtures for the selected day first
+    fakeFixtures.forEach(fixture => {
+        if (getDateString(new Date(fixture.kickOffTime)) === selectedDateStr) {
+            leaguesToday.add(fixture.competition);
+        }
+    });
 
     leagueSlicerContainer.innerHTML = ''; // Clear previous slicers
 
-    // Create "All Leagues" slicer
+    // Create "All Leagues" slicer (always present)
     const allButton = document.createElement('button');
     allButton.textContent = 'All Leagues';
     allButton.classList.add('league-slicer');
+    // Check against the current state variable `selectedLeagueFilter`
     if (selectedLeagueFilter === 'ALL') allButton.classList.add('active');
     allButton.dataset.league = 'ALL';
     allButton.addEventListener('click', handleSlicerClick);
     leagueSlicerContainer.appendChild(allButton);
 
-    // Create slicers for each league
-    [...leagues].sort().forEach(league => {
+    // Create slicers for leagues available today
+    [...leaguesToday].sort().forEach(league => {
         const button = document.createElement('button');
         button.textContent = league;
         button.classList.add('league-slicer');
@@ -234,11 +262,13 @@ function handleSlicerClick(event) {
     const clickedButton = event.target;
     selectedLeagueFilter = clickedButton.dataset.league; // Update state
 
-    // Update active class
-    document.querySelectorAll('.league-slicer').forEach(btn => btn.classList.remove('active'));
+    // Update active class on currently displayed slicers
+    document.querySelectorAll('#league-slicer-container .league-slicer').forEach(btn => {
+        btn.classList.remove('active');
+    });
     clickedButton.classList.add('active');
 
-    updateDisplayedFixtures(); // Re-filter
+    updateDisplayedFixtures(); // Re-filter fixture list only
 }
 
 /**
@@ -246,37 +276,29 @@ function handleSlicerClick(event) {
  */
 function updateDisplayedFixtures() {
     const selectedDateStr = getDateString(selectedDate);
-    const realCurrentTime = new Date(); // Actual time for disabling buttons
+    const realCurrentTime = new Date();
 
-    // Filter the master list
     const filteredFixtures = fakeFixtures.filter(fixture => {
         const fixtureDate = new Date(fixture.kickOffTime);
         const fixtureDateStr = getDateString(fixtureDate);
 
-        // Check date and league
         if (fixtureDateStr !== selectedDateStr) return false;
         if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
-        // Country filter removed
 
-        return true; // Passes checks
+        return true;
     });
 
-    // Sort by time
     filteredFixtures.sort((a, b) => new Date(a.kickOffTime) - new Date(b.kickOffTime));
 
-    // Log for debugging (Optional - can be removed)
-    // console.log(`Showing ${filteredFixtures.length} fixtures for ${selectedDateStr} (League: ${selectedLeagueFilter})`, filteredFixtures);
-
-    // Display
-    displayFixtures(filteredFixtures, realCurrentTime);
-    updateFixtureListTitle(selectedDateStr);
-    updateSelectionStatus();
+    displayFixtures(filteredFixtures, realCurrentTime); // Render the list
+    updateFixtureListTitle(selectedDateStr); // Update H2 title above list
+    // Selection status is now part of the calendar, no separate update needed here
 }
 
 /**
- * Renders the list of fixtures onto the page.
+ * Renders the list of fixtures onto the page. (Mostly unchanged)
  * @param {Array} fixtures - Array of fixture objects to display.
- * @param {Date} currentTime - The current time, used to disable buttons for past/ongoing games.
+ * @param {Date} currentTime - The current time, used to disable buttons.
  */
 function displayFixtures(fixtures, currentTime) {
     fixtureListDiv.innerHTML = ''; // Clear previous list
@@ -317,7 +339,6 @@ function displayFixtures(fixtures, currentTime) {
             const dayHasSelection = !!currentDaySelection;
             const isThisFixtureSelected = dayHasSelection && currentDaySelection.fixtureId === fixture.fixtureId;
 
-            // Home Team Button
             const homeButton = document.createElement('button');
             homeButton.textContent = `Pick ${fixture.homeTeam.name}`;
             homeButton.disabled = !canSelect || (dayHasSelection && !isThisFixtureSelected);
@@ -327,7 +348,6 @@ function displayFixtures(fixtures, currentTime) {
                 homeButton.textContent = `Selected: ${fixture.homeTeam.name}`;
             }
 
-            // Away Team Button
             const awayButton = document.createElement('button');
             awayButton.textContent = `Pick ${fixture.awayTeam.name}`;
             awayButton.disabled = !canSelect || (dayHasSelection && !isThisFixtureSelected);
@@ -343,10 +363,11 @@ function displayFixtures(fixtures, currentTime) {
 
         } else if (fixture.status === 'FINISHED') {
              const selectionForThisGameDay = userSelections[getDateString(kickOff)];
+             // Show score on the fixture card ONLY if it was the selected game for its day
              if (selectionForThisGameDay && selectionForThisGameDay.fixtureId === fixture.fixtureId) {
                  const score = calculateScore(selectionForThisGameDay, fixture);
                  const scoreDiv = document.createElement('div');
-                 scoreDiv.innerHTML = `<em style="color: var(--primary-color-dark); margin-top: 8px; display: block;">Your score for this pick: ${score !== null ? score.toFixed(2) + ' points' : 'Score unavailable'}</em>`;
+                 scoreDiv.innerHTML = `<em style="color: var(--primary-color-dark); margin-top: 8px; display: block;">Your day's score: ${score !== null ? score.toFixed(2) + ' points' : 'Score unavailable'}</em>`;
                  fixtureElement.appendChild(scoreDiv);
              }
         }
@@ -355,8 +376,7 @@ function displayFixtures(fixtures, currentTime) {
 }
 
 /**
- * Handles the logic when a user clicks a team selection button.
- * Allows changing picks freely before kickoff for the selected day.
+ * Handles the logic when a user clicks a team selection button. (Unchanged)
  * @param {number} fixtureId - The ID of the fixture.
  * @param {number} teamId - The ID of the selected team.
  * @param {string} teamName - The name of the selected team.
@@ -369,7 +389,7 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     if (!fixture) return;
 
     const kickOff = new Date(fixture.kickOffTime);
-    const realCurrentTime = new Date(); // Use actual current time for checks
+    const realCurrentTime = new Date();
 
     if (kickOff <= realCurrentTime) {
         alert("This match has already started, you cannot select it.");
@@ -378,78 +398,37 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
 
     const existingSelection = userSelections[selectedDateStr];
 
-    // If clicking the same selected team again, DESELECT it.
     if (existingSelection && existingSelection.fixtureId === fixtureId && existingSelection.teamId === teamId) {
-        console.log(`Deselecting team ${teamId} for ${selectedDateStr}`);
-        delete userSelections[selectedDateStr];
-    }
-    // Otherwise, OVERWRITE/SET the selection for the day.
-    else {
-        userSelections[selectedDateStr] = {
-            fixtureId: fixtureId,
-            teamId: teamId,
-            teamName: teamName,
-            selectedWinOdd: teamWinOdd,
-            fixtureDrawOdd: drawOdd,
+        delete userSelections[selectedDateStr]; // Deselect
+    } else {
+        userSelections[selectedDateStr] = { // Select or Overwrite
+            fixtureId: fixtureId, teamId: teamId, teamName: teamName,
+            selectedWinOdd: teamWinOdd, fixtureDrawOdd: drawOdd,
             selectionTime: realCurrentTime.toISOString()
         };
-        console.log(`Selected team ${teamId} (Fixture ${fixtureId}) for ${selectedDateStr}`);
     }
 
     saveUserData();
-    updateDisplayedFixtures();
-    updateSelectionStatus();
+    generateCalendar(); // Re-render calendar to show updated pick status immediately
+    updateDisplayedFixtures(); // Re-render fixture list for button states
+    // updateSelectionStatus(); // REMOVED - Status is in calendar now
 }
 
+
 /**
- * Updates the H2 title above the selection status based on the selected date.
+ * Updates the H2 title above the fixture list. (Renamed)
  */
-function updateSelectedDateDisplay() {
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayStr = getDateString(today);
-    const selectedDateStr = getDateString(selectedDate);
-
-    if (selectedDateStr === todayStr) {
-        selectedDateDisplay.textContent = 'Today';
-    } else {
-        selectedDateDisplay.textContent = selectedDate.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    }
-     fixtureListTitle.textContent = `Matches for ${selectedDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`; // Shorter title for match list
+function updateFixtureListTitle() {
+    // const selectedDateStr = getDateString(selectedDate); // Not needed if just using formatted date
+    fixtureListTitle.textContent = `Matches for ${selectedDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
 
-/**
- * Updates the paragraph indicating the user's selection status and score
- * for the currently viewed day.
- */
-function updateSelectionStatus() {
-    const selectedDateStr = getDateString(selectedDate);
-    const selection = userSelections[selectedDateStr];
+// REMOVED updateSelectedDateDisplay() - Title is gone
+// REMOVED updateSelectionStatus() - Logic moved to generateCalendar()
 
-    if (selection) {
-        const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
-        if (fixture) {
-            const opponent = fixture.homeTeam.id === selection.teamId ? fixture.awayTeam.name : fixture.homeTeam.name;
-            let statusText = `Your pick: <b>${selection.teamName}</b> (vs ${opponent})`;
-
-            if (fixture.status === 'FINISHED' && fixture.result) {
-                const score = calculateScore(selection, fixture);
-                statusText += (score !== null) ? ` - Score: <b>${score.toFixed(2)} pts</b>` : ` - Score pending`;
-            } else if (fixture.status !== 'SCHEDULED') {
-                statusText += ` - (${fixture.status})`;
-            }
-            selectionStatusP.innerHTML = statusText;
-        } else {
-            selectionStatusP.textContent = 'Error: Selected fixture details not found.';
-            delete userSelections[selectedDateStr]; // Clean up bad data
-            saveUserData();
-        }
-    } else {
-        selectionStatusP.textContent = `No pick made for this day.`;
-    }
-}
 
 /**
- * Calculates the score for a finished fixture based on the user's selection.
+ * Calculates the score for a finished fixture based on the user's selection. (Unchanged)
  * @param {object} selection - The user's selection object for that day.
  * @param {object} fixture - The fixture object (must be finished with result).
  * @returns {number | null} The calculated score, or null if score cannot be calculated.
@@ -458,60 +437,41 @@ function calculateScore(selection, fixture) {
     if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result) {
         return null;
     }
-
     let score = 0;
     const selectedTeamIsHome = fixture.homeTeam.id === selection.teamId;
     const selectedTeamScore = selectedTeamIsHome ? fixture.result.homeScore : fixture.result.awayScore;
     const concededScore = selectedTeamIsHome ? fixture.result.awayScore : fixture.result.homeScore;
-
-    // Result points
-    if (selectedTeamScore > concededScore) score += selection.selectedWinOdd * 5; // Win
-    else if (selectedTeamScore === concededScore) score += selection.fixtureDrawOdd * 2; // Draw
-
-    // Goal points
-    score += selectedTeamScore * 3; // Scored
-    score -= concededScore * 1; // Conceded
-
+    if (selectedTeamScore > concededScore) score += selection.selectedWinOdd * 5;
+    else if (selectedTeamScore === concededScore) score += selection.fixtureDrawOdd * 2;
+    score += selectedTeamScore * 3; score -= concededScore * 1;
     return score;
 }
 
 
 /**
- * Loads user selections from localStorage.
+ * Loads user selections from localStorage. (Unchanged)
  */
 function loadUserData() {
     const savedSelections = localStorage.getItem('footballGameSelections');
     if (savedSelections) {
-        try {
-            userSelections = JSON.parse(savedSelections);
-        } catch (e) {
-            console.error("Error parsing saved selections:", e);
-            userSelections = {};
-        }
-    } else {
-        userSelections = {};
-    }
+        try { userSelections = JSON.parse(savedSelections); }
+        catch (e) { console.error("Error parsing saved selections:", e); userSelections = {}; }
+    } else { userSelections = {}; }
 }
 
 /**
- * Saves the current userSelections object to localStorage.
+ * Saves the current userSelections object to localStorage. (Unchanged)
  */
 function saveUserData() {
-    try {
-        localStorage.setItem('footballGameSelections', JSON.stringify(userSelections));
-    } catch (e) {
-        console.error("Error saving selections to localStorage:", e);
-    }
+    try { localStorage.setItem('footballGameSelections', JSON.stringify(userSelections)); }
+    catch (e) { console.error("Error saving selections to localStorage:", e); }
 }
 
 // --- Initialization ---
-// Runs when the page's HTML is fully loaded.
 document.addEventListener('DOMContentLoaded', () => {
-    loadUserData();             // Load saved data first
-    generateCalendar();         // Build calendar UI
-    populateFilters();          // Build league slicer UI
-    updateSelectedDateDisplay(); // Set initial text based on selected date
+    loadUserData();             // Load saved data
+    generateCalendar();         // Build calendar UI (includes pick status)
+    populateDailyLeagueSlicers(); // Build league slicers for the initial day
+    updateFixtureListTitle();  // Set initial title above fixtures
     updateDisplayedFixtures();  // Filter and show initial fixtures
-    updateSelectionStatus();    // Show initial selection status
-    // displayScoreHistory(); // Optional: Implement and call if needed
 });
