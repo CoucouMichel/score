@@ -243,80 +243,223 @@ let showLoginButton, userEmailSpan, logoutButton;
 
 // --- Core Game Functions ---
 
-function generateCalendar() { /* ... Keep function from response #55 ... */ }
+/**
+ * Generates calendar navigation. Displays Day/Date and Picked Team Name only.
+ */
+function generateCalendar() {
+    // Ensure elements are assigned before running (should be handled by DOMContentLoaded)
+    if (!weekViewContainer) { console.error("Calendar container not found"); return; }
 
-// Modify populateDailyLeagueSlicers to accept data
-function populateDailyLeagueSlicers(fixturesData) {
-    if (!leagueSlicerContainer) { console.error("Slicer container not found"); return; }
-    if (!fixturesData) { fixturesData = []; console.warn("populateDailyLeagueSlicers called without data");} // Handle undefined data
+    weekViewContainer.innerHTML = ''; // Clear previous calendar
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-    const leaguesToday = new Map();
-    fixturesData.forEach(fixture => {
-        if (!fixture) return; // Skip null/undefined fixtures
-        if (!leaguesToday.has(fixture.competition)) {
-            leaguesToday.set(fixture.competition, fixture.country);
+    for (let i = -1; i <= 3; i++) { // Loop for 5 days
+        const date = new Date(today.getTime() + i * oneDay);
+        const dateStr = getDateString(date);
+        const dayButton = document.createElement('button');
+        dayButton.classList.add('calendar-day'); dayButton.dataset.date = dateStr;
+
+        // Line 1: Combined Day Name + Date Number
+        let line1Text = `${dayNames[date.getDay()]} ${date.getDate()}`;
+        if (i === 0) line1Text = `<b>TODAY ${date.getDate()}</b>`;
+
+        // Line 2: Pick Status (Team Name or "No Pick")
+        let line2Text = "No Pick";
+        const selection = userSelections[dateStr]; // Check current user's selections object
+        if (selection && selection.teamName) { // Check if selection and team name exist
+            line2Text = `<b>${selection.teamName}</b>`;
+        }
+
+        // Line 3: Simplified - Keep empty for now
+        let line3Text = "&nbsp;";
+
+        // Create and append spans
+        const line1Span = document.createElement('span'); line1Span.classList.add('cal-line', 'cal-line-1'); line1Span.innerHTML = line1Text;
+        const line2Span = document.createElement('span'); line2Span.classList.add('cal-line', 'cal-line-2'); line2Span.innerHTML = line2Text;
+        const line3Span = document.createElement('span'); line3Span.classList.add('cal-line', 'cal-line-3'); line3Span.innerHTML = line3Text;
+
+        dayButton.appendChild(line1Span); dayButton.appendChild(line2Span); dayButton.appendChild(line3Span);
+
+        if (getDateString(selectedDate) === dateStr) dayButton.classList.add('active');
+
+        // Click listener to update date and refresh fixtures
+        dayButton.addEventListener('click', async () => { // Make async for await
+            if (getDateString(selectedDate) !== dateStr) {
+                selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                selectedLeagueFilter = 'ALL'; // Reset league filter
+                generateCalendar();         // Redraw calendar (sync UI)
+                await updateDisplayedFixtures(); // Fetch and display fixtures (async)
+            }
+        });
+        weekViewContainer.appendChild(dayButton);
+    }
+}
+
+/**
+ * Renders the list of fixtures. Shows Pick button OR calculated points. (Added Defensive Checks)
+ */
+function displayFixtures(fixtures, currentTime) {
+    if (!fixtureListDiv) { console.error("Cannot display fixtures, list div not found."); if(fixtureListDiv) fixtureListDiv.innerHTML = '<p>Error: Fixture list container missing.</p>'; return; }
+    fixtureListDiv.innerHTML = '';
+    console.log(`--- displayFixtures: Attempting to display ${fixtures?.length ?? 0} fixtures ---`);
+
+    if (!fixtures || fixtures.length === 0) {
+        fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>';
+        return;
+    }
+
+    const currentDaySelection = userSelections[getDateString(selectedDate)];
+
+    fixtures.forEach((fixture, index) => {
+        try {
+            // More robust check for essential data before processing
+            if (!fixture || !fixture.fixtureId || !fixture.homeTeam?.id || !fixture.awayTeam?.id || !fixture.odds || !fixture.kickOffTime || !fixture.homeTeam?.name || !fixture.awayTeam?.name) {
+                 console.warn(`Skipping fixture index ${index} due to missing critical data:`, fixture);
+                 return; // Skip this fixture iteration
+            }
+
+            const fixtureElement = document.createElement('div'); fixtureElement.classList.add('fixture');
+            const kickOff = new Date(fixture.kickOffTime);
+            // Check if kickoff is a valid date, fallback if not
+            const validKickoff = !isNaN(kickOff.getTime());
+            const canSelect = validKickoff && fixture.status === 'SCHEDULED' && kickOff > currentTime;
+            const timeString = validKickoff ? kickOff.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "TBD";
+
+            // Top Details
+            const detailsTop = document.createElement('div'); detailsTop.classList.add('fixture-details-top');
+            const flagUrl = getFlagUrl(fixture.country);
+            let flagHtml = flagUrl ? `<img src="${flagUrl}" alt="${fixture.country || 'N/A'} flag" class="inline-flag">&nbsp;` : '';
+            detailsTop.innerHTML = `${flagHtml}${fixture.competition || 'N/A'} - ${timeString}`;
+            fixtureElement.appendChild(detailsTop);
+
+            // Home Team Row
+            const homeRow = document.createElement('div'); homeRow.classList.add('team-row');
+            const homeName = document.createElement('span'); homeName.classList.add('team-name'); homeName.textContent = fixture.homeTeam.name; homeRow.appendChild(homeName);
+            const homeScoreSpan = document.createElement('span'); homeScoreSpan.classList.add('team-score');
+             // Check result object and score property exist
+            if (fixture.status === 'FINISHED' && fixture.result?.homeScore !== null && fixture.result?.homeScore !== undefined) { homeScoreSpan.textContent = fixture.result.homeScore; homeScoreSpan.classList.add('has-score'); } else { homeScoreSpan.textContent = ''; } homeRow.appendChild(homeScoreSpan);
+            const homeOdd = document.createElement('span'); homeOdd.classList.add('team-odd'); homeOdd.textContent = fixture.odds.homeWin?.toFixed(2) || '-'; homeRow.appendChild(homeOdd);
+            if (canSelect) {
+                const homeButton = document.createElement('button'); homeButton.classList.add('pick-button'); homeButton.textContent = "Pick";
+                homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
+                if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) { homeButton.classList.add('selected-team'); homeButton.textContent = "Picked"; }
+                homeRow.appendChild(homeButton);
+            } else if (fixture.status === 'FINISHED' && fixture.result) {
+                const tempHomeSelection = { teamId: fixture.homeTeam.id, selectedWinOdd: fixture.odds.homeWin, fixtureDrawOdd: fixture.odds.draw };
+                const points = calculateScore(tempHomeSelection, fixture);
+                const pointsSpan = document.createElement('span'); pointsSpan.classList.add('fixture-points');
+                if (points !== null) { pointsSpan.textContent = `${points.toFixed(1)} pts`; if (points > 0) pointsSpan.classList.add('positive');} else { pointsSpan.textContent = '-'; }
+                homeRow.appendChild(pointsSpan);
+            }
+            fixtureElement.appendChild(homeRow);
+
+            // Away Team Row
+            const awayRow = document.createElement('div'); awayRow.classList.add('team-row');
+            const awayName = document.createElement('span'); awayName.classList.add('team-name'); awayName.textContent = fixture.awayTeam.name; awayRow.appendChild(awayName);
+            const awayScoreSpan = document.createElement('span'); awayScoreSpan.classList.add('team-score');
+             // Check result object and score property exist
+            if (fixture.status === 'FINISHED' && fixture.result?.awayScore !== null && fixture.result?.awayScore !== undefined) { awayScoreSpan.textContent = fixture.result.awayScore; awayScoreSpan.classList.add('has-score'); } else { awayScoreSpan.textContent = ''; } awayRow.appendChild(awayScoreSpan);
+            const awayOdd = document.createElement('span'); awayOdd.classList.add('team-odd'); awayOdd.textContent = fixture.odds.awayWin?.toFixed(2) || '-'; awayRow.appendChild(awayOdd);
+             if (canSelect) {
+                const awayButton = document.createElement('button'); awayButton.classList.add('pick-button'); awayButton.textContent = "Pick";
+                awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
+                if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) { awayButton.classList.add('selected-team'); awayButton.textContent = "Picked"; }
+                awayRow.appendChild(awayButton);
+            } else if (fixture.status === 'FINISHED' && fixture.result) {
+                const tempAwaySelection = { teamId: fixture.awayTeam.id, selectedWinOdd: fixture.odds.awayWin, fixtureDrawOdd: fixture.odds.draw };
+                const points = calculateScore(tempAwaySelection, fixture);
+                const pointsSpan = document.createElement('span'); pointsSpan.classList.add('fixture-points');
+                 if (points !== null) { pointsSpan.textContent = `${points.toFixed(1)} pts`; if (points > 0) pointsSpan.classList.add('positive'); } else { pointsSpan.textContent = '-'; }
+                awayRow.appendChild(pointsSpan);
+            }
+            fixtureElement.appendChild(awayRow);
+
+             // Bottom Details
+            const detailsBottom = document.createElement('div'); detailsBottom.classList.add('fixture-details-bottom');
+            let bottomText = '';
+            if (fixture.status && fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') { bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`; }
+            if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
+
+            // Append the complete fixture element
+            if (fixtureListDiv) { // Final check before appending
+                 fixtureListDiv.appendChild(fixtureElement);
+            } else {
+                 console.error("fixtureListDiv became null before appendChild");
+            }
+
+        } catch (error) {
+            console.error(`Error processing fixture ${fixture?.fixtureId || `index ${index}`} in displayFixtures loop:`, error);
         }
     });
+     console.log(`--- displayFixtures: Finished loop ---`);
+}
 
-    leagueSlicerContainer.innerHTML = '';
-    const slicerArea = document.getElementById('daily-league-slicers');
+// --- Keep other functions (populateDailyLeagueSlicers, handleSlicerClick, updateDisplayedFixtures, handleSelection, calculateScore, data loading/saving, etc.) ---
 
-    if (leaguesToday.size === 0) {
-        if(slicerArea) slicerArea.style.display = 'none'; return;
+// Make sure the calculateScore function also uses optional chaining or checks for odds existence:
+function calculateScore(selection, fixture) {
+    // Add checks for odds existence in selection object
+    if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result || selection.selectedWinOdd === undefined || selection.fixtureDrawOdd === undefined) {
+        console.warn("Cannot calculate score, missing data", selection, fixture);
+        return null;
     }
-    if(slicerArea) slicerArea.style.display = 'flex';
+    // ... rest of calculation logic using selection.selectedWinOdd and selection.fixtureDrawOdd ...
+    let score = 0;
+    const selectedTeamIsHome = fixture.homeTeam.id === selection.teamId;
+    const selectedTeamScore = selectedTeamIsHome ? fixture.result.homeScore : fixture.result.awayScore;
+    const concededScore = selectedTeamIsHome ? fixture.result.awayScore : fixture.result.homeScore;
+    if (selectedTeamScore === null || selectedTeamScore === undefined || concededScore === null || concededScore === undefined) return null;
 
-    const allButton = document.createElement('button');
-    allButton.textContent = 'All Leagues'; allButton.classList.add('league-slicer');
-    if (selectedLeagueFilter === 'ALL') allButton.classList.add('active');
-    allButton.dataset.league = 'ALL'; allButton.addEventListener('click', handleSlicerClick);
-    leagueSlicerContainer.appendChild(allButton);
-
-    const sortedLeagues = [...leaguesToday.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-    sortedLeagues.forEach(([league, country]) => {
-        const button = document.createElement('button'); const flagUrl = getFlagUrl(country);
-        let flagHtml = flagUrl ? `<img src="${flagUrl}" alt="${country} flag" class="inline-flag">&nbsp;` : '';
-        button.innerHTML = `${flagHtml}${league}`; button.classList.add('league-slicer');
-        if (selectedLeagueFilter === league) button.classList.add('active');
-        button.dataset.league = league; button.addEventListener('click', handleSlicerClick);
-        leagueSlicerContainer.appendChild(button);
-    });
-}
-
-function handleSlicerClick(event) { /* ... Keep function ... */ }
-
-// Modified updateDisplayedFixtures to fetch data for the selected date
-async function updateDisplayedFixtures() {
-    if (!fixtureListDiv) { console.error("Fixture list div not found for update"); return; }
-    const selectedDateStr = getDateString(selectedDate);
-    const realCurrentTime = new Date();
-    console.log(`Updating fixtures for date: ${selectedDateStr}, league: ${selectedLeagueFilter}`);
-
-    // Show loading state
-    fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center;">Loading matches...</p>';
-
-    // Fetch data for the selected date (will use cache if available/fresh)
-    const fixturesForDay = await fetchApiFootballFixtures(selectedDateStr);
-
-    // Update slicers based on the fetched data for the day
-    populateDailyLeagueSlicers(fixturesForDay);
-
-    // Filter fetched data by league
-    const filteredFixtures = fixturesForDay.filter(fixture => {
-        if (!fixture) return false;
-        if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
-        return true;
-    });
-
-    console.log(`Found ${filteredFixtures.length} fixtures to display after league filter.`);
-    filteredFixtures.sort((a, b) => new Date(a.kickOffTime) - new Date(b.kickOffTime));
-    displayFixtures(filteredFixtures, realCurrentTime); // displayFixtures now receives potentially real data
+    if (selectedTeamScore > concededScore) score += (selection.selectedWinOdd || 1.0) * 5;
+    else if (selectedTeamScore === concededScore) score += (selection.fixtureDrawOdd || 1.0) * 2;
+    score += selectedTeamScore * 3; score -= concededScore * 1;
+    return Math.max(0, score);
 }
 
 
-function displayFixtures(fixtures, currentTime) { /* ... Keep function from response #61 (using points display) ... */ }
-function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) { /* ... Keep function from response #68 (with auth check) ... */ }
-function calculateScore(selection, fixture) { /* ... Keep function from response #59 (with Math.max and check for odds) ... */ }
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM Loaded, assigning elements, adding listeners, fetching initial data...");
+
+    // Assign DOM Elements
+    weekViewContainer = document.getElementById('week-view');
+    fixtureListDiv = document.getElementById('fixture-list');
+    leagueSlicerContainer = document.getElementById('league-slicer-container');
+    scoreListUl = document.getElementById('score-list');
+    authSection = document.getElementById('auth-section');
+    loginForm = document.getElementById('login-form');
+    signupForm = document.getElementById('signup-form');
+    userInfo = document.getElementById('user-info');
+    loginEmailInput = document.getElementById('login-email');
+    loginPasswordInput = document.getElementById('login-password');
+    loginButton = document.getElementById('login-button');
+    loginErrorP = document.getElementById('login-error');
+    showSignupButton = document.getElementById('show-signup');
+    signupEmailInput = document.getElementById('signup-email');
+    signupPasswordInput = document.getElementById('signup-password');
+    signupButton = document.getElementById('signup-button');
+    signupErrorP = document.getElementById('signup-error');
+    showLoginButton = document.getElementById('show-login');
+    userEmailSpan = document.getElementById('user-email');
+    logoutButton = document.getElementById('logout-button');
+
+    // Attach Auth Event Listeners
+    // Ensure these listeners exist from response #70
+    if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
+    if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
+    if (loginButton) { loginButton.addEventListener('click', () => { if (!loginEmailInput || !loginPasswordInput) return; const email = loginEmailInput.value; const password = loginPasswordInput.value; if(loginErrorP) loginErrorP.textContent = ''; signInWithEmailAndPassword(auth, email, password).then((cred) => console.log("Login OK", cred.user)).catch((err) => { if(loginErrorP) loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(err)}`;}); }); }
+    if (signupButton) { signupButton.addEventListener('click', () => { if (!signupEmailInput || !signupPasswordInput) return; const email = signupEmailInput.value; const password = signupPasswordInput.value; if(signupErrorP) signupErrorP.textContent = ''; createUserWithEmailAndPassword(auth, email, password).then((cred) => console.log("Signup OK", cred.user)).catch((err) => { if(signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(err)}`;}); }); }
+    if (logoutButton) { logoutButton.addEventListener('click', () => { signOut(auth).catch((err) => { console.error(err); alert("Logout failed."); }); }); }
+
+
+    // Initial Load
+    loadUserDataFromLocal(); // Load local selections first
+    generateCalendar(); // Draw calendar using local state
+    await updateDisplayedFixtures(); // Fetch API data and display fixtures/slicers
+
+    console.log("Initial setup complete.");
+});
 
 // Renamed: Loads from local storage only
 function loadUserDataFromLocal() {
