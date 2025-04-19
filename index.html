@@ -1,17 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Simple Browser Game</title>
-    <style>
-        /* Basic CSS to see the canvas */
-        body { margin: 0; overflow: hidden; background-color: #f0f0f0; } /* Basic page styling */
-        canvas { border: 1px solid black; background-color: white;} /* Style the game area */
-    </style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Football Pick</title>
+    <link rel="stylesheet" href="style.css"> </head>
 <body>
-    <h1>My Game</h1>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-    <script src="game.js"></script>
-</body>
+    <header>
+        <h1>Daily Football Pick Game</h1>
+    </header>
+
+    <main>
+        <section id="todays-selection">
+            <h2>Your Pick for Today (<span id="current-date"></span>)</h2>
+            <p id="selection-status">You haven't made a selection yet.</p>
+            </section>
+
+        <section id="available-fixtures">
+            <h2>Available Matches Today</h2>
+            <div id="fixture-list">
+                Loading matches...
+            </div>
+        </section>
+
+        <section id="scoring-history">
+            <h2>Your Score History</h2>
+            <ul id="score-list">
+                <li>No scores yet.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>Game powered by [Data Provider Name TBD]</p>
+    </footer>
+
+    <script src="script.js"></script> </body>
 </html>
