@@ -1,3 +1,93 @@
+// script.js <-- PASTE THIS BLOCK AT THE VERY TOP
+
+// --- Firebase Initialization (ES Module Version) ---
+// Import functions from the Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+// Your web app's Firebase configuration (PASTE YOUR OBJECT HERE)
+// !! IMPORTANT: Replace with the actual config from your Firebase Console !!
+const firebaseConfig = {
+  apiKey: "AIzaSyAi_qvjnZlDo6r0Nu14JPs1XAvu_bRQmoM", // Use YOUR actual key
+  authDomain: "oddscore-5ed5e.firebaseapp.com",    // Use YOUR domain
+  projectId: "oddscore-5ed5e",                    // Use YOUR ID
+  storageBucket: "oddscore-5ed5e.firebasestorage.app", // Use YOUR bucket
+  messagingSenderId: "582289870654",              // Use YOUR sender ID
+  appId: "1:582289870654:web:bb025764a8d37f697f266f",  // Use YOUR App ID
+  measurementId: "G-HCKHYJ0HZD"                  // Optional (keep if provided)
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+console.log("Firebase initialized (module mode)!");
+
+// Get references to Firebase services (make them globally accessible)
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ... (Firebase Initialization code from Action 1 ends here) ...
+
+// --- PASTE AUTHENTICATION LOGIC BLOCK HERE ---
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAi_qvjnZlDo6r0Nu14JPs1XAvu_bRQmoM",
+    authDomain: "oddscore-5ed5e.firebaseapp.com",
+    projectId: "oddscore-5ed5e",
+    storageBucket: "oddscore-5ed5e.firebasestorage.app",
+    messagingSenderId: "582289870654",
+    appId: "1:582289870654:web:bb025764a8d37f697f266f",
+    measurementId: "G-HCKHYJ0HZD"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
+// --- NEW: Authentication Logic ---
+
+// Get Auth UI elements (Check if elements exist before adding listeners)
+const authSection = document.getElementById('auth-section');
+// ... (all const declarations for login/signup elements) ...
+const logoutButton = document.getElementById('logout-button');
+
+let currentUserId = null; // Store the logged-in user's ID
+
+// --- Auth State Listener ---
+onAuthStateChanged(auth, user => { // Use onAuthStateChanged directly
+    // ... (entire onAuthStateChanged logic from response #59 - handles showing/hiding forms, loading user data placeholder) ...
+    if (user) {
+        // ... (user logged in UI changes) ...
+        loadUserPicksFromFirestore(user.uid); // Placeholder call
+    } else {
+        // ... (user logged out UI changes & data clearing) ...
+        setTimeout(() => { // Refresh UI after clearing data
+             generateCalendar();
+             populateDailyLeagueSlicers();
+             updateDisplayedFixtures();
+        }, 0);
+    }
+});
+
+// --- Event Listeners for Auth Forms/Buttons ---
+// ... (Add the listeners for showSignupButton, showLoginButton, loginButton, signupButton, logoutButton from response #59) ...
+
+// Helper for friendlier error messages (optional)
+function getFriendlyAuthError(error) {
+    // ... (switch statement for error codes from response #59) ...
+}
+// --- END OF AUTHENTICATION LOGIC BLOCK ---
+
 // script.js - Using flagcdn.com Images (Map inside script)
 
 // --- Constants and Helpers ---
@@ -442,6 +532,12 @@ function displayFixtures(fixtures, currentTime) {
  * Handles the logic when a user clicks a team selection button.
  */
 function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
+       // *** ADD THIS CHECK AT THE START: ***
+    if (!auth.currentUser) {
+         alert("Please log in or sign up to make a pick!");
+         return; // Stop if not logged in
+    }
+    // *** END OF ADDED CHECK ***
     const selectedDateStr = getDateString(selectedDate);
     // Use the REAL current time for all checks related to locking/starting
     const realCurrentTime = new Date();
@@ -529,7 +625,8 @@ function calculateScore(selection, fixture) {
 /**
  * Loads user selections from localStorage.
  */
-function loadUserData() {
+function loadUserDataFromLocal() { // Was loadUserData
+    console.log("Loading selections from Local Storage (temporary)");
     const savedSelections = localStorage.getItem('footballGameSelections');
     if (savedSelections) {
         try { userSelections = JSON.parse(savedSelections); }
@@ -540,14 +637,26 @@ function loadUserData() {
 /**
  * Saves the current userSelections object to localStorage.
  */
-function saveUserData() {
+function saveUserDataToLocal() { // Was saveUserData
+    console.log("Saving selections to Local Storage (temporary)");
     try { localStorage.setItem('footballGameSelections', JSON.stringify(userSelections)); }
     catch (e) { console.error("Error saving selections to localStorage:", e); }
 }
 
+// --- Add this Placeholder function ---
+function loadUserPicksFromFirestore(userId) {
+    console.log(`TODO: Load picks for user ${userId} from Firestore and update userSelections object.`);
+    userSelections = {}; // Clear local state on login trigger
+    console.log("Cleared local userSelections, waiting for Firestore load (not implemented yet).");
+    // Refresh UI to show 'No Pick' based on cleared local state
+    generateCalendar();
+    updateDisplayedFixtures();
+}
+
+
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadUserData();
+    loadUserDataFromLocal();
     generateCalendar();
     populateDailyLeagueSlicers();
     updateDisplayedFixtures();
