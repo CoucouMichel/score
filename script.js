@@ -269,7 +269,7 @@ function updateDisplayedFixtures() {
 }
 
 /**
- * Renders the list of fixtures using the condensed layout. (Includes fix for detailsTop.innerHTML)
+ * Renders the list of fixtures using the condensed layout (Corrected button logic and detailsTop.innerHTML).
  */
 function displayFixtures(fixtures, currentTime) {
     fixtureListDiv.innerHTML = ''; // Clear previous list
@@ -291,13 +291,14 @@ function displayFixtures(fixtures, currentTime) {
 
         // --- Build Internal Structure ---
 
-        // Top Details (with Flag Icon) - CORRECTED
+        // Top Details (with Flag Icon) - CORRECTED SYNTAX
         const detailsTop = document.createElement('div');
         detailsTop.classList.add('fixture-details-top');
-        const flagClasses = getFlagClass(fixture.country);
-        // Use innerHTML with correct template literal syntax
-        detailsTop.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${fixture.competition} (${fixture.country}) - ${timeString}`;
+        const flagClasses = getFlagClass(fixture.country); // Get flag classes like "fi fi-de"
+        // Use innerHTML with correct template literal syntax for variables and class attribute
+        detailsTop.innerHTML = `<span class="<span class="math-inline">\{flagClasses\}"\></span\>&nbsp;</span>{fixture.competition} (${fixture.country}) - ${timeString}`;
         fixtureElement.appendChild(detailsTop);
+
 
         // Home Team Row
         const homeRow = document.createElement('div'); homeRow.classList.add('team-row');
@@ -323,14 +324,6 @@ function displayFixtures(fixtures, currentTime) {
         const detailsBottom = document.createElement('div');
         detailsBottom.classList.add('fixture-details-bottom');
         let bottomText = ''; // Start empty
-        if (fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') {
-            bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`;
-        }
-        if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
-
-        fixtureListDiv.appendChild(fixtureElement);
-    });
-}
 
 
 // handleSelection() - Unchanged from previous step
