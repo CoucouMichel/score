@@ -309,7 +309,100 @@ function updateDisplayedFixtures() {
     displayFixtures(filteredFixtures, realCurrentTime);
 }
 
-function displayFixtures(fixtures, currentTime) { /* ... Keep the LATEST version from response #61 ... */ }
+/**
+ * Renders the list of fixtures. Shows Pick button OR calculated points based on game status/time.
+ */
+function displayFixtures(fixtures, currentTime) {
+    fixtureListDiv.innerHTML = ''; // Clear previous list
+
+    // Add log here
+    console.log(`--- displayFixtures: Attempting to display ${fixtures ? fixtures.length : 0} fixtures ---`);
+
+    if (!fixtures || fixtures.length === 0) {
+        fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>';
+        return;
+    }
+
+    const currentDaySelection = userSelections[getDateString(selectedDate)];
+
+    fixtures.forEach((fixture, index) => {
+        // Add log here
+        console.log(`Loop ${index}: Processing fixture ${fixture.fixtureId}`);
+        try { // Add try...catch to isolate errors within the loop
+            const fixtureElement = document.createElement('div');
+            fixtureElement.classList.add('fixture');
+
+            const kickOff = new Date(fixture.kickOffTime);
+            const canSelect = fixture.status === 'SCHEDULED' && kickOff > currentTime;
+            const timeString = kickOff.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+            // Top Details
+            const detailsTop = document.createElement('div');
+            detailsTop.classList.add('fixture-details-top');
+            const flagUrl = getFlagUrl(fixture.country);
+            let flagHtml = flagUrl ? `<img src="${flagUrl}" alt="${fixture.country} flag" class="inline-flag">&nbsp;` : '';
+            detailsTop.innerHTML = `${flagHtml}${fixture.competition} - ${timeString}`;
+            fixtureElement.appendChild(detailsTop);
+
+            // Home Team Row
+            const homeRow = document.createElement('div'); homeRow.classList.add('team-row');
+            const homeName = document.createElement('span'); homeName.classList.add('team-name'); homeName.textContent = fixture.homeTeam.name; homeRow.appendChild(homeName);
+            const homeScoreSpan = document.createElement('span'); homeScoreSpan.classList.add('team-score');
+            if (fixture.status === 'FINISHED' && fixture.result !== null) { homeScoreSpan.textContent = fixture.result.homeScore; homeScoreSpan.classList.add('has-score'); } else { homeScoreSpan.textContent = ''; } homeRow.appendChild(homeScoreSpan);
+            const homeOdd = document.createElement('span'); homeOdd.classList.add('team-odd'); homeOdd.textContent = fixture.odds.homeWin.toFixed(2); homeRow.appendChild(homeOdd);
+            if (canSelect) {
+                const homeButton = document.createElement('button'); homeButton.classList.add('pick-button'); homeButton.textContent = "Pick";
+                homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
+                if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) { homeButton.classList.add('selected-team'); homeButton.textContent = "Picked"; }
+                homeRow.appendChild(homeButton);
+            } else if (fixture.status === 'FINISHED' && fixture.result) {
+                const tempHomeSelection = { teamId: fixture.homeTeam.id, selectedWinOdd: fixture.odds.homeWin, fixtureDrawOdd: fixture.odds.draw };
+                const points = calculateScore(tempHomeSelection, fixture);
+                const pointsSpan = document.createElement('span'); pointsSpan.classList.add('fixture-points');
+                if (points !== null) { pointsSpan.textContent = `${points.toFixed(1)} pts`; if (points > 0) pointsSpan.classList.add('positive');} else { pointsSpan.textContent = '-'; }
+                homeRow.appendChild(pointsSpan);
+            }
+            fixtureElement.appendChild(homeRow);
+
+            // Away Team Row
+            const awayRow = document.createElement('div'); awayRow.classList.add('team-row');
+            const awayName = document.createElement('span'); awayName.classList.add('team-name'); awayName.textContent = fixture.awayTeam.name; awayRow.appendChild(awayName);
+            const awayScoreSpan = document.createElement('span'); awayScoreSpan.classList.add('team-score');
+            if (fixture.status === 'FINISHED' && fixture.result !== null) { awayScoreSpan.textContent = fixture.result.awayScore; awayScoreSpan.classList.add('has-score'); } else { awayScoreSpan.textContent = ''; } awayRow.appendChild(awayScoreSpan);
+            const awayOdd = document.createElement('span'); awayOdd.classList.add('team-odd'); awayOdd.textContent = fixture.odds.awayWin.toFixed(2); awayRow.appendChild(awayOdd);
+            if (canSelect) {
+                const awayButton = document.createElement('button'); awayButton.classList.add('pick-button'); awayButton.textContent = "Pick";
+                awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
+                if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) { awayButton.classList.add('selected-team'); awayButton.textContent = "Picked"; }
+                awayRow.appendChild(awayButton);
+            } else if (fixture.status === 'FINISHED' && fixture.result) {
+                const tempAwaySelection = { teamId: fixture.awayTeam.id, selectedWinOdd: fixture.odds.awayWin, fixtureDrawOdd: fixture.odds.draw };
+                const points = calculateScore(tempAwaySelection, fixture);
+                const pointsSpan = document.createElement('span'); pointsSpan.classList.add('fixture-points');
+                 if (points !== null) { pointsSpan.textContent = `${points.toFixed(1)} pts`; if (points > 0) pointsSpan.classList.add('positive'); } else { pointsSpan.textContent = '-'; }
+                awayRow.appendChild(pointsSpan);
+            }
+            fixtureElement.appendChild(awayRow);
+
+            // Bottom Details
+            const detailsBottom = document.createElement('div'); detailsBottom.classList.add('fixture-details-bottom');
+            let bottomText = '';
+            if (fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') { bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`; }
+            if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
+
+            // Crucial check: Appending fixture card to main list div
+            fixtureListDiv.appendChild(fixtureElement);
+            // Add log here
+            console.log(`Loop ${index}: Successfully appended element for fixture ${fixture.fixtureId}`);
+
+        } catch (error) {
+            // Catch and log errors happening inside the loop
+            console.error(`Error processing fixture ${fixture.fixtureId} in displayFixtures loop (Index ${index}):`, error);
+        }
+    });
+     // Add log here
+     console.log(`--- displayFixtures: Finished loop ---`);
+}
 
 function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     if (!auth.currentUser) { alert("Please log in or sign up to make a pick!"); return; }
