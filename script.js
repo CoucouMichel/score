@@ -3,11 +3,17 @@
 // --- Firebase Initialization ---
 // ... (Keep existing Firebase init code: imports, config, initializeApp, getAuth, getFirestore) ...
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-// ... other firebase imports
+// Make sure getAuth and other needed Auth functions are imported here:
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+// Make sure getFirestore is imported here:
+import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+// --- NOW the firebaseConfig, initializeApp, getAuth, getFirestore calls follow ---
 const firebaseConfig = { /* ... Your Config ... */ };
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const auth = getAuth(app); // This should now work
+const db = getFirestore(app); // This should now work
+console.log("Firebase initialized (module mode)!");
 
 
 // --- Authentication Logic ---
