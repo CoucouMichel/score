@@ -283,7 +283,7 @@ function updateDisplayedFixtures() {
 }
 
 /**
- * Renders the list of fixtures using the new condensed layout.
+ * Renders the list of fixtures using the condensed layout. (Draw text removed)
  * @param {Array} fixtures - Array of fixture objects to display.
  * @param {Date} currentTime - The current time, used to disable buttons.
  */
@@ -307,97 +307,88 @@ function displayFixtures(fixtures, currentTime) {
 
         // --- Build Internal Structure ---
 
-        // Top Details (Aligned Left by CSS)
+        // Top Details
         const detailsTop = document.createElement('div');
         detailsTop.classList.add('fixture-details-top');
-        detailsTop.textContent = `${fixture.competition} (${fixture.country}) - ${timeString}`;
+        detailsTop.textContent = `<span class="math-inline">\{fixture\.competition\} \(</span>{fixture.country}) - ${timeString}`;
         fixtureElement.appendChild(detailsTop);
 
-        // --- Home Team Row ---
+        // Home Team Row
         const homeRow = document.createElement('div');
         homeRow.classList.add('team-row');
-
         const homeName = document.createElement('span');
         homeName.classList.add('team-name');
         homeName.textContent = fixture.homeTeam.name;
-        homeRow.appendChild(homeName); // Name first
-
-        const homeScoreSpan = document.createElement('span'); // Score span
+        homeRow.appendChild(homeName);
+        const homeScoreSpan = document.createElement('span');
         homeScoreSpan.classList.add('team-score');
-        if (fixture.status === 'FINISHED' && fixture.result !== null) { // Check result exists
-            homeScoreSpan.textContent = fixture.result.homeScore; // Just the number
-        } else {
-            homeScoreSpan.innerHTML = '&nbsp;'; // Placeholder if no score yet
-        }
-        homeRow.appendChild(homeScoreSpan); // Score second
-
-        const homeOdd = document.createElement('span'); // Odd third
+        if (fixture.status === 'FINISHED' && fixture.result !== null) {
+            homeScoreSpan.textContent = fixture.result.homeScore;
+        } else { homeScoreSpan.innerHTML = '&nbsp;'; }
+        homeRow.appendChild(homeScoreSpan);
+        const homeOdd = document.createElement('span');
         homeOdd.classList.add('team-odd');
         homeOdd.textContent = fixture.odds.homeWin.toFixed(2);
         homeRow.appendChild(homeOdd);
-
-        const homeButton = document.createElement('button'); // Button last
+        const homeButton = document.createElement('button');
         homeButton.classList.add('pick-button');
         homeButton.textContent = "Pick";
-        homeButton.disabled = !canSelect; // Only disable if game cannot be selected
+        homeButton.disabled = !canSelect;
         homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
         if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) {
             homeButton.classList.add('selected-team');
             homeButton.textContent = "Picked";
         }
         homeRow.appendChild(homeButton);
-
         fixtureElement.appendChild(homeRow);
 
-        // --- Away Team Row ---
+        // Away Team Row
         const awayRow = document.createElement('div');
         awayRow.classList.add('team-row');
-
         const awayName = document.createElement('span');
         awayName.classList.add('team-name');
         awayName.textContent = fixture.awayTeam.name;
-        awayRow.appendChild(awayName); // Name first
-
-        const awayScoreSpan = document.createElement('span'); // Score span
+        awayRow.appendChild(awayName);
+        const awayScoreSpan = document.createElement('span');
         awayScoreSpan.classList.add('team-score');
-         if (fixture.status === 'FINISHED' && fixture.result !== null) { // Check result exists
-            awayScoreSpan.textContent = fixture.result.awayScore; // Just the number
-        } else {
-            awayScoreSpan.innerHTML = '&nbsp;'; // Placeholder if no score yet
-        }
-        awayRow.appendChild(awayScoreSpan); // Score second
-
-        const awayOdd = document.createElement('span'); // Odd third
+        if (fixture.status === 'FINISHED' && fixture.result !== null) {
+            awayScoreSpan.textContent = fixture.result.awayScore;
+        } else { awayScoreSpan.innerHTML = '&nbsp;'; }
+        awayRow.appendChild(awayScoreSpan);
+        const awayOdd = document.createElement('span');
         awayOdd.classList.add('team-odd');
         awayOdd.textContent = fixture.odds.awayWin.toFixed(2);
         awayRow.appendChild(awayOdd);
-
-        const awayButton = document.createElement('button'); // Button last
+        const awayButton = document.createElement('button');
         awayButton.classList.add('pick-button');
         awayButton.textContent = "Pick";
-        awayButton.disabled = !canSelect; // Only disable if game cannot be selected
+        awayButton.disabled = !canSelect;
         awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
-         if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) {
+        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) {
             awayButton.classList.add('selected-team');
             awayButton.textContent = "Picked";
         }
         awayRow.appendChild(awayButton);
-
         fixtureElement.appendChild(awayRow);
 
-        // --- Bottom Details (Draw odd / Status) ---
+        // --- Bottom Details (Status only, if needed) ---
         const detailsBottom = document.createElement('div');
         detailsBottom.classList.add('fixture-details-bottom');
+        let bottomText = ''; // Start empty
 
-        let bottomText = `Draw: ${fixture.odds.draw.toFixed(2)}`; // Always show Draw odd
-
-        // Add game status text only if it's NOT scheduled and NOT finished (e.g., POSTPONED, CANCELED)
+        // Display status only if it's unusual (e.g., POSTPONED, CANCELED)
         if (fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') {
-            bottomText += ` <span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`;
+            bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`;
         }
 
-        detailsBottom.innerHTML = bottomText;
-        fixtureElement.appendChild(detailsBottom);
+        // Only add the element if there's content, otherwise leave it empty
+        // The CSS rule .fixture-details-bottom:empty could hide it if desired
+        if (bottomText) {
+            detailsBottom.innerHTML = bottomText;
+            fixtureElement.appendChild(detailsBottom);
+        }
+        // NOTE: If you want the space/border even when empty, remove the if(bottomText) check.
+
 
         // Append the fully constructed fixture card to the list
         fixtureListDiv.appendChild(fixtureElement);
