@@ -23,12 +23,12 @@ header {
     color: var(--text-primary-color);
     padding: 0.5rem 1rem; /* Adjust padding vertically for logo */
     box-shadow: var(--elevation-2);
-    text-align: center;
+    text-align: center; /* Text-align might not be needed with flex */
     border-bottom: 1px solid var(--divider-color);
-    display: flex; /* Use flex to help center logo if needed */
-    justify-content: center; /* Center logo horizontally */
+    display: flex;
+    justify-content: center; /* This centers the logo */
     align-items: center;
-    min-height: 60px; /* Ensure header has some height */
+    min-height: 60px;
 }
 
 
