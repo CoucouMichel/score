@@ -18,26 +18,30 @@
 /* --- Global, Header, Main, Section, H2 (Keep as before) --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Roboto', sans-serif; line-height: 1.6; background-color: var(--background-color); color: var(--text-primary-color); font-size: 16px; }
+/* style.css */
+
 header {
     background-color: var(--card-background-color);
     color: var(--text-primary-color);
-    padding: 0.5rem 1rem; /* Adjust padding vertically for logo */
+    padding: 0.5rem 1rem; /* Keep padding */
     box-shadow: var(--elevation-2);
-    text-align: center; /* Text-align might not be needed with flex */
+    /* text-align: center; */ /* No longer needed */
     border-bottom: 1px solid var(--divider-color);
     display: flex;
-    justify-content: center; /* This centers the logo */
+    /* MODIFIED: Align items (logo) to the start (left) */
+    justify-content: flex-start;
     align-items: center;
     min-height: 60px;
 }
 
-
-/* NEW: Styles for the logo image */
+/* Keep the #logo-image rule as it was */
 #logo-image {
-    height: 40px; /* Set desired height - adjust as needed */
-    width: auto; /* Maintain aspect ratio */
-    display: block; /* Treat as block for centering */
+    height: 40px;
+    width: auto;
+    /* display: block; */ /* Should be okay to remove this if header is flex */
 }
+
+/* Keep the rest of your CSS */
 main { max-width: 900px; margin: 2rem auto; padding: 1rem; }
 section { background-color: var(--card-background-color); padding: 1.5rem; border-radius: 6px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; border: 1px solid var(--divider-color); }
 section h2 { font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0; }
