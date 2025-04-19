@@ -181,9 +181,9 @@ button.league-slicer.active {
 
 /* NEW: Style applied only when score exists (JS adds 'has-score' class) */
 .team-score.has-score {
-    background-color: var(--accent-color); /* Amber/Gold background */
-    color: var(--accent-color-text); /* Dark text */
-    visibility: visible; /* Show the box */
+    background-color: var(--primary-color); /* Pale Yellow background */
+    color: var(--primary-color-text); /* Dark text for contrast */
+    visibility: visible; /* Make it visible */
 }
 
 
