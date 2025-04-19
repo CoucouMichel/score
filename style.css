@@ -1,179 +1,150 @@
-/* style.css - Final Version: Midnight Shadows, 3-Col, Aligned Header Logo */
+/* style.css - Sticky Header with Calendar */
 
-/* --- Midnight Shadows Palette --- */
+/* --- :root Palette (Keep as before - Midnight Shadows) --- */
 :root {
-    /* Dark Blues & Greys */
-    --background-color: #1a1a2e; /* Very dark blue/purple */
-    --card-background-color: #16213e; /* Very dark blue */
-    --primary-color: #0f3460; /* Dark saturated blue */
-    --primary-color-dark: #144a8c; /* Slightly lighter blue for hover */
-    --primary-color-light-hover: rgba(249, 249, 249, 0.08); /* Subtle light hover */
-    /* Accent Red */
-    --accent-color: #e94560; /* Vibrant Red */
-    --accent-color-darker: #d73c53; /* Darker red for hover */
-    --accent-color-text: #ffffff; /* White text on red */
-    /* Text & Dividers */
-    --text-primary-color: #f9f9f9; /* Off-white */
-    --text-secondary-color: rgba(249, 249, 249, 0.7); /* Dimmer off-white */
-    --divider-color: rgba(249, 249, 249, 0.12); /* Subtle light divider */
-    --error-text-color: #ff8a80; /* Light red for errors */
-    /* Fixture Backgrounds (Dark Alternating) */
-    --pastel-color-1: #1b2a4a; /* Dark blue shade 1 */
-    --pastel-color-2: #1d2d4f; /* Dark blue shade 2 */
-    /* Button States */
-    --button-text-color: var(--text-primary-color); /* Light text on dark blue buttons */
-    --disabled-bg-color: rgba(249, 249, 249, 0.12);
-    --disabled-text-color: rgba(249, 249, 249, 0.3);
-    /* Elevation/Shadows (Subtle for Dark) */
+    --background-color: #1a1a2e; --card-background-color: #16213e;
+    --primary-color: #0f3460; --primary-color-dark: #144a8c;
+    --primary-color-light-hover: rgba(249, 249, 249, 0.08);
+    --accent-color: #e94560; --accent-color-darker: #d73c53; --accent-color-text: #ffffff;
+    --text-primary-color: #f9f9f9; --text-secondary-color: rgba(249, 249, 249, 0.7);
+    --divider-color: rgba(249, 249, 249, 0.12); --error-text-color: #ff8a80;
+    --pastel-color-1: #1b2a4a; --pastel-color-2: #1d2d4f;
+    --button-text-color: var(--text-primary-color);
+    --disabled-bg-color: rgba(249, 249, 249, 0.12); --disabled-text-color: rgba(249, 249, 249, 0.3);
     --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 1px 0 rgba(0, 0, 0, 0.14);
     --elevation-2: 0 2px 4px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.14);
+    /* Estimate header height for main content offset */
+    --header-height-estimate: 80px; /* Adjust this based on final header height */
 }
 
 /* --- Global Styles --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Roboto', sans-serif; line-height: 1.6; background-color: var(--background-color); color: var(--text-primary-color); font-size: 16px; }
 
-/* --- Header --- */
+/* --- Sticky Header --- */
 header {
     background-color: var(--card-background-color);
-    padding: 0.5rem 0; /* Vertical padding only */
+    padding: 0; /* Padding is handled by inner container now */
     box-shadow: var(--elevation-2);
     border-bottom: 1px solid var(--divider-color);
-    min-height: 60px; /* Ensure consistent height */
+    /* --- Sticky Positioning --- */
+    position: sticky;
+    top: 0; /* Stick to the top */
+    z-index: 100; /* Ensure it stays above other content */
 }
 /* Wrapper to constrain header content */
 .header-content {
-    max-width: 900px; /* Match max-width of main */
+    max-width: 1100px; /* Match max-width of main */
     margin: 0 auto; /* Center the content wrapper */
-    padding: 0 1rem; /* Horizontal padding matching main */
+    padding: 0.5rem 1rem; /* Vertical and horizontal padding */
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* Align logo left */
-    min-height: calc(60px - 1rem); /* Ensure inner content fills height */
+    justify-content: flex-start; /* Align items to start */
+    gap: 1.5rem; /* Gap between logo and calendar */
+    min-height: calc(var(--header-height-estimate) - 1rem); /* Ensure inner content helps define height */
 }
 /* Logo style */
 #logo-image {
     height: 40px; /* Adjust as needed */
     width: auto;
+    flex-shrink: 0; /* Prevent logo from shrinking */
 }
 
-/* --- Main Content Area --- */
-main {
-    max-width: 900px; /* Matches header content width */
-    margin: 2rem auto;
-    padding: 0 1rem; /* Horizontal padding */
+/* --- Calendar Navigation (Now Inside Header) --- */
+/* Remove styles for #calendar-nav section */
+.calendar-container { /* Styles for #week-view */
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0 2px 4px 2px;
+    margin-bottom: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto; /* Keep horizontal scroll */
+    flex-grow: 1; /* Allow calendar to take remaining space */
+    /* Optional Scrollbar Styling */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-secondary-color) transparent;
 }
-
-/* --- Sections within Main --- */
-section {
-    background-color: var(--card-background-color);
-    /* MODIFIED: Remove horizontal padding, keep vertical */
-    padding: 1.5rem 0;
-    border-radius: 6px;
-    box-shadow: var(--elevation-1);
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--divider-color);
-}
-/* Specific section adjustments */
-#calendar-nav {
-    padding: 0.75rem 0; /* Remove horizontal padding */
-    border: none;
-    box-shadow: none;
-    background: none;
-     margin-bottom: 1.5rem;
-}
-#available-fixtures {
-    padding: 0; /* Remove all padding */
-    border: none;
-    box-shadow: none;
-    background: none;
-     margin-bottom: 1.5rem;
-}
-#scoring-history {
-     padding: 1.5rem 0; /* Remove horizontal padding */
-}
-
-/* Adjust H2 padding since section padding changed */
-section h2 {
-     padding-left: 1rem; /* Add padding matching main container */
-     padding-right: 1rem;
-     font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color);
-     margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0;
-}
-/* Remove padding from h2 inside #available-fixtures as padding is handled by inner elements */
-#available-fixtures h2 {
-    padding-left: 0;
-    padding-right: 0;
-    /* Remove bottom border/padding if slicers provide separation */
-    /* border-bottom: none; */
-    /* padding-bottom: 0; */
-    /* margin-bottom: 0; */
-}
-
-/* --- Calendar Navigation --- */
-.calendar-container { display: flex; justify-content: flex-start; gap: 8px; padding: 0 2px 4px 2px; margin-bottom: 0; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--text-secondary-color) transparent; }
 .calendar-container::-webkit-scrollbar { height: 4px; }
 .calendar-container::-webkit-scrollbar-track { background: transparent; }
 .calendar-container::-webkit-scrollbar-thumb { background-color: var(--text-secondary-color); border-radius: 2px; }
-/* Calendar Button */
-button.calendar-day { flex-grow: 1; min-width: 85px; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.6rem 0.25rem; border: 1px solid var(--divider-color); background-color: var(--card-background-color); color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center; transition: all 0.2s ease-out; font-weight: 500; }
+
+/* Calendar Button Style */
+button.calendar-day {
+    flex-grow: 1; /* Expand to fill space */
+    min-width: 85px;
+    width: auto;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-around;
+    padding: 0.5rem 0.25rem; /* Reduced padding */
+    border: 1px solid var(--divider-color);
+    background-color: var(--card-background-color); /* Match header bg */
+    color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center;
+    transition: all 0.2s ease-out; font-weight: 500; flex-shrink: 0; /* Don't shrink buttons excessively */
+}
 button.calendar-day:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-primary-color); color: var(--text-primary-color); }
 button.calendar-day.active { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; border-color: var(--accent-color-darker); box-shadow: var(--elevation-1); }
-button.calendar-day.active span { color: var(--accent-color-text) !important; opacity: 0.95; }
-button.calendar-day.active b { color: var(--accent-color-text) !important; opacity: 1.0; }
+button.calendar-day.active span, button.calendar-day.active b { color: var(--accent-color-text) !important; opacity: 1; } /* Ensure contrast */
 button.calendar-day:disabled { color: var(--disabled-text-color); background-color: var(--card-background-color); cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
 /* Calendar Lines */
-.cal-line { display: block; width: 100%; text-align: center; line-height: 1.35; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 2px; }
-.cal-line-1 { font-size: 0.75rem; font-weight: 700; color: var(--text-primary-color); text-transform: uppercase; margin-bottom: 3px; }
-.cal-line-1 b {}
-.cal-line-2 { font-size: 0.7rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; margin-bottom: 3px; }
+.cal-line { display: block; width: 100%; text-align: center; line-height: 1.3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 2px; }
+.cal-line-1 { font-size: 0.7rem; font-weight: 700; color: var(--text-primary-color); text-transform: uppercase; margin-bottom: 1px; }
+.cal-line-2 { font-size: 0.65rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.1em; margin-bottom: 1px; }
 .cal-line-2 b { color: var(--text-primary-color); font-weight: 700; }
-.cal-line-3 { font-size: 0.65rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; }
+.cal-line-3 { font-size: 0.6rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.1em; }
 .cal-line-3 b { color: var(--text-primary-color); font-weight: 700; }
 button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !important; }
 .cal-line-3 span[style*="color:var(--error-text-color)"] { color: var(--error-text-color) !important; font-style: italic; }
 
 
+/* --- Main Content Area --- */
+main {
+    max-width: 1100px;
+    margin: 0 auto; /* Remove top margin, handled by padding */
+    padding: var(--header-height-estimate) 1rem 2rem 1rem; /* Add top padding = header height, keep other padding */
+}
+
+/* --- Sections within Main --- */
+section { background-color: var(--card-background-color); padding: 1.5rem; /* Restore full padding */ border-radius: 6px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; border: 1px solid var(--divider-color); }
+section h2 { padding-left: 0; padding-right: 0; font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0; }
+/* Special case for fixture list container - make it blend */
+#available-fixtures { padding: 0; border: none; box-shadow: none; background: none; margin-bottom: 1.5rem; }
+
 /* --- Daily League Slicer Area --- */
-#available-fixtures .slicer-area { padding: 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#available-fixtures .slicer-area { padding: 1rem 1.5rem; /* Add back horizontal padding */ margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background-color: var(--card-background-color); border-radius: 6px 6px 0 0; /* Round top corners */ box-shadow: var(--elevation-1); }
 #available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
 .slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
 button.league-slicer { padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent; color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none; display: inline-flex; align-items: center;}
 button.league-slicer:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
 button.league-slicer.active { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--button-text-color); font-weight: 700; }
 
-/* Styling for flag images */
+/* Flag images */
 .inline-flag { width: 20px; height: auto; vertical-align: middle; margin-right: 0.5em; display: inline-block; }
 
 
 /* --- Fixture List & Cards --- */
-#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; padding: 0; /* No padding needed here */ }
+#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; padding: 0 1.5rem 1.5rem 1.5rem; /* Add padding around grid */ background-color: var(--card-background-color); border-radius: 0 0 6px 6px; /* Round bottom corners */ box-shadow: var(--elevation-1); border: 1px solid var(--divider-color); border-top: none;}
 .fixture { border-radius: 6px; padding: 0.6rem 0.8rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; color: var(--text-primary-color); border: 1px solid var(--divider-color); display: flex; flex-direction: column; }
 .fixture:nth-child(odd) { background-color: var(--pastel-color-1); }
 .fixture:nth-child(even) { background-color: var(--pastel-color-2); }
 .fixture:hover { background-color: #3a415a; border-color: #4a5578; transform: translateY(-2px); box-shadow: var(--elevation-2); }
-/* Top Details */
 .fixture-details-top { text-align: left; font-size: 0.7rem; color: var(--text-secondary-color); margin-bottom: 0.4rem; border-bottom: 1px dashed var(--divider-color); padding-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
-/* Team Row */
 .team-row { display: flex; align-items: center; padding: 0.2rem 0; gap: 0.5rem; }
 .team-name { flex-grow: 1; margin-right: auto; font-weight: 500; font-size: 0.85rem; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .team-score { font-weight: 700; font-size: 0.8rem; min-width: 22px; text-align: center; flex-shrink: 0; margin-left: 0.5rem; padding: 1px 5px; border-radius: 4px; line-height: 1.4; display: inline-block; background-color: transparent; color: transparent; visibility: hidden; transition: background-color 0.2s ease, color 0.2s ease, visibility 0s ease 0.2s; }
-.team-score.has-score { background-color: var(--accent-color); /* Red score box */ color: var(--accent-color-text); visibility: visible; }
+.team-score.has-score { background-color: var(--accent-color); color: var(--accent-color-text); visibility: visible; }
 .team-odd { flex-basis: 45px; flex-shrink: 0; text-align: right; font-weight: 500; font-size: 0.85rem; color: var(--text-secondary-color); }
-/* Pick button */
 .pick-button { flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer; background-color: var(--primary-color); color: var(--button-text-color); text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; }
 .pick-button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
 .pick-button:disabled { background-color: var(--disabled-bg-color); color: var(--disabled-text-color); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
 .pick-button.selected-team { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; }
 .pick-button.selected-team:hover { background-color: var(--accent-color-darker); }
-/* Bottom Details */
 .fixture-details-bottom { font-size: 0.75rem; color: var(--text-secondary-color); margin-top: 0.3rem; text-align: left; padding-top: 0.3rem; border-top: 1px dashed var(--divider-color); min-height: 1.2em; }
 .fixture-details-bottom em { color: var(--text-primary-color); font-style: normal; font-weight: 500; }
 .fixture-details-bottom span[style*="color:red"] { color: var(--error-text-color) !important; font-style: italic; }
 
-
 /* --- Scoring History --- */
-#scoring-history {} /* Inherits section styles */
+#scoring-history { padding: 1.5rem; } /* Restore horizontal padding */
 #score-list { list-style: none; padding: 0; }
 #score-list li { background-color: var(--pastel-color-1); margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem; color: var(--text-primary-color); border: 1px solid var(--divider-color); }
 
@@ -182,26 +153,31 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    #fixture-list { grid-template-columns: 1fr; }
-    main { max-width: 95%; padding: 0 0.5rem; /* Adjust mobile padding */ margin: 1rem auto; }
-    section { padding: 1rem 0.5rem; /* Adjust mobile section padding */ }
-    section h2 { padding-left: 0.5rem; padding-right: 0.5rem; font-size: 1.3rem;} /* Adjust mobile h2 padding */
-    header { padding: 0.8rem 0.5rem; } /* Adjust mobile header padding */
-    header h1 { font-size: 1.3rem; }
-    .header-content { padding: 0 0.5rem; } /* Match mobile main padding */
-    .calendar-day-container { min-width: 75px; }
-    button.calendar-day { min-width: 75px; }
+    #fixture-list { grid-template-columns: 1fr; padding: 0 1rem 1rem 1rem; /* Adjust padding */ }
+    main { max-width: 95%; padding: var(--header-height-estimate) 0.5rem 1rem 0.5rem; } /* Adjust padding */
+    section { padding: 1rem; } /* Restore section padding */
+    #available-fixtures { padding: 0; } /* Keep no padding */
+    #available-fixtures .slicer-area { padding: 1rem 1rem; /* Match section padding */ }
+    section h2 { font-size: 1.3rem; padding-left: 0; padding-right: 0;} /* Remove h2 padding */
+    header { padding: 0; } /* Remove header padding */
+    .header-content { padding: 0.5rem 0.5rem; gap: 0.5rem; /* Adjust header content padding/gap */ }
+    #logo-image { height: 30px;} /* Smaller logo */
+    .calendar-day-container { min-width: 70px; }
+    button.calendar-day { min-width: 70px; }
     .calendar-container button { font-size: 0.8rem; }
     .day-pick-status { font-size: 0.7rem; height: 3.5em; }
-    #available-fixtures .slicer-area { flex-direction: column; align-items: flex-start; padding-left: 0.5rem; padding-right: 0.5rem; /* Add padding back for mobile */ }
-    #available-fixtures .slicer-area label { margin-bottom: 0.5rem; }
+    #available-fixtures .slicer-area { flex-direction: column; align-items: stretch; } /* Stack slicer label/buttons */
+    #available-fixtures .slicer-area label { margin-bottom: 0.5rem; text-align: center;}
 }
 @media (max-width: 480px) {
      body { font-size: 15px; }
      header h1 { font-size: 1.2rem; }
-     section h2 { font-size: 1.2rem; }
-     .calendar-day-container { min-width: 70px; }
-     button.calendar-day { min-width: 70px; }
+     section h2 { font-size: 1.1rem; }
+     .calendar-day-container { min-width: 60px; } /* Adjust further */
+     button.calendar-day { min-width: 60px; padding: 0.4rem 0.1rem;}
+     .cal-line-1 { font-size: 0.6rem; }
+     .cal-line-2 { font-size: 0.55rem; }
+     .cal-line-3 { font-size: 0.55rem; }
      .day-pick-status { height: 4em; }
      .team-name { font-size: 0.85rem; }
      .team-score { font-size: 0.85rem; min-width: 15px;}
