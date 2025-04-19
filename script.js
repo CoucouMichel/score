@@ -1,7 +1,7 @@
-// script.js - Dark Mode Only Version
+// script.js - Final Version (No Theme Toggle, No H2 Title)
 
 // --- Constants and Helpers ---
-const now = new Date("2025-04-19T12:00:00Z");
+const now = new Date("2025-04-19T12:00:00Z"); // Keep fixed date for demo consistency
 const oneHour = 60 * 60 * 1000;
 const oneDay = 24 * oneHour;
 function getDateString(date) {
@@ -129,7 +129,6 @@ const fakeFixtures = [ /* ... PASTE EXPANDED FAKE FIXTURES ARRAY HERE ... */
     },
 ];
 
-
 // --- State Variables ---
 let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 let selectedLeagueFilter = 'ALL';
@@ -140,7 +139,7 @@ let scoreHistory = {};
 const weekViewContainer = document.getElementById('week-view');
 const fixtureListDiv = document.getElementById('fixture-list');
 const leagueSlicerContainer = document.getElementById('league-slicer-container');
-const fixtureListTitle = document.getElementById('fixture-list-title');
+// const fixtureListTitle = document.getElementById('fixture-list-title'); // REMOVED
 const scoreListUl = document.getElementById('score-list');
 
 
@@ -183,7 +182,7 @@ function generateCalendar() {
         const statusDiv = document.createElement('div');
         statusDiv.classList.add('day-pick-status');
         const selection = userSelections[dateStr];
-        let statusText = "No Pick";
+        let statusText = "No Pick"; // Default
 
         if (selection) {
             const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
@@ -246,7 +245,6 @@ function populateDailyLeagueSlicers() {
 function handleSlicerClick(event) {
     selectedLeagueFilter = event.target.dataset.league; // Update state
 
-    // Update active class
     document.querySelectorAll('#league-slicer-container .league-slicer').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -271,7 +269,7 @@ function updateDisplayedFixtures() {
 
     filteredFixtures.sort((a, b) => new Date(a.kickOffTime) - new Date(b.kickOffTime));
     displayFixtures(filteredFixtures, realCurrentTime);
-    updateFixtureListTitle(); // Update H2 title above list
+    // updateFixtureListTitle(); // REMOVED Call
 }
 
 /**
@@ -299,7 +297,7 @@ function displayFixtures(fixtures, currentTime) {
         if (fixture.status === 'FINISHED' && fixture.result) {
             resultHtml = ` <span style="font-weight:bold;">(${fixture.result.homeScore} - ${fixture.result.awayScore})</span>`;
         } else if (fixture.status !== 'SCHEDULED') {
-             resultHtml = ` <span style="color:red; font-style:italic;">(${fixture.status})</span>`;
+             resultHtml = ` <span style="color:#E53935; font-style:italic;">(${fixture.status})</span>`; // Use a specific error color
         }
 
         fixtureElement.innerHTML = `
@@ -343,7 +341,8 @@ function displayFixtures(fixtures, currentTime) {
              if (selectionForThisGameDay && selectionForThisGameDay.fixtureId === fixture.fixtureId) {
                  const score = calculateScore(selectionForThisGameDay, fixture);
                  const scoreDiv = document.createElement('div');
-                 scoreDiv.innerHTML = `<em style="color: var(--primary-color); margin-top: 8px; display: block;">Day's score: ${score !== null ? score.toFixed(2) + ' points' : 'Score unavailable'}</em>`;
+                 // Use primary text color for score emphasis now
+                 scoreDiv.innerHTML = `<em style="color: var(--text-primary-color); margin-top: 8px; display: block;">Day's score: ${score !== null ? score.toFixed(2) + ' points' : 'Score unavailable'}</em>`;
                  fixtureElement.appendChild(scoreDiv);
              }
         }
@@ -380,16 +379,11 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     }
 
     saveUserData();
-    generateCalendar(); // Re-render calendar to show updated pick status
-    updateDisplayedFixtures(); // Re-render fixture list for button states
+    generateCalendar(); // Re-render calendar immediately to show status change
+    updateDisplayedFixtures(); // Re-render list for button states
 }
 
-/**
- * Updates the H2 title above the fixture list.
- */
-function updateFixtureListTitle() {
-    fixtureListTitle.textContent = `Matches for ${selectedDate.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}`;
-}
+// REMOVED updateFixtureListTitle function
 
 
 /**
@@ -432,8 +426,8 @@ function saveUserData() {
 document.addEventListener('DOMContentLoaded', () => {
     loadUserData();
     generateCalendar();
-    populateDailyLeagueSlicers(); // Initial population for 'today'
-    updateFixtureListTitle();
+    populateDailyLeagueSlicers();
+    // updateFixtureListTitle(); // REMOVED call
     updateDisplayedFixtures();
     // displayScoreHistory(); // Optional
 });
