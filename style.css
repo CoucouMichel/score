@@ -25,7 +25,7 @@ section { background-color: var(--card-background-color); padding: 1.5rem; borde
 section h2 { font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0; }
 
 /* --- Calendar Navigation --- */
-#calendar-nav { padding: 0.5rem 1rem; border-radius: 6px; background-color: transparent; box-shadow: none; margin-bottom: 1.5rem; border: none; }
+#calendar-nav { padding: 0.5rem 0rem; border-radius: 6px; background-color: transparent; box-shadow: none; margin-bottom: 1.5rem; border: none; }
 .calendar-container {
     display: flex; justify-content: flex-start; gap: 6px; /* Slightly smaller gap */
     padding: 0; margin-bottom: 0;
