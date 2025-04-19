@@ -78,27 +78,27 @@ section h2 { /* For remaining H2s */
     margin-bottom: 1.5rem; /* Keep space below */
 }
 
-.calendar-container { /* This is the flex container */
+.calendar-container {
     display: flex;
     justify-content: space-around;
-    gap: 6px; /* Adjust gap between days */
+    gap: 6px;
     padding: 0;
     margin-bottom: 0;
-    flex-wrap: nowrap; /* Prevent wrapping if possible, or use wrap */
-    overflow-x: auto; /* Allow horizontal scrolling if needed */
+    flex-wrap: nowrap;
+    overflow-x: auto; /* Allow horizontal scroll on small screens if needed */
 }
 
 /* Style for the clickable day button */
 button.calendar-day {
-    flex: 1; /* Distribute space */
-    min-width: 80px; /* Minimum width per day */
+    flex: 1;
+    min-width: 85px; /* Adjust min width */
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between; /* Evenly space lines */
+    justify-content: space-around; /* Adjust spacing */
     padding: 0.5rem 0.25rem; /* Adjust padding */
     border: 1px solid var(--divider-color);
-    background-color: var(--card-background-color); /* Use card background */
+    background-color: var(--card-background-color);
     color: var(--text-secondary-color);
     cursor: pointer;
     border-radius: 4px;
@@ -109,78 +109,79 @@ button.calendar-day {
 
 button.calendar-day:hover {
     background-color: var(--primary-color-light-hover);
-    border-color: var(--text-secondary-color); /* Slightly emphasize border */
+    border-color: var(--text-primary-color);
     color: var(--text-primary-color);
 }
 
 /* Style for the ACTIVE day button (using red accent) */
 button.calendar-day.active {
-    background-color: var(--accent-color); /* Red Accent */
-    color: var(--accent-color-text); /* White text */
+    background-color: var(--accent-color);
+    color: var(--accent-color-text);
     font-weight: 700;
-    border-color: var(--accent-color-darker); /* Darker red border */
+    border-color: var(--accent-color-darker);
     box-shadow: var(--elevation-1);
 }
 button.calendar-day.active span { /* Ensure text inside active is light */
     color: var(--accent-color-text) !important;
+    opacity: 0.95; /* Slightly reduce opacity for non-bold */
 }
 button.calendar-day.active b { /* Ensure bold text inside active is light */
     color: var(--accent-color-text) !important;
+    opacity: 1.0;
 }
 
 
-/* Styling for individual lines within the button */
+/* Styling for individual lines within the button (Now 3 lines) */
 .cal-line {
-    display: block; /* Ensure each span is on its own line */
-    width: 100%; /* Take full width for centering */
+    display: block;
+    width: 100%;
     text-align: center;
-    line-height: 1.3; /* Adjust line height */
-    overflow: hidden; /* Prevent overflow */
+    line-height: 1.35; /* Adjust line height */
+    overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    padding: 0 2px; /* Add slight horizontal padding */
 }
 
-.cal-line-1 { /* Day Name / Today */
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    color: var(--text-secondary-color);
-}
-.cal-line-1 b { /* Make "Today" stand out */
-    color: var(--text-primary-color);
-}
-
-.cal-line-2 { /* Date Number */
-    font-size: 1.1rem; /* Larger date number */
+.cal-line-1 { /* Combined Day + Date */
+    font-size: 0.75rem; /* Smaller day/date text */
     font-weight: 700;
     color: var(--text-primary-color);
-    margin: 2px 0; /* Add slight vertical space */
+    text-transform: uppercase;
+    margin-bottom: 2px; /* Space below */
+}
+.cal-line-1 b { /* Style for "Today" part */
+    /* Inherits bold */
 }
 
-.cal-line-3 { /* Team Name / No Pick */
-    font-size: 0.75rem;
-    font-weight: 400; /* Normal weight */
+.cal-line-2 { /* Pick Status */
+    font-size: 0.7rem; /* Smaller pick status */
+    font-weight: 400;
     color: var(--text-secondary-color);
-    min-height: 1.1em; /* Reserve space */
+    min-height: 1.2em; /* Reserve space */
+     margin-bottom: 2px; /* Space below */
 }
-.cal-line-3 b { /* Bold selected team name */
+.cal-line-2 b { /* Team name */
      color: var(--text-primary-color);
      font-weight: 700;
 }
 
-
-.cal-line-4 { /* Odd / Score / Status */
-    font-size: 0.7rem;
+.cal-line-3 { /* Odd / Score / Status */
+    font-size: 0.65rem; /* Even smaller */
     font-weight: 400;
     color: var(--text-secondary-color);
-    min-height: 1.1em; /* Reserve space */
+    min-height: 1.2em; /* Reserve space */
 }
-.cal-line-4 b { /* Bold score */
-     color: var(--primary-color); /* Use primary color (yellow) for score maybe? */
+.cal-line-3 b { /* Score */
+     color: var(--text-primary-color); /* White score text */
      font-weight: 700;
 }
-/* Specific styling for non-scheduled status in line 4 */
-.cal-line-4 span[style*="color:var(--error-text-color)"] {
+/* Active state score color */
+button.calendar-day.active .cal-line-3 b {
+    color: var(--accent-color-text) !important; /* Light score text on red */
+}
+ /* Style for non-scheduled status */
+.cal-line-3 span[style*="color:var(--error-text-color)"] {
     color: var(--error-text-color) !important;
     font-style: italic;
 }
