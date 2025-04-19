@@ -348,7 +348,7 @@ function displayFixtures(fixtures, currentTime) {
     detailsTop.classList.add('fixture-details-top');
     const flagClasses = getFlagClass(fixture.country); // Get flag classes
     // Use innerHTML with span for the flag icon
-    detailsTop.innerHTML = `<span class="<span class="math-inline">\{flagClasses\}"\></span\>&nbsp;</span>{fixture.competition} (${fixture.country}) - ${timeString}`;
+    detailsTop.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${fixture.competition} (${fixture.country}) - ${timeString}`;
     fixtureElement.appendChild(detailsTop);
 
         // Home Team Row
