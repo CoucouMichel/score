@@ -12,7 +12,7 @@ function getDateString(date) {
 
 // --- Flag Mapping & URL Generation (Using flagcdn.com) ---
 const flagCodeMap = { // Maps Country Name to lowercase 2-letter ISO code
-    "England": "gb",
+    "England": "gb-eng",
     "Spain": "es",
     "Germany": "de",
     "Italy": "it",
