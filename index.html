@@ -17,7 +17,6 @@
 
     <main>
         <section id="calendar-nav">
-            <h2>Select Day</h2>
             <div id="week-view" class="calendar-container">
                 </div>
         </section>
@@ -25,20 +24,23 @@
          <section id="current-day-info">
             <h2>Your Pick for <span id="selected-date-display">Today</span></h2>
             <p id="selection-status">You haven't made a selection for this day yet.</p>
-            </section>
+        </section>
 
         <section id="filters">
             <h2>Filter Matches</h2>
-            <div id="filter-controls" class="filter-container">
-                <label for="country-filter">Country:</label>
-                <select id="country-filter">
-                    <option value="ALL">All Countries</option>
-                    </select>
+            <div id="filter-controls"> {/* Keep this wrapper maybe? Or remove if only one filter type now */}
+                <div class="filter-container"> {/* Keep Country Filter */}
+                    <label for="country-filter">Country:</label>
+                    <select id="country-filter">
+                        <option value="ALL">All Countries</option>
+                        </select>
+                </div>
 
-                <label for="league-filter">League:</label>
-                <select id="league-filter">
-                    <option value="ALL">All Leagues</option>
-                    </select>
+                <div class="filter-container" style="margin-top: 1rem;"> {/* Add space */}
+                    <label>League:</label> {/* Simple label */}
+                    <div id="league-slicer-container" class="slicer-container">
+                        </div>
+                </div>
             </div>
         </section>
 
