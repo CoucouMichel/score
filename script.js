@@ -1,4 +1,4 @@
-// script.js - FINAL VERSION with Firebase Auth Integrated
+// script.js - FINAL CORRECTED VERSION with Auth & Fixes
 
 // --- Firebase Initialization (ES Module Version) ---
 // Import functions from the Firebase SDKs
@@ -22,7 +22,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 console.log("Firebase initialized (module mode)!");
 
-// Get references to Firebase services (globally accessible)
+// Get references to Firebase services
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -62,11 +62,9 @@ onAuthStateChanged(auth, user => {
         if(loginForm) loginForm.style.display = 'none';
         if(signupForm) signupForm.style.display = 'none';
         if(userInfo) userInfo.style.display = 'block';
-        if(authSection) { // Optional: Hide auth section styling
-            authSection.style.border = 'none';
-            authSection.style.boxShadow = 'none';
-            authSection.style.background = 'none';
-            authSection.style.padding = '0 0 1.5rem 0';
+        if(authSection) { // Optional: Hide section styling when logged in
+            authSection.style.border = 'none'; authSection.style.boxShadow = 'none';
+            authSection.style.background = 'none'; authSection.style.padding = '0 0 1.5rem 0';
         }
         loadUserPicksFromFirestore(user.uid); // Placeholder call
     } else {
@@ -87,14 +85,14 @@ onAuthStateChanged(auth, user => {
         localStorage.removeItem('footballGameSelections');
         // Refresh UI after clearing data
         setTimeout(() => {
-             generateCalendar();
-             populateDailyLeagueSlicers();
-             updateDisplayedFixtures();
+             if(typeof generateCalendar === 'function') generateCalendar(); // Check if functions exist before calling
+             if(typeof populateDailyLeagueSlicers === 'function') populateDailyLeagueSlicers();
+             if(typeof updateDisplayedFixtures === 'function') updateDisplayedFixtures();
         }, 0);
     }
 });
 
-// Event Listeners for Auth Forms/Buttons
+// --- Event Listeners for Auth Forms/Buttons ---
 if (showSignupButton) {
     showSignupButton.addEventListener('click', () => {
         if(loginForm) loginForm.style.display = 'none';
@@ -145,7 +143,8 @@ if (logoutButton) {
         });
     });
 }
-function getFriendlyAuthError(error) { // Helper for user messages
+// Helper for friendlier error messages
+function getFriendlyAuthError(error) {
     switch (error.code) {
         case 'auth/invalid-email': return 'Invalid email format.';
         case 'auth/user-not-found': return 'No account found with this email.';
@@ -169,7 +168,6 @@ function getDateString(date) {
     const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     return adjustedDate.toISOString().split('T')[0];
 }
-
 // Flag Mapping & URL Generation
 const flagCodeMap = {
     "England": "gb-eng", "Spain": "es", "Germany": "de", "Italy": "it",
@@ -183,11 +181,36 @@ function getFlagUrl(countryName) {
 }
 
 // --- Fake Fixtures Data ---
-const fakeFixtures = [ /* ... PASTE YOUR EXPANDED FAKE FIXTURES ARRAY HERE ... */
+// !! IMPORTANT: PASTE YOUR EXPANDED fakeFixtures ARRAY HERE !!
+const fakeFixtures = [
     { fixtureId: 101, competition: "Premier League", country: "England", kickOffTime: new Date(now.getTime() + 2 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 1, name: "Man Reds" }, awayTeam: { id: 2, name: "Lon Blues" }, odds: { homeWin: 2.5, draw: 3.4, awayWin: 2.8 }, result: null },
     { fixtureId: 305, competition: "Bundesliga", country: "Germany", kickOffTime: new Date(now.getTime() - 1 * oneDay + 18.5 * oneHour).toISOString(), status: 'FINISHED', homeTeam: { id: 56, name: "Leipzig Bulls" }, awayTeam: { id: 57, name: "Hoffenheim Village" }, odds: { homeWin: 1.8, draw: 4.0, awayWin: 4.2 }, result: { homeScore: 2, awayScore: 2 } },
-    // ... include all ~30 fixtures ...
+    { fixtureId: 301, competition: "Europa League", country: "UEFA", kickOffTime: new Date(now.getTime() - 2 * oneDay + 17 * oneHour).toISOString(), status: 'FINISHED', homeTeam: { id: 50, name: "Roma Gladiators" }, awayTeam: { id: 51, name: "Leverkusen Works" }, odds: { homeWin: 2.8, draw: 3.5, awayWin: 2.5 }, result: { homeScore: 1, awayScore: 1 } },
+    { fixtureId: 302, competition: "Europa League", country: "UEFA", kickOffTime: new Date(now.getTime() - 2 * oneDay + 19 * oneHour).toISOString(), status: 'FINISHED', homeTeam: { id: 52, name: "Marseille Port" }, awayTeam: { id: 53, name: "Atalanta Hills" }, odds: { homeWin: 2.6, draw: 3.3, awayWin: 2.7 }, result: { homeScore: 2, awayScore: 0 } },
+    { fixtureId: 303, competition: "Pro League", country: "Belgium", kickOffTime: new Date(now.getTime() - 2 * oneDay + 18 * oneHour).toISOString(), status: 'FINISHED', homeTeam: { id: 54, name: "Club Brugge" }, awayTeam: { id: 55, name: "Anderlecht Royals" }, odds: { homeWin: 2.1, draw: 3.6, awayWin: 3.2 }, result: { homeScore: 3, awayScore: 1 } },
+    { fixtureId: 304, competition: "Premier League", country: "England", kickOffTime: new Date(now.getTime() - 1 * oneDay + 19 * oneHour).toISOString(), status: 'FINISHED', homeTeam: { id: 5, name: "Mersey Reds" }, awayTeam: { id: 6, name: "Man Citizens" }, odds: { homeWin: 2.2, draw: 3.5, awayWin: 3.1 }, result: { homeScore: 3, awayScore: 1 } },
+    { fixtureId: 306, competition: "Serie A", country: "Italy", kickOffTime: new Date(now.getTime() - 1 * oneDay + 19.5 * oneHour).toISOString(), status: 'FINISHED', homeTeam: { id: 58, name: "Inter Serpents" }, awayTeam: { id: 59, name: "Lazio Eagles" }, odds: { homeWin: 1.6, draw: 4.2, awayWin: 5.0 }, result: { homeScore: 1, awayScore: 0 } },
+    { fixtureId: 102, competition: "La Liga", country: "Spain", kickOffTime: new Date(now.getTime() + 4 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 3, name: "Madrid Whites" }, awayTeam: { id: 4, name: "Catalan Giants" }, odds: { homeWin: 1.9, draw: 3.8, awayWin: 4.0 }, result: null },
+    { fixtureId: 105, competition: "Bundesliga", country: "Germany", kickOffTime: new Date(now.getTime() + 5 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 11, name: "Dortmund Bees" }, awayTeam: { id: 7, name: "Bavarian Stars" }, odds: { homeWin: 2.9, draw: 3.6, awayWin: 2.4 }, result: null },
+    { fixtureId: 307, competition: "Primeira Liga", country: "Portugal", kickOffTime: new Date(now.getTime() + 6 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 60, name: "Porto Dragons" }, awayTeam: { id: 61, name: "Sporting Lions" }, odds: { homeWin: 2.3, draw: 3.3, awayWin: 3.0 }, result: null },
+    { fixtureId: 308, competition: "Eredivisie", country: "Netherlands", kickOffTime: new Date(now.getTime() + 7 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 62, name: "Ajax Masters" }, awayTeam: { id: 63, name: "PSV Lights" }, odds: { homeWin: 2.0, draw: 3.8, awayWin: 3.5 }, result: null },
+    { fixtureId: 309, competition: "Ligue 1", country: "France", kickOffTime: new Date(now.getTime() + 8 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 64, name: "Monaco Princes" }, awayTeam: { id: 65, name: "Lille Dogs" }, odds: { homeWin: 1.9, draw: 3.5, awayWin: 4.1 }, result: null },
+    { fixtureId: 201, competition: "Serie A", country: "Italy", kickOffTime: new Date(now.getTime() + 1 * oneDay + 3 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 9, name: "Milan Devils" }, awayTeam: { id: 10, name: "Turin Zebras" }, odds: { homeWin: 3.1, draw: 3.3, awayWin: 2.3 }, result: null },
+    { fixtureId: 202, competition: "Ligue 1", country: "France", kickOffTime: new Date(now.getTime() + 1 * oneDay + 5 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 8, name: "Paris Royals" }, awayTeam: { id: 12, name: "Lyon Lions" }, odds: { homeWin: 1.5, draw: 4.5, awayWin: 6.0 }, result: null },
+    { fixtureId: 203, competition: "Premier League", country: "England", kickOffTime: new Date(now.getTime() + 1 * oneDay + 6 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 6, name: "Man Citizens" }, awayTeam: { id: 5, name: "Mersey Reds" }, odds: { homeWin: 1.7, draw: 4.0, awayWin: 4.8 }, result: null },
+    { fixtureId: 310, competition: "La Liga", country: "Spain", kickOffTime: new Date(now.getTime() + 1 * oneDay + 7 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 66, name: "Sevilla Rojos" }, awayTeam: { id: 67, name: "Betis Verdes" }, odds: { homeWin: 2.4, draw: 3.2, awayWin: 2.9 }, result: null },
+    { fixtureId: 311, competition: "Süper Lig", country: "Turkey", kickOffTime: new Date(now.getTime() + 1 * oneDay + 4 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 68, name: "Galatasaray Lions" }, awayTeam: { id: 69, name: "Fenerbahce Canaries" }, odds: { homeWin: 2.5, draw: 3.4, awayWin: 2.7 }, result: null },
+    { fixtureId: 312, competition: "Scottish Premiership", country: "Scotland", kickOffTime: new Date(now.getTime() + 1 * oneDay + 1 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 70, name: "Celtic Hoops" }, awayTeam: { id: 71, name: "Rangers Gers" }, odds: { homeWin: 1.9, draw: 3.7, awayWin: 3.8 }, result: null },
+    { fixtureId: 313, competition: "Serie A", country: "Italy", kickOffTime: new Date(now.getTime() + 2 * oneDay + 18.75 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 72, name: "Napoli Blues" }, awayTeam: { id: 50, name: "Roma Gladiators" }, odds: { homeWin: 2.0, draw: 3.5, awayWin: 3.6 }, result: null },
+    { fixtureId: 314, competition: "La Liga", country: "Spain", kickOffTime: new Date(now.getTime() + 2 * oneDay + 19 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 73, name: "Athletic Bilbao" }, awayTeam: { id: 74, name: "Real Sociedad" }, odds: { homeWin: 2.6, draw: 3.1, awayWin: 2.8 }, result: null },
+    { fixtureId: 315, competition: "Pro League", country: "Belgium", kickOffTime: new Date(now.getTime() + 2 * oneDay + 18 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 75, name: "Gent Buffalos" }, awayTeam: { id: 76, name: "Standard Liege" }, odds: { homeWin: 1.9, draw: 3.4, awayWin: 4.0 }, result: null },
+    { fixtureId: 316, competition: "Champions League", country: "UEFA", kickOffTime: new Date(now.getTime() + 3 * oneDay + 19 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 7, name: "Bavarian Stars" }, awayTeam: { id: 4, name: "Catalan Giants" }, odds: { homeWin: 1.7, draw: 4.0, awayWin: 4.5 }, result: null },
+    { fixtureId: 317, competition: "Champions League", country: "UEFA", kickOffTime: new Date(now.getTime() + 3 * oneDay + 19 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 6, name: "Man Citizens" }, awayTeam: { id: 3, name: "Madrid Whites" }, odds: { homeWin: 1.9, draw: 3.8, awayWin: 3.7 }, result: null },
+    { fixtureId: 318, competition: "Süper Lig", country: "Turkey", kickOffTime: new Date(now.getTime() + 3 * oneDay + 17 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 77, name: "Besiktas Eagles" }, awayTeam: { id: 78, name: "Trabzonspor Storm" }, odds: { homeWin: 2.1, draw: 3.4, awayWin: 3.3 }, result: null },
+    { fixtureId: 319, competition: "Scottish Premiership", country: "Scotland", kickOffTime: new Date(now.getTime() + 4 * oneDay + 18.5 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 79, name: "Hearts Jambos" }, awayTeam: { id: 80, name: "Hibernian Hibees" }, odds: { homeWin: 2.5, draw: 3.2, awayWin: 2.8 }, result: null },
+    { fixtureId: 320, competition: "Eredivisie", country: "Netherlands", kickOffTime: new Date(now.getTime() + 4 * oneDay + 19 * oneHour).toISOString(), status: 'SCHEDULED', homeTeam: { id: 81, name: "Feyenoord Port" }, awayTeam: { id: 82, name: "AZ Alkmaar" }, odds: { homeWin: 1.8, draw: 3.9, awayWin: 4.1 }, result: null },
 ];
+
 
 // --- State Variables ---
 let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -201,99 +224,24 @@ const leagueSlicerContainer = document.getElementById('league-slicer-container')
 const scoreListUl = document.getElementById('score-list');
 
 // --- Core Game Functions ---
+// NOTE: Make sure these functions are correctly defined below
+function generateCalendar() { /* ... function code ... */ }
+function populateDailyLeagueSlicers() { /* ... function code ... */ }
+function handleSlicerClick(event) { /* ... function code ... */ }
+function updateDisplayedFixtures() { /* ... function code ... */ }
+function displayFixtures(fixtures, currentTime) { /* ... function code ... */ }
+function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) { /* ... function code ... */ }
+function calculateScore(selection, fixture) { /* ... function code ... */ }
+function loadUserDataFromLocal() { /* ... function code ... */ }
+function saveUserDataToLocal() { /* ... function code ... */ }
+function loadUserPicksFromFirestore(userId) { /* ... function code ... */ }
 
-function generateCalendar() { /* ... Keep function from response #55 ... */ }
-function populateDailyLeagueSlicers() { /* ... Keep function from response #55 ... */ }
-function handleSlicerClick(event) { /* ... Keep function from response #55 ... */ }
-function updateDisplayedFixtures() { /* ... Keep function from response #55 ... */ }
-function displayFixtures(fixtures, currentTime) { /* ... Keep function from response #61 ... */ }
-
-// MODIFIED handleSelection (Auth check added)
-function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
-    if (!auth.currentUser) { // Check if logged in
-         alert("Please log in or sign up to make a pick!");
-         return;
-    }
-    // Proceed if logged in
-    const selectedDateStr = getDateString(selectedDate);
-    const realCurrentTime = new Date();
-    const existingSelection = userSelections[selectedDateStr];
-    if (existingSelection) { // Check if pick locked
-        const existingFixture = fakeFixtures.find(f => f.fixtureId === existingSelection.fixtureId);
-        if (existingFixture && new Date(existingFixture.kickOffTime) <= realCurrentTime) {
-            alert(`Your pick (${existingSelection.teamName}) for ${selectedDateStr} is locked because the match has started.`);
-            return;
-        }
-    }
-    const clickedFixture = fakeFixtures.find(f => f.fixtureId === fixtureId); // Check clicked game
-    if (!clickedFixture) return;
-    const clickedKickOff = new Date(clickedFixture.kickOffTime);
-    if (clickedKickOff <= realCurrentTime) {
-        alert("This match has already started, you cannot select it.");
-        return;
-    }
-    // Select / Deselect / Overwrite
-    if (existingSelection && existingSelection.fixtureId === fixtureId && existingSelection.teamId === teamId) {
-        console.log(`Deselecting team ${teamId} for ${selectedDateStr}`);
-        delete userSelections[selectedDateStr];
-        // TODO: Delete pick from Firestore
-        // deletePickFromFirestore(auth.currentUser.uid, selectedDateStr);
-    } else {
-        console.log(`Selected/Changed to team ${teamId} (Fixture ${fixtureId}) for ${selectedDateStr}`);
-        const newSelection = {
-            fixtureId: fixtureId, teamId: teamId, teamName: teamName,
-            selectedWinOdd: teamWinOdd, fixtureDrawOdd: drawOdd,
-            selectionTime: realCurrentTime.toISOString(),
-            userId: auth.currentUser.uid // Include userId
-        };
-        userSelections[selectedDateStr] = newSelection;
-        // TODO: Save pick to Firestore
-        // savePickToFirestore(auth.currentUser.uid, selectedDateStr, newSelection);
-    }
-    saveUserDataToLocal(); // Save to localStorage temporarily
-    generateCalendar();
-    updateDisplayedFixtures();
-}
-
-function calculateScore(selection, fixture) { /* ... Keep function from response #59 ... */ }
-
-// Renamed: Loads from local storage only
-function loadUserDataFromLocal() {
-    console.log("Loading selections from Local Storage (temporary)");
-    const savedSelections = localStorage.getItem('footballGameSelections');
-    if (savedSelections) {
-        try { userSelections = JSON.parse(savedSelections); }
-        catch (e) { console.error("Error parsing saved selections:", e); userSelections = {}; }
-    } else { userSelections = {}; }
-    // Update UI after loading local data initially
-    // These might be called again by onAuthStateChanged, but safe to call here for initial non-logged-in state
-    generateCalendar();
-    updateDisplayedFixtures();
-}
-
-// Renamed: Saves only to local storage
-function saveUserDataToLocal() {
-    console.log("Saving selections to Local Storage (temporary)");
-    try { localStorage.setItem('footballGameSelections', JSON.stringify(userSelections)); }
-    catch (e) { console.error("Error saving selections to localStorage:", e); }
-}
-
-// Placeholder function for Firestore loading
-function loadUserPicksFromFirestore(userId) {
-    console.log(`TODO: Load picks for user ${userId} from Firestore and update userSelections object.`);
-    // For now, clear local state on login to prepare for Firestore data
-    userSelections = {};
-    console.log("Cleared local userSelections, waiting for Firestore load (not implemented yet).");
-    // Refresh UI immediately to show 'No Pick'
-    generateCalendar();
-    updateDisplayedFixtures();
-}
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     // Auth listeners are set up above and handle initial UI state via onAuthStateChanged
-    // Load initial data (e.g., from local storage for non-logged-in state, or just let onAuthStateChanged handle it)
-    loadUserDataFromLocal(); // Load local data first
-    // Initial UI generation - some parts might be re-rendered by onAuthStateChanged
-    populateDailyLeagueSlicers();
+    loadUserDataFromLocal(); // Load local data first (for non-logged-in state)
+    // Initial UI generation (parts might be updated by onAuthStateChanged)
+    if(typeof populateDailyLeagueSlicers === 'function') populateDailyLeagueSlicers();
+    // generateCalendar and updateDisplayedFixtures are called within loadUserDataFromLocal and onAuthStateChanged
 });
