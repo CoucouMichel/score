@@ -1,123 +1,90 @@
-// script.js
+/* Add styles for Calendar */
+.calendar-container {
+    display: flex;
+    justify-content: space-around;
+    background-color: #eee;
+    padding: 10px;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
 
-// Get the current date/time to make kick-off times relative
-const now = new Date();
-const oneHour = 60 * 60 * 1000;
-const oneDay = 24 * oneHour;
+.calendar-container button {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    flex-grow: 1; /* Make buttons fill space */
+    margin: 0 2px;
+    text-align: center;
+}
 
-// --- FAKE GAME DATA ---
-const fakeFixtures = [
-    {
-        fixtureId: 101,
-        competition: "Premier League",
-        // Kick-off in 2 hours from now
-        kickOffTime: new Date(now.getTime() + 2 * oneHour).toISOString(),
-        status: 'SCHEDULED', // Game hasn't started
-        homeTeam: { id: 1, name: "Manchester Reds" },
-        awayTeam: { id: 2, name: "London Blues" },
-        odds: { homeWin: 2.5, draw: 3.4, awayWin: 2.8 },
-        result: null // No result yet
-    },
-    {
-        fixtureId: 102,
-        competition: "La Liga",
-         // Kick-off in 4 hours from now
-        kickOffTime: new Date(now.getTime() + 4 * oneHour).toISOString(),
-        status: 'SCHEDULED',
-        homeTeam: { id: 3, name: "Madrid Whites" },
-        awayTeam: { id: 4, name: "Catalan Giants" },
-        odds: { homeWin: 1.9, draw: 3.8, awayWin: 4.0 },
-        result: null
-    },
-    {
-        fixtureId: 103,
-        competition: "Premier League",
-        // Kick-off was 2 days ago
-        kickOffTime: new Date(now.getTime() - 2 * oneDay).toISOString(),
-        status: 'FINISHED', // Game is finished
-        homeTeam: { id: 5, name: "Merseyside Reds" },
-        awayTeam: { id: 6, name: "Manchester Citizens" },
-        odds: { homeWin: 2.2, draw: 3.5, awayWin: 3.1 },
-        result: { homeScore: 3, awayScore: 1 } // Example result
-    },
-    {
-        fixtureId: 104,
-        competition: "Champions League",
-         // Kick-off was yesterday
-        kickOffTime: new Date(now.getTime() - 1 * oneDay).toISOString(),
-        status: 'FINISHED',
-        homeTeam: { id: 7, name: "Bavarian Stars" },
-        awayTeam: { id: 8, name: "Paris Royals" },
-        odds: { homeWin: 2.0, draw: 3.6, awayWin: 3.5 },
-        result: { homeScore: 2, awayScore: 2 } // Example draw result
-    },
-     {
-        fixtureId: 105,
-        competition: "Serie A",
-        // Kick-off in 30 minutes
-        kickOffTime: new Date(now.getTime() + 0.5 * oneHour).toISOString(),
-        status: 'SCHEDULED',
-        homeTeam: { id: 9, name: "Milan Devils" },
-        awayTeam: { id: 10, name: "Turin Zebras" },
-        odds: { homeWin: 3.1, draw: 3.3, awayWin: 2.3 },
-        result: null
-    }
-];
+.calendar-container button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #0056b3;
+    font-weight: bold;
+}
 
-// --- GAME LOGIC WILL GO HERE ---
-
-// Function to display fixtures (We will build this next)
-function displayFixtures(fixtures) {
-    const fixtureListDiv = document.getElementById('fixture-list');
-    fixtureListDiv.innerHTML = ''; // Clear loading message or previous fixtures
-
-    if (!fixtures || fixtures.length === 0) {
-        fixtureListDiv.innerHTML = '<p>No matches available today.</p>';
-        return;
-    }
-
-    // TODO: Loop through fixtures and create HTML elements
-    // TODO: Add buttons for team selection
-    // TODO: Disable buttons for games that have already started
+.calendar-container button:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
 }
 
 
-// Function to handle team selection (We will build this)
-function handleSelection(fixtureId, teamId, teamName, outcomeOdd) {
-    // TODO: Check if selection is allowed (game hasn't started)
-    // TODO: Store the selection (using localStorage)
-    // TODO: Update the UI to show the current selection
+/* Add styles for Filters */
+.filter-container {
+    display: flex;
+    gap: 15px; /* Spacing between filter elements */
+    align-items: center;
+    background-color: #eee;
+    padding: 10px;
+    margin-bottom: 1rem;
+    border-radius: 4px;
 }
 
-// Function to calculate score (We will build this)
-function calculateScore(selection, fixtureResult) {
-    // TODO: Implement the scoring logic based on user rules
-    // Win = Odd * 5
-    // Draw = Odd * 2 (Need Draw Odd from fixture)
-    // Goal Scored = +3
-    // Goal Conceded = -1
+.filter-container label {
+    font-weight: bold;
 }
 
-// Function to load and display current selection and scores (We will build this)
-function loadUserData() {
-     // TODO: Get today's date string for storage key
-     // TODO: Load selection from localStorage
-     // TODO: Load score history from localStorage
-     // TODO: Find results for past selections using fakeFixtures
-     // TODO: Calculate and display scores
+.filter-container select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
 }
 
+/* Existing styles from previous steps */
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+/* ... (keep other styles from previous response) ... */
 
-// --- INITIALIZATION ---
-// When the page loads, display the fixtures and load user data
-document.addEventListener('DOMContentLoaded', () => {
-    const dateSpan = document.getElementById('current-date');
-    dateSpan.textContent = new Date().toLocaleDateString(); // Show today's date
+#fixture-list .fixture .details { /* Added class for details */
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 5px;
+}
 
-    // Filter to show only "today's" games for selection
-    // For testing, we might show all scheduled games regardless of date for now
-    const availableFixtures = fakeFixtures.filter(f => f.status === 'SCHEDULED');
-
-    displayFixtures(availableFixtures);
-    loadUserData(); // Load selection and scores
-});
+#fixture-list button { /* Slightly adjust button style */
+    margin: 5px 5px 0 0; /* Top, Right, Bottom, Left */
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 3px;
+}
+#fixture-list button:disabled {
+     background-color: #aaa;
+     cursor: not-allowed;
+}
+#fixture-list button.selected-team { /* Style for the button of the selected team */
+    background-color: #ffc107;
+    color: black;
+    font-weight: bold;
+}
