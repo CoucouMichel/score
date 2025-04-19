@@ -3,40 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OddScore</title>
+    <title>OddScore - Rankings</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="css/flag-icons.min.css" rel="stylesheet" /> <link rel="stylesheet" href="style.css">
-</head>
+    <link rel="stylesheet" href="style.css">
+    </head>
 <body>
 
 <header>
     <div class="header-content">
-        <img src="logo.png" alt="Site Logo" id="logo-image">
-        <div id="week-view" class="calendar-container">
-            </div>
-    </div>
+        <a href="index.html" style="line-height: 0;"> <img src="logo.png" alt="Site Logo" id="logo-image">
+        </a>
+        </div>
 </header>
 
 <main>
-    <section id="available-fixtures">
-         <div id="daily-league-slicers" class="slicer-area">
-            <div id="league-slicer-container" class="slicer-container"></div>
-         </div>
-         <div id="fixture-list">Loading matches...</div>
+    <section id="ranking-section">
+        <h2>Player Rankings</h2>
+
+        <div class="ranking-controls">
+            Sort by:
+            <button id="sort-total-btn" class="sort-button active">Total Points</button>
+            <button id="sort-avg-btn" class="sort-button">Average Points</button>
+        </div>
+
+        <div class="ranking-table-container">
+            <table id="ranking-table">
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Player</th>
+                        <th>Avg Pts</th>
+                        <th class="highlight">Total Pts</th>
+                    </tr>
+                </thead>
+                <tbody id="ranking-body">
+                    <tr><td colspan="4">Loading rankings...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 
-    <section id="scoring-history">
-        <h2>Your Recent Scores</h2>
-        <ul id="score-list"><li>No scores yet.</li></ul>
-    </section>
+     <section style="text-align: center;">
+          <a href="index.html" class="back-link">Back to Game</a>
+     </section>
 </main>
 
 <footer>
     <p>Game data is currently mocked for testing.</p>
 </footer>
 
-<script src="script.js"></script>
+<script src="ranking.js"></script>
 </body>
 </html>
