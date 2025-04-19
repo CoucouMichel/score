@@ -335,8 +335,8 @@ function updateDisplayedFixtures() {
 }
 
 /**
- * Renders the list of fixtures using the condensed layout.
- * Adds score in a box and uses 'has-score' class.
+ * Renders the list of fixtures. Hides Pick buttons if game has started or is finished.
+ * Displays score next to team name for finished games.
  */
 function displayFixtures(fixtures, currentTime) {
     fixtureListDiv.innerHTML = ''; // Clear previous list
@@ -353,12 +353,13 @@ function displayFixtures(fixtures, currentTime) {
         fixtureElement.classList.add('fixture');
 
         const kickOff = new Date(fixture.kickOffTime);
+        // Determine if the game is selectable (Scheduled AND kickOff is in the future)
         const canSelect = fixture.status === 'SCHEDULED' && kickOff > currentTime;
         const timeString = kickOff.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
         // --- Build Internal Structure ---
 
-        // Top Details
+        // Top Details (with Flag Image)
         const detailsTop = document.createElement('div');
         detailsTop.classList.add('fixture-details-top');
         const flagUrl = getFlagUrl(fixture.country);
@@ -366,51 +367,81 @@ function displayFixtures(fixtures, currentTime) {
         detailsTop.innerHTML = `${flagHtml}${fixture.competition} - ${timeString}`;
         fixtureElement.appendChild(detailsTop);
 
-        // Home Team Row
+        // --- Home Team Row ---
         const homeRow = document.createElement('div'); homeRow.classList.add('team-row');
         const homeName = document.createElement('span'); homeName.classList.add('team-name'); homeName.textContent = fixture.homeTeam.name; homeRow.appendChild(homeName);
-        const homeScoreSpan = document.createElement('span');
-        homeScoreSpan.classList.add('team-score'); // Base class
+        const homeScoreSpan = document.createElement('span'); homeScoreSpan.classList.add('team-score');
         if (fixture.status === 'FINISHED' && fixture.result !== null) {
             homeScoreSpan.textContent = fixture.result.homeScore;
-            homeScoreSpan.classList.add('has-score'); // Add class for styling
-        } else {
-            homeScoreSpan.textContent = ''; // Keep it empty, CSS handles visibility
-        }
+            homeScoreSpan.classList.add('has-score');
+        } else { homeScoreSpan.innerHTML = '&nbsp;'; }
         homeRow.appendChild(homeScoreSpan);
         const homeOdd = document.createElement('span'); homeOdd.classList.add('team-odd'); homeOdd.textContent = fixture.odds.homeWin.toFixed(2); homeRow.appendChild(homeOdd);
-        const homeButton = document.createElement('button'); homeButton.classList.add('pick-button'); homeButton.textContent = "Pick"; homeButton.disabled = !canSelect; homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
-        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) { homeButton.classList.add('selected-team'); homeButton.textContent = "Picked"; } homeRow.appendChild(homeButton);
+        // *** MODIFICATION START: Only add button if canSelect is true ***
+        if (canSelect) {
+            const homeButton = document.createElement('button');
+            homeButton.classList.add('pick-button');
+            homeButton.textContent = "Pick";
+            // No need to set disabled = !canSelect, button only exists if canSelect=true
+            homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
+            if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) {
+                homeButton.classList.add('selected-team');
+                homeButton.textContent = "Picked";
+            }
+            homeRow.appendChild(homeButton); // Append button only if canSelect
+        }
+        // *** MODIFICATION END ***
         fixtureElement.appendChild(homeRow);
 
-        // Away Team Row
+        // --- Away Team Row ---
         const awayRow = document.createElement('div'); awayRow.classList.add('team-row');
         const awayName = document.createElement('span'); awayName.classList.add('team-name'); awayName.textContent = fixture.awayTeam.name; awayRow.appendChild(awayName);
-        const awayScoreSpan = document.createElement('span');
-        awayScoreSpan.classList.add('team-score'); // Base class
+        const awayScoreSpan = document.createElement('span'); awayScoreSpan.classList.add('team-score');
         if (fixture.status === 'FINISHED' && fixture.result !== null) {
             awayScoreSpan.textContent = fixture.result.awayScore;
-            awayScoreSpan.classList.add('has-score'); // Add class for styling
-        } else {
-            awayScoreSpan.textContent = ''; // Keep it empty
-        }
+            awayScoreSpan.classList.add('has-score');
+        } else { awayScoreSpan.innerHTML = '&nbsp;'; }
         awayRow.appendChild(awayScoreSpan);
         const awayOdd = document.createElement('span'); awayOdd.classList.add('team-odd'); awayOdd.textContent = fixture.odds.awayWin.toFixed(2); awayRow.appendChild(awayOdd);
-        const awayButton = document.createElement('button'); awayButton.classList.add('pick-button'); awayButton.textContent = "Pick"; awayButton.disabled = !canSelect; awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
-        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) { awayButton.classList.add('selected-team'); awayButton.textContent = "Picked"; } awayRow.appendChild(awayButton);
+        // *** MODIFICATION START: Only add button if canSelect is true ***
+        if (canSelect) {
+            const awayButton = document.createElement('button');
+            awayButton.classList.add('pick-button');
+            awayButton.textContent = "Pick";
+             // No need to set disabled = !canSelect
+            awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
+            if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) {
+                awayButton.classList.add('selected-team');
+                awayButton.textContent = "Picked";
+            }
+            awayRow.appendChild(awayButton); // Append button only if canSelect
+        }
+         // *** MODIFICATION END ***
         fixtureElement.appendChild(awayRow);
 
-         // Bottom Details (Status only, if needed)
+        // --- Bottom Details (Status only, if needed) ---
         const detailsBottom = document.createElement('div');
         detailsBottom.classList.add('fixture-details-bottom');
         let bottomText = ''; // Start empty
+        // Show Draw odd if game is scheduled and selectable (or just always if preferred)
+        // if (canSelect) {
+        //     bottomText = `Draw: ${fixture.odds.draw.toFixed(2)}`;
+        // }
+        // Show status if it's unusual
         if (fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') {
             bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`;
-        } else if (fixture.status === 'SCHEDULED' || fixture.status === 'FINISHED') {
-             // Optionally show Draw odd if needed, or leave blank
-             // bottomText = `Draw: ${fixture.odds.draw.toFixed(2)}`;
         }
-        if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
+        // Optionally add Draw odd back if status is FINISHED (and no other status shown)
+         else if (fixture.status === 'FINISHED' && !bottomText) {
+             // Can add Draw odd back here if desired for finished games
+             // bottomText = `Draw: ${fixture.odds.draw.toFixed(2)}`;
+         }
+
+        // Only append if there's content
+        if (bottomText) {
+            detailsBottom.innerHTML = bottomText;
+            fixtureElement.appendChild(detailsBottom);
+        }
 
         fixtureListDiv.appendChild(fixtureElement);
     });
