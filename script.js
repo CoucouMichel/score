@@ -316,7 +316,7 @@ function displayFixtures(fixtures, currentTime) {
 
             const homeButton = document.createElement('button');
             homeButton.textContent = `Pick ${fixture.homeTeam.name}`;
-            homeButton.disabled = !canSelect || (dayHasSelection && !isThisFixtureSelected);
+            homeButton.disabled = !canSelect;
             homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
             if (isThisFixtureSelected && currentDaySelection.teamId === fixture.homeTeam.id) {
                 homeButton.classList.add('selected-team');
@@ -325,7 +325,7 @@ function displayFixtures(fixtures, currentTime) {
 
             const awayButton = document.createElement('button');
             awayButton.textContent = `Pick ${fixture.awayTeam.name}`;
-            awayButton.disabled = !canSelect || (dayHasSelection && !isThisFixtureSelected);
+            awayButton.disabled = !canSelect;
             awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
             if (isThisFixtureSelected && currentDaySelection.teamId === fixture.awayTeam.id) {
                 awayButton.classList.add('selected-team');
