@@ -23,7 +23,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // --- Constants and Helpers ---
-const now = new Date("2025-04-19T12:00:00Z"); // Keep fixed date for demo consistency
+const now = new Date(); // Use the ACTUAL current date and time
 const oneHour = 60 * 60 * 1000;
 const oneDay = 24 * oneHour;
 
