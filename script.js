@@ -48,9 +48,20 @@ function getFlagUrl(countryName) {
 
 // --- API-Football Key and Fetch Logic ---
 const apiFootballKey = "059a4068b815413430d82f026d549d2f"; // <<< YOUR API-FOOTBALL KEY HERE
-
+const DESIRED_LEAGUE_IDS = [
+    39,  // Premier League (England)
+    140, // La Liga (Spain)
+    135, // Serie A (Italy)
+    78,  // Bundesliga (Germany)
+    61,  // Ligue 1 (France)
+    2,   // Champions League (UEFA)
+    3,   // Europa League (UEFA)
+    // --- Add any other league IDs you want to include ---
+    // Example: 88 (Eredivisie), 94 (Primeira Liga), 66 (Belgian Pro League), etc.
+];
 /**
  * Fetches fixtures for a specific date from API-Football.
+ 
  * Handles caching in Session Storage.
  * @param {string} dateStr - The date in 'YYYY-MM-DD' format.
  * @returns {Promise<Array>} A promise that resolves to an array of fixture objects in our internal format.
