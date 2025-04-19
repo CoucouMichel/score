@@ -70,7 +70,7 @@ button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !impo
 
 
 /* --- Main Content Area --- */
-main { max-width: 1100px; margin: 0 auto; padding: var(--header-height-estimate) 1rem 2rem 1rem; }
+main { max-width: 1100px; margin: 0 auto;}
 
 /* --- Sections within Main --- */
 section { background-color: var(--card-background-color); padding: 1.5rem; border-radius: 6px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; border: 1px solid var(--divider-color); }
@@ -78,7 +78,7 @@ section h2 { padding-left: 0; padding-right: 0; font-size: 1.5rem; font-weight: 
 #available-fixtures { padding: 0; border: none; box-shadow: none; background: none; margin-bottom: 1.5rem; }
 
 /* --- Daily League Slicer Area --- */
-#available-fixtures .slicer-area { padding: 1rem 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background-color: var(--card-background-color); border-radius: 6px 6px 0 0; box-shadow: var(--elevation-1); }
+#available-fixtures .slicer-area { padding: 1rem 1.5rem; margin-bottom: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; border-radius: 6px 6px 0 0; box-shadow: var(--elevation-1); }
 #available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
 .slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
 button.league-slicer { padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent; color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none; display: inline-flex; align-items: center;}
@@ -96,10 +96,8 @@ button.league-slicer.active {
 
 
 /* --- Fixture List & Cards --- */
-#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; padding: 0 1.5rem 1.5rem 1.5rem; background-color: var(--card-background-color); border-radius: 0 0 6px 6px; box-shadow: var(--elevation-1); border: 1px solid var(--divider-color); border-top: none;}
-.fixture { border-radius: 6px; padding: 0.6rem 0.8rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; color: var(--text-primary-color); border: 1px solid var(--divider-color); display: flex; flex-direction: column; }
-.fixture:nth-child(odd) { background-color: var(--pastel-color-1); } /* Tonal dark 1 */
-.fixture:nth-child(even) { background-color: var(--pastel-color-2); } /* Tonal dark 2 */
+#fixture-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-top: 0; padding: 0 1.5rem 1.5rem 1.5rem; border-radius: 0 0 6px 6px; box-shadow: var(--elevation-1); border-top: none;}
+.fixture { border-radius: 6px; padding: 0.6rem 0.8rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; color: var(--text-primary-color); border: 1px solid var(--divider-color); display: flex; flex-direction: column; background-color: var(--pastel-color-1);}
 .fixture:hover { background-color: #4c4944; /* Tonal surface 20 */ border-color: #63605c; /* Tonal surface 30 */ transform: translateY(-2px); box-shadow: var(--elevation-2); }
 .fixture-details-top { text-align: left; font-size: 0.7rem; color: var(--text-secondary-color); margin-bottom: 0.4rem; border-bottom: 1px dashed var(--divider-color); padding-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; }
 .team-row { display: flex; align-items: center; padding: 0.2rem 0; gap: 0.5rem; }
