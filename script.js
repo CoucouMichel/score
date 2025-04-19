@@ -330,7 +330,7 @@ function displayFixtures(fixtures, currentTime) {
             flagHtml = `<img src="${flagUrl}" alt="${fixture.country} flag" class="inline-flag">&nbsp;`;
         }
         // Use innerHTML to include the image (or nothing) and text
-        detailsTop.innerHTML = `${flagHtml}${fixture.competition} (${fixture.country}) - ${timeString}`;
+        detailsTop.innerHTML = `${flagHtml}${fixture.competition} - ${timeString}`;
         fixtureElement.appendChild(detailsTop);
 
 
