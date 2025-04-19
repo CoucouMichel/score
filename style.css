@@ -141,21 +141,70 @@ button.league-slicer.active {
 /* Top Details */
 .fixture-details-top { text-align: left; font-size: 0.7rem; color: var(--text-secondary-color); margin-bottom: 0.4rem; border-bottom: 1px dashed var(--divider-color); padding-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Team Row */
-.team-row { display: flex; align-items: center; padding: 0.2rem 0; gap: 0.5rem; }
-.team-name { flex-grow: 1; margin-right: auto; font-weight: 500; font-size: 0.9rem; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.team-score { font-weight: 700; font-size: 0.9rem; color: var(--text-primary-color); min-width: 20px; text-align: center; flex-shrink: 0; margin-left: 0.5rem; }
-.team-odd { flex-basis: 45px; flex-shrink: 0; text-align: right; font-weight: 500; font-size: 0.85rem; color: var(--text-secondary-color); }
-/* Pick button */
-.pick-button {
+/* Row for Team / Score / Odd / Button */
+.team-row {
+    display: flex;
+    align-items: center;
+    padding: 0.2rem 0;
+    gap: 0.5rem;
+}
+
+.team-name {
+    flex-grow: 1;
+    margin-right: auto;
+    font-weight: 500;
+    /* MODIFIED: Smaller font size */
+    font-size: 0.85rem;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Base style for the score span (invisible by default) */
+.team-score {
+    font-weight: 700;
+    font-size: 0.8rem; /* Smaller score font */
+    min-width: 22px;   /* Minimum width to maintain alignment */
+    text-align: center;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+    padding: 1px 5px;  /* Base padding */
+    border-radius: 4px; /* Rounded corners */
+    line-height: 1.4;
+    display: inline-block;
+    background-color: transparent; /* No background by default */
+    color: transparent; /* Hide empty space visually */
+    visibility: hidden; /* Hide element if empty */
+    transition: background-color 0.2s ease, color 0.2s ease, visibility 0s ease 0.2s; /* Smooth transition */
+}
+
+/* NEW: Style applied only when score exists (JS adds 'has-score' class) */
+.team-score.has-score {
+    background-color: var(--accent-color); /* Amber/Gold background */
+    color: var(--accent-color-text); /* Dark text */
+    visibility: visible; /* Show the box */
+}
+
+
+.team-odd { /* Keep as is */
+    flex-basis: 45px;
+    flex-shrink: 0;
+    text-align: right;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--text-secondary-color);
+}
+
+.pick-button { /* Keep as is */
     flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer;
-    background-color: var(--primary-color); /* Dark Blue */
-    color: var(--button-text-color); /* White text */
+    background-color: var(--primary-color-dark); color: var(--button-text-color);
     text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1);
     transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4;
 }
-.pick-button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
+/* Keep .pick-button hover, disabled, selected-team styles */
+.pick-button:hover:not(:disabled) { background-color: #FDD835; box-shadow: var(--elevation-2); }
 .pick-button:disabled { background-color: var(--disabled-bg-color); color: var(--disabled-text-color); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
-/* Selected Pick Button Style (Red Accent) */
 .pick-button.selected-team { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; }
 .pick-button.selected-team:hover { background-color: var(--accent-color-darker); }
 /* Bottom Details */
