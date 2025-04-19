@@ -59,6 +59,7 @@ const DESIRED_LEAGUE_IDS = [
     // --- Add any other league IDs you want to include ---
     // Example: 88 (Eredivisie), 94 (Primeira Liga), 66 (Belgian Pro League), etc.
 ];
+
 /**
  * Fetches fixtures for a specific date from API-Football.
  
@@ -159,7 +160,7 @@ async function fetchApiFootballFixtures(dateStr) {
  * *** This needs careful adjustment based on the actual API response structure ***
  */
 function mapApiFootballToFixtures(apiFixtures) {
-    console.log("Attempting to map API fixtures:", apiFixtures);
+    console.log(`Mapping ${apiFixtures.length} raw fixtures, filtering for leagues:`, DESIRED_LEAGUE_IDS);
     if (!Array.isArray(apiFixtures)) return [];
 
     return apiFixtures.map(item => {
@@ -168,7 +169,14 @@ function mapApiFootballToFixtures(apiFixtures) {
             const league = item.league;
             const teams = item.teams;
             const goals = item.goals;
-            const oddsData = item.odds; // Check if odds are included directly (depends on plan/request)
+
+            // --- FILTERING STEP ---
+            // Check if the league ID is in our desired list before proceeding
+            if (!league || !DESIRED_LEAGUE_IDS.includes(league.id)) {
+                 // console.log(`Skipping fixture from league ${league?.id} (${league?.name}) - Not in desired list.`);
+                 return null; // Skip this fixture
+            }
+            // --- END FILTERING STEP ---
 
             // Basic validation
             if (!fixture?.id || !league?.name || !teams?.home?.name || !teams?.away?.name || !fixture?.date) {
@@ -177,48 +185,30 @@ function mapApiFootballToFixtures(apiFixtures) {
             }
 
             // --- Status Mapping ---
-            let internalStatus = 'SCHEDULED'; // Default
+            let internalStatus = 'SCHEDULED';
             const statusShort = fixture?.status?.short;
-            // See: https://www.api-football.com/documentation-v3#tag/Fixtures/operation/get-fixtures -> Fixture Status
             if (['FT', 'AET', 'PEN'].includes(statusShort)) internalStatus = 'FINISHED';
             else if (['HT', '1H', '2H', 'ET', 'BT', 'P', 'INT'].includes(statusShort)) internalStatus = 'LIVE';
             else if (['PST', 'SUSP', 'INT', 'CANC', 'ABD', 'AWD', 'WO'].includes(statusShort)) internalStatus = fixture.status.long || 'UNKNOWN';
             else if (statusShort === 'TBD' || statusShort === 'NS') internalStatus = 'SCHEDULED';
 
+            // --- Odds Mapping Placeholder ---
+            // IMPORTANT: You still need to adjust this based on the actual API response structure
+            // to get real odds instead of these defaults.
+            let homeWin = 2.00, draw = 3.00, awayWin = 4.00; // Default placeholder odds
+            // Add your logic here to extract real odds from item.bookmakers if available
 
-            // --- Odds Mapping (CRITICAL - Highly depends on API response/plan) ---
-            // Placeholder: Find odds for "Match Winner" (usually ID=1) from a specific bookmaker (e.g., Bet365 ID=8)
-            // You MUST inspect your actual apiResult.response[...].odds to find the correct structure
-            let homeWin = null, draw = null, awayWin = null;
-            // Example: Loop through bookmakers if odds are included (often requires specific subscription)
-            /*
-            if (item.bookmakers && Array.isArray(item.bookmakers)) {
-                const bet365 = item.bookmakers.find(b => b.id === 8); // Example: Find Bet365
-                const matchWinnerBet = bet365?.bets?.find(bet => bet.id === 1); // Example: Find Match Winner bet
-                if (matchWinnerBet?.values) {
-                    homeWin = matchWinnerBet.values.find(v => v.value === 'Home')?.odd;
-                    draw = matchWinnerBet.values.find(v => v.value === 'Draw')?.odd;
-                    awayWin = matchWinnerBet.values.find(v => v.value === 'Away')?.odd;
-                }
-            }
-            */
-            // If direct odds fetching fails or isn't available, use defaults
-             if (homeWin === null || awayWin === null || draw === null) {
-                 // console.warn(`Using default odds for fixture ${fixture.id}`);
-                 homeWin = 2.00; draw = 3.00; awayWin = 4.00; // Default placeholder odds
-             }
-
-
+            // Create the mapped object
             return {
-                fixtureId: String(fixture.id), // Ensure ID is string
+                fixtureId: String(fixture.id),
                 competition: league.name,
                 country: league.country,
-                kickOffTime: fixture.date, // ISO8601 string
+                kickOffTime: fixture.date,
                 status: internalStatus,
-                homeTeam: { id: String(teams.home.id), name: teams.home.name }, // Ensure ID is string
-                awayTeam: { id: String(teams.away.id), name: teams.away.name }, // Ensure ID is string
+                homeTeam: { id: String(teams.home.id), name: teams.home.name },
+                awayTeam: { id: String(teams.away.id), name: teams.away.name },
                 odds: {
-                    homeWin: parseFloat(homeWin) || 2.0, // Parse and fallback
+                    homeWin: parseFloat(homeWin) || 2.0,
                     draw: parseFloat(draw) || 3.0,
                     awayWin: parseFloat(awayWin) || 4.0
                 },
@@ -226,9 +216,9 @@ function mapApiFootballToFixtures(apiFixtures) {
             };
         } catch(mapError){
              console.error("Error mapping API fixture data:", mapError, "Item:", item);
-             return null; // Skip fixture if mapping fails
+             return null;
         }
-    }).filter(fixture => fixture !== null);
+    }).filter(fixture => fixture !== null); // Remove nulls from skipped/failed items
 }
 
 
