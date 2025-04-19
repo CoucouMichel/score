@@ -175,10 +175,22 @@ function handleSlicerClick(event) {
 }
 
 function updateDisplayedFixtures() {
-    if (!fixtureListDiv) return; // Ensure container exists
+    if (!fixtureListDiv) return; // Ensure element exists
     const selectedDateStr = getDateString(selectedDate);
     const realCurrentTime = new Date();
-    const filteredFixtures = fakeFixtures.filter(fixture => { /* ... keep logic ... */ });
+    // Add console log here:
+    console.log(`Filtering fixtures for Date: ${selectedDateStr}, League: ${selectedLeagueFilter}`);
+
+    const filteredFixtures = fakeFixtures.filter(fixture => {
+        const fixtureDateStr = getDateString(new Date(fixture.kickOffTime));
+        if (fixtureDateStr !== selectedDateStr) return false;
+        if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
+        return true;
+    });
+
+    // Add console log here:
+    console.log(`Found ${filteredFixtures.length} fixtures to display:`, filteredFixtures);
+
     filteredFixtures.sort((a, b) => new Date(a.kickOffTime) - new Date(b.kickOffTime));
     displayFixtures(filteredFixtures, realCurrentTime);
 }
