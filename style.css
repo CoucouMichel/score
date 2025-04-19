@@ -43,7 +43,7 @@ header {
 }
 /* Wrapper to constrain header content */
 .header-content {
-    max-width: 1100px; /* Match max-width of main */
+    max-width: 900px; /* Match max-width of main */
     margin: 0 auto; /* Center the content wrapper */
     padding: 0 1rem; /* Horizontal padding matching main */
     display: flex;
