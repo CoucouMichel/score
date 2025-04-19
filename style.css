@@ -198,3 +198,122 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
      .fixture-details-top { font-size: 0.6rem;}
      .fixture-details-bottom { font-size: 0.65rem; }
 }
+
+/* --- Add Styles for Ranking Page --- */
+
+.ranking-controls {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--text-secondary-color);
+}
+
+button.sort-button {
+    padding: 6px 12px;
+    margin-left: 10px;
+    border: 1px solid var(--divider-color);
+    background-color: var(--card-background-color); /* Use card bg */
+    color: var(--text-secondary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+button.sort-button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--text-primary-color);
+    color: var(--text-primary-color);
+}
+
+button.sort-button.active {
+    background-color: var(--primary-color); /* Gold color */
+    color: var(--primary-color-text); /* Dark text */
+    border-color: var(--primary-color);
+    font-weight: 700;
+}
+
+.ranking-table-container {
+    overflow-x: auto; /* Allow table scroll on small screens */
+}
+
+#ranking-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+#ranking-table th,
+#ranking-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--divider-color);
+}
+
+#ranking-table th {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--text-secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#ranking-table td {
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+
+#ranking-table tbody tr:hover {
+    background-color: rgba(249, 249, 249, 0.05); /* Subtle row hover */
+}
+
+#ranking-table th:first-child,
+#ranking-table td:first-child { /* Position column */
+    width: 50px;
+    text-align: center;
+}
+#ranking-table th:nth-child(3),
+#ranking-table td:nth-child(3), /* Avg Pts */
+#ranking-table th:nth-child(4),
+#ranking-table td:nth-child(4) { /* Total Pts */
+    width: 100px; /* Adjust width */
+    text-align: right;
+}
+
+#ranking-table th.highlight,
+#ranking-table td.highlight {
+    font-weight: 700;
+    color: var(--text-primary-color); /* Make total points stand out more */
+}
+
+a.back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 8px 16px;
+    background-color: var(--primary-color); /* Gold */
+    color: var(--primary-color-text); /* Black text */
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+a.back-link:hover {
+    background-color: var(--primary-color-dark); /* Lighter Gold */
+}
+
+/* Responsive Table */
+@media (max-width: 600px) {
+    #ranking-table th:nth-child(3),
+    #ranking-table td:nth-child(3),
+    #ranking-table th:nth-child(4),
+    #ranking-table td:nth-child(4) {
+        width: 80px; /* Reduce width on smaller screens */
+        font-size: 0.85rem;
+    }
+     #ranking-table td {
+        font-size: 0.9rem;
+     }
+      #ranking-table th,
+      #ranking-table td {
+        padding: 8px 6px;
+      }
+}
