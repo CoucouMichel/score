@@ -7,11 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="css/flag-icons.min.css" rel="stylesheet" /> <link rel="stylesheet" href="style.css">
+    <link href="css/flag-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header> <div class="header-content">
+<header>
+    <div class="header-content">
         <a href="index.html" style="line-height: 0;"> <img src="logo.png" alt="Site Logo" id="logo-image">
         </a>
         <nav>
@@ -22,10 +24,35 @@
                 <li><a href="settings.html" class="header-nav-link">Settings</a></li>
             </ul>
         </nav>
-        </div>
+    </div>
 </header>
 
 <main>
+    <section id="auth-section">
+        <div id="login-form">
+            <h3>Login</h3>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button id="login-button">Login</button>
+            <p>Don't have an account? <button id="show-signup" class="link-button">Sign Up</button></p>
+            <p id="login-error" class="error-message"></p>
+        </div>
+
+        <div id="signup-form" style="display: none;">
+            <h3>Sign Up</h3>
+            <input type="email" id="signup-email" placeholder="Email" required>
+            <input type="password" id="signup-password" placeholder="Password" required>
+            <button id="signup-button">Sign Up</button>
+            <p>Already have an account? <button id="show-login" class="link-button">Login</button></p>
+            <p id="signup-error" class="error-message"></p>
+        </div>
+
+        <div id="user-info" style="display: none;">
+            <p>Welcome, <span id="user-email"></span>!</p>
+            <button id="logout-button">Logout</button>
+        </div>
+    </section>
+
     <section id="calendar-section">
         <div id="week-view" class="calendar-container">
             </div>
@@ -33,8 +60,8 @@
 
     <section id="available-fixtures">
          <div id="daily-league-slicers" class="slicer-area">
-            <label>Filter by League:</label>
-            <div id="league-slicer-container" class="slicer-container"></div>
+            <div id="league-slicer-container" class="slicer-container">
+                 </div>
          </div>
          <div id="fixture-list">Loading matches...</div>
     </section>
@@ -43,6 +70,10 @@
         <h2>Your Recent Scores</h2>
         <ul id="score-list"><li>No scores yet.</li></ul>
     </section>
+
+    <section style="text-align: center; background: none; border: none; box-shadow: none;">
+          <a href="ranking.html" class="back-link">View Rankings</a>
+     </section>
 </main>
 
 <footer>
