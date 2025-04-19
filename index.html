@@ -21,30 +21,24 @@
                 </div>
         </section>
 
-         <section id="current-day-info">
-            <h2>Your Pick for <span id="selected-date-display">Today</span></h2>
-            <p id="selection-status">You haven't made a selection for this day yet.</p>
-        </section>
+        <div class="info-filter-container">
 
-        <section id="filters">
-            <h2>Filter Matches</h2>
-            <div id="filter-controls"> {/* Keep this wrapper maybe? Or remove if only one filter type now */}
-                <div class="filter-container"> {/* Keep Country Filter */}
-                    <label for="country-filter">Country:</label>
-                    <select id="country-filter">
-                        <option value="ALL">All Countries</option>
-                        </select>
-                </div>
+            <section id="current-day-info">
+                <h2>Your Pick for <span id="selected-date-display">Today</span></h2>
+                <p id="selection-status">No pick made for this day.</p>
+            </section>
 
-                <div class="filter-container" style="margin-top: 1rem;"> {/* Add space */}
-                    <label>League:</label> {/* Simple label */}
+            <section id="filters">
+                <div class="filter-container"> {/* Keep one container for layout consistency */}
+                    {/* REMOVED Country Filter Label and Select */}
+                    {/* League slicers will be placed here */}
+                    <label>League:</label> {/* Keep label for context */}
                     <div id="league-slicer-container" class="slicer-container">
                         </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="available-fixtures">
+        </div> <section id="available-fixtures">
             <h2 id="fixture-list-title">Available Matches</h2>
             <div id="fixture-list">
                 Loading matches...
