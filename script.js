@@ -315,8 +315,7 @@ function updateDisplayedFixtures() {
 function displayFixtures(fixtures, currentTime) {
     fixtureListDiv.innerHTML = ''; // Clear previous list
 
-    // Add log here
-    console.log(`--- displayFixtures: Attempting to display ${fixtures ? fixtures.length : 0} fixtures ---`);
+    // console.log(`--- displayFixtures: Attempting to display ${fixtures ? fixtures.length : 0} fixtures ---`); // DEBUG REMOVED
 
     if (!fixtures || fixtures.length === 0) {
         fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>';
@@ -326,9 +325,8 @@ function displayFixtures(fixtures, currentTime) {
     const currentDaySelection = userSelections[getDateString(selectedDate)];
 
     fixtures.forEach((fixture, index) => {
-        // Add log here
-        console.log(`Loop ${index}: Processing fixture ${fixture.fixtureId}`);
-        try { // Add try...catch to isolate errors within the loop
+        // console.log(`Loop ${index}: Processing fixture ${fixture.fixtureId}`); // DEBUG REMOVED
+        try { // Keep try...catch for safety during development if you like
             const fixtureElement = document.createElement('div');
             fixtureElement.classList.add('fixture');
 
@@ -390,18 +388,14 @@ function displayFixtures(fixtures, currentTime) {
             if (fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') { bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`; }
             if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
 
-            // Crucial check: Appending fixture card to main list div
             fixtureListDiv.appendChild(fixtureElement);
-            // Add log here
-            console.log(`Loop ${index}: Successfully appended element for fixture ${fixture.fixtureId}`);
+            // console.log(`Loop ${index}: Successfully appended element for fixture ${fixture.fixtureId}`); // DEBUG REMOVED
 
         } catch (error) {
-            // Catch and log errors happening inside the loop
             console.error(`Error processing fixture ${fixture.fixtureId} in displayFixtures loop (Index ${index}):`, error);
         }
     });
-     // Add log here
-     console.log(`--- displayFixtures: Finished loop ---`);
+     // console.log(`--- displayFixtures: Finished loop ---`); // DEBUG REMOVED
 }
 
 function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
