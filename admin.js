@@ -44,7 +44,8 @@ function getDateString(date) {
 // --- API Fetch Function (Slightly modified for date range) ---
 async function fetchApiFootballRange(fromDateStr, toDateStr) {
     console.log(`Workspaceing from API-Football for ${fromDateStr} to ${toDateStr}...`);
-    const url = `https://v3.football.api-sports.io/fixtures?from=${fromDateStr}&to=${toDateStr}`;
+const currentSeason = 2024; // Or adjust if needed for the API
+const url = `https://v3.football.api-sports.io/fixtures?from=<span class="math-inline">\{fromDateStr\}&to\=</span>{toDateStr}&season=${currentSeason}`;
     // Add &season=YYYY if needed
     try {
         const response = await fetch(url, { method: 'GET', headers: { 'x-apisports-key': apiFootballKey }});
