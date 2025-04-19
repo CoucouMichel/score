@@ -412,6 +412,7 @@ function displayFixtures(fixtures, currentTime) {
 
 /**
  * Handles the logic when a user clicks a team selection button.
+ * Allows changing picks freely before kickoff for the selected day.
  * @param {number} fixtureId - The ID of the fixture.
  * @param {number} teamId - The ID of the selected team.
  * @param {string} teamName - The name of the selected team.
@@ -419,88 +420,89 @@ function displayFixtures(fixtures, currentTime) {
  * @param {number} drawOdd - The draw odd for the fixture.
  */
 function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
-     const selectedDateStr = getDateString(selectedDate);
-     const fixture = fakeFixtures.find(f => f.fixtureId === fixtureId);
+    const selectedDateStr = getDateString(selectedDate);
+    const fixture = fakeFixtures.find(f => f.fixtureId === fixtureId);
+    if (!fixture) return; // Should not happen
 
-     // Double-check if fixture exists (should always unless data issue)
-     if (!fixture) return;
+    const kickOff = new Date(fixture.kickOffTime);
+    // Use the *actual* current time for cutoff checks, not the fixed 'now'
+    const realCurrentTime = new Date();
 
-     const kickOff = new Date(fixture.kickOffTime);
-     const realCurrentTime = new Date();
+    // Prevent selection if match has started
+    if (kickOff <= realCurrentTime) {
+        alert("This match has already started, you cannot select it.");
+        return;
+    }
 
-     // Prevent selection if match has started
-     if (kickOff <= realCurrentTime) {
-         alert("This match has already started, you cannot select it.");
-         return;
-     }
+    const existingSelection = userSelections[selectedDateStr];
 
-     const existingSelection = userSelections[selectedDateStr];
-
-     // If clicking the *same* team in the *same* fixture again, deselect it.
-     if (existingSelection && existingSelection.fixtureId === fixtureId && existingSelection.teamId === teamId) {
-         console.log(`Deselecting team ${teamId} for ${selectedDateStr}`);
-         delete userSelections[selectedDateStr]; // Remove selection for the day
-     }
-     // If selecting a team when *another* fixture is already selected for the day, prevent it.
-     else if (existingSelection && existingSelection.fixtureId !== fixtureId) {
-         alert(`You have already selected ${existingSelection.teamName} for ${selectedDateStr}. You can only pick one team per day.`);
-         return;
-     }
-     // Otherwise, this is a new selection or changing selection within the same fixture (implicitly handled by setting new value)
-     else {
-         userSelections[selectedDateStr] = {
-             fixtureId: fixtureId,
-             teamId: teamId,
-             teamName: teamName,
-             selectedWinOdd: teamWinOdd, // Odd for the selected team winning
-             fixtureDrawOdd: drawOdd,   // Draw odd for the whole fixture
-             selectionTime: realCurrentTime.toISOString()
-         };
-         console.log(`Selected team ${teamId} for ${selectedDateStr}`);
-     }
+    // If clicking the *same* team in the *same* fixture again, DESELECT it.
+    if (existingSelection && existingSelection.fixtureId === fixtureId && existingSelection.teamId === teamId) {
+        console.log(`Deselecting team ${teamId} for ${selectedDateStr}`);
+        delete userSelections[selectedDateStr]; // Remove selection for the day
+    }
+    // Otherwise, it's either a new selection for the day,
+    // or changing the selection to a different team/fixture. OVERWRITE/SET the selection.
+    else {
+        userSelections[selectedDateStr] = {
+            fixtureId: fixtureId,
+            teamId: teamId,
+            teamName: teamName,
+            selectedWinOdd: teamWinOdd,
+            fixtureDrawOdd: drawOdd,
+            selectionTime: realCurrentTime.toISOString() // Use real time for selection log
+        };
+        console.log(`Selected team ${teamId} (Fixture ${fixtureId}) for ${selectedDateStr}`);
+    }
 
     // Save the updated selections and refresh the UI
     saveUserData();
-    updateDisplayedFixtures(); // Re-render fixtures to show selection/disable others
-    updateSelectionStatus();
+    updateDisplayedFixtures(); // Re-render fixtures to show button state changes
+    updateSelectionStatus(); // Update the summary text below calendar
 }
 
 /**
- * Updates the H2 title above the selection status based on the selected date.
- */
-function updateSelectedDateDisplay() {
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayStr = getDateString(today);
-    const selectedDateStr = getDateString(selectedDate);
-
-    if (selectedDateStr === todayStr) {
-        selectedDateDisplay.textContent = 'Today';
-    } else {
-        // Format date nicely, e.g., "Sunday, April 20, 2025"
-        selectedDateDisplay.textContent = selectedDate.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    }
-     fixtureListTitle.textContent = `Matches for ${selectedDate.toLocaleDateString()}`; // Update lower title too
-}
-
-/**
- * Updates the paragraph indicating the user's selection for the currently viewed day.
+ * Updates the paragraph indicating the user's selection status and score
+ * for the currently viewed day.
  */
 function updateSelectionStatus() {
     const selectedDateStr = getDateString(selectedDate);
     const selection = userSelections[selectedDateStr];
 
     if (selection) {
+        // Find the fixture details corresponding to the selection
         const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
-         if(fixture) {
-             selectionStatusP.innerHTML = `Your pick: <b>${selection.teamName}</b> (vs ${fixture.homeTeam.id === selection.teamId ? fixture.awayTeam.name : fixture.homeTeam.name})`;
-         } else {
-             // Should not happen with fake data, but good practice
-             selectionStatusP.textContent = 'Error finding selected fixture details.';
-             delete userSelections[selectedDateStr]; // Clear invalid selection
-             saveUserData();
-         }
+        if (fixture) {
+            const opponent = fixture.homeTeam.id === selection.teamId ? fixture.awayTeam.name : fixture.homeTeam.name;
+            let statusText = `Your pick: <b>${selection.teamName}</b> (vs ${opponent})`;
+
+            // Check if game is finished to calculate and display score
+            if (fixture.status === 'FINISHED' && fixture.result) {
+                const score = calculateScore(selection, fixture);
+                if (score !== null) {
+                    // Display score with two decimal places
+                    statusText += ` - Score: <b>${score.toFixed(2)} pts</b>`;
+                } else {
+                    // Should ideally not happen if status is FINISHED and result exists
+                    statusText += ` - Score calculation error`;
+                }
+            } else if (fixture.status !== 'SCHEDULED') {
+                // Indicate if game was Postponed, Cancelled, etc.
+                statusText += ` - (${fixture.status})`;
+            }
+            // If SCHEDULED, no score is shown yet.
+
+            selectionStatusP.innerHTML = statusText; // Update the paragraph
+        } else {
+            // Handle cases where fixture data might be missing for a selection
+            selectionStatusP.textContent = 'Error: Selected fixture details not found.';
+            // Clean up potentially corrupted data
+            delete userSelections[selectedDateStr];
+            saveUserData();
+        }
     } else {
-        selectionStatusP.textContent = `Select a team to back for this day!`;
+        // No selection made for this day
+        selectionStatusP.textContent = `No pick.`;
     }
 }
 
