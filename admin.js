@@ -51,6 +51,7 @@ const url = `https://v3.football.api-sports.io/fixtures?from=<span class="math-i
         const response = await fetch(url, { method: 'GET', headers: { 'x-apisports-key': apiFootballKey }});
         if (!response.ok) { /* ... Error handling ... */ throw new Error(`API Request Failed: ${response.status}`); }
         const apiResult = await response.json();
+        console.log(`Raw API Response for ${fromDateStr} to ${toDateStr}:`, apiResult); // Log the actual data received
         if (!apiResult || !Array.isArray(apiResult.response) || apiResult.results === 0) {
              console.log(`No fixtures found for ${fromDateStr} to ${toDateStr}.`); return [];
         }
