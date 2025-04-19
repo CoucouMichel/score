@@ -421,27 +421,55 @@ function displayFixtures(fixtures, currentTime) {
  */
 function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     const selectedDateStr = getDateString(selectedDate);
-    const fixture = fakeFixtures.find(f => f.fixtureId === fixtureId);
-    if (!fixture) return;
-    const kickOff = new Date(fixture.kickOffTime);
+    // Use the REAL current time for all checks related to locking/starting
     const realCurrentTime = new Date();
-    if (kickOff <= realCurrentTime) {
+
+    // --- Check if the pick for the selectedDate is already locked ---
+    const existingSelection = userSelections[selectedDateStr];
+    if (existingSelection) {
+        // Find the fixture data for the currently selected pick
+        const existingFixture = fakeFixtures.find(f => f.fixtureId === existingSelection.fixtureId);
+
+        // Check if that selected fixture exists and its kickoff time has passed
+        if (existingFixture && new Date(existingFixture.kickOffTime) <= realCurrentTime) {
+            // If the selected game has started, prevent ANY changes for this day
+            alert(`Your pick (${existingSelection.teamName}) for ${selectedDateStr} is locked because the match has started.`);
+            return; // Exit the function, no changes allowed
+        }
+    }
+
+    // --- If the day is not locked, proceed to check the CLICKED game ---
+    const clickedFixture = fakeFixtures.find(f => f.fixtureId === fixtureId);
+    if (!clickedFixture) return; // Safety check
+
+    const clickedKickOff = new Date(clickedFixture.kickOffTime);
+
+    // Prevent selecting the *clicked* game if IT has already started
+    // (This prevents selecting a game that's already live, even if the day wasn't locked yet)
+    if (clickedKickOff <= realCurrentTime) {
         alert("This match has already started, you cannot select it.");
         return;
     }
-    const existingSelection = userSelections[selectedDateStr];
+
+    // --- If checks pass, handle the Select / Deselect / Overwrite logic ---
     if (existingSelection && existingSelection.fixtureId === fixtureId && existingSelection.teamId === teamId) {
-        delete userSelections[selectedDateStr]; // Deselect
+        // Clicking the exact same pick again: Deselect
+        console.log(`Deselecting team ${teamId} for ${selectedDateStr}`);
+        delete userSelections[selectedDateStr];
     } else {
-        userSelections[selectedDateStr] = { // Select or Overwrite
+        // Selecting a new team/fixture (or first pick): Set/Overwrite
+        console.log(`Selected/Changed to team ${teamId} (Fixture ${fixtureId}) for ${selectedDateStr}`);
+        userSelections[selectedDateStr] = {
             fixtureId: fixtureId, teamId: teamId, teamName: teamName,
             selectedWinOdd: teamWinOdd, fixtureDrawOdd: drawOdd,
-            selectionTime: realCurrentTime.toISOString()
+            selectionTime: realCurrentTime.toISOString() // Log the time of the actual selection
         };
     }
+
+    // Update data and UI
     saveUserData();
-    generateCalendar();
-    updateDisplayedFixtures();
+    generateCalendar(); // Update calendar status immediately
+    updateDisplayedFixtures(); // Update list button states reflecting the new pick/deselection
 }
 
 /**
