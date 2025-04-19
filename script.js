@@ -496,17 +496,34 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
 
 /**
  * Calculates the score for a finished fixture based on the user's selection.
+ * Score minimum is 0.
+ * @param {object} selection - The user's selection object for that day.
+ * @param {object} fixture - The fixture object (must be finished with result).
+ * @returns {number | null} The calculated score (>= 0), or null if score cannot be calculated.
  */
 function calculateScore(selection, fixture) {
-    if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result) return null;
+    if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result) {
+        return null; // Match not finished or data missing
+    }
+
     let score = 0;
     const selectedTeamIsHome = fixture.homeTeam.id === selection.teamId;
     const selectedTeamScore = selectedTeamIsHome ? fixture.result.homeScore : fixture.result.awayScore;
     const concededScore = selectedTeamIsHome ? fixture.result.awayScore : fixture.result.homeScore;
-    if (selectedTeamScore > concededScore) score += selection.selectedWinOdd * 5;
-    else if (selectedTeamScore === concededScore) score += selection.fixtureDrawOdd * 2;
-    score += selectedTeamScore * 3; score -= concededScore * 1;
-    return score;
+
+    // Result points
+    if (selectedTeamScore > concededScore) { // Selected team won
+        score += selection.selectedWinOdd * 5;
+    } else if (selectedTeamScore === concededScore) { // Draw
+        score += selection.fixtureDrawOdd * 2;
+    } // Loss = 0 points from result
+
+    // Goal points
+    score += selectedTeamScore * 3; // Points for goals scored
+    score -= concededScore * 1; // Points deducted for goals conceded
+
+    // --- MODIFICATION: Ensure minimum score is 0 ---
+    return Math.max(0, score);
 }
 
 /**
