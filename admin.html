@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OddScore Admin - Fetch Fixtures</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #222; color: #eee; }
+        button { padding: 10px 20px; font-size: 1rem; cursor: pointer; margin-right: 10px; }
+        #status { margin-top: 20px; font-weight: bold; }
+        .success { color: lightgreen; }
+        .error { color: lightcoral; }
+    </style>
+</head>
+<body>
+
+<h1>OddScore Admin</h1>
+<p>Use this page to fetch upcoming fixtures from API-Football and save them to the Firestore database.</p>
+
+<button id="fetch-button">Fetch Next 14 Days & Save</button>
+<button id="fetch-single-button">Fetch Single Date & Save</button>
+<input type="date" id="single-date-input" value=""> <div id="status">Status: Idle</div>
+
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js" type="module"></script>
+<script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js" type="module"></script>
+<script src="admin.js" type="module"></script>
+</body>
+</html>
