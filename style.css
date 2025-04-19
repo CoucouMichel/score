@@ -1,61 +1,51 @@
-/* style.css - Midnight Shadows Dark Theme / 3-Column / Red Header Border */
+/* style.css - Midnight Shadows Dark Theme with Greys */
 
-/* --- Midnight Shadows Palette --- */
+/* --- Palette: Dark with Grey Primary, Red Accent --- */
 :root {
-    /* Dark Blues & Greys */
-    --background-color: #1a1a2e;
-    --card-background-color: #16213e;
-    --primary-color: #0f3460;
-    --primary-color-dark: #144a8c;
-    --primary-color-light-hover: rgba(249, 249, 249, 0.08);
-    /* Accent Red */
+    /* Greys (Replacing Blues) */
+    --primary-grey-color: #424242; /* Medium-dark grey (Material Grey 800 approx) */
+    --primary-grey-dark-hover: #535353; /* Slightly lighter grey for hover */
+    --primary-grey-light-hover: rgba(255, 255, 255, 0.08); /* Subtle white overlay hover for transparent items */
+
+    /* Dark Theme Base */
+    --background-color: #1a1a2e; /* Original dark base */
+    --card-background-color: #16213e; /* Original dark card */
+
+    /* Accent Red (Keep) */
     --accent-color: #e94560;
     --accent-color-darker: #d73c53;
     --accent-color-text: #ffffff;
-    /* Text & Dividers */
+
+    /* Text & Dividers (Keep) */
     --text-primary-color: #f9f9f9;
     --text-secondary-color: rgba(249, 249, 249, 0.7);
     --divider-color: rgba(249, 249, 249, 0.12);
     --error-text-color: #ff8a80;
-    /* Fixture Backgrounds (Dark Alternating) */
+
+    /* Fixture Backgrounds (Keep) */
     --pastel-color-1: #1b2a4a;
     --pastel-color-2: #1d2d4f;
+
     /* Button States */
-    --button-text-color: var(--text-primary-color);
+    --button-text-color: var(--text-primary-color); /* Default light text */
     --disabled-bg-color: rgba(249, 249, 249, 0.12);
     --disabled-text-color: rgba(249, 249, 249, 0.3);
-    /* Elevation/Shadows */
+
+    /* Elevation/Shadows (Keep) */
     --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 1px 0 rgba(0, 0, 0, 0.14);
     --elevation-2: 0 2px 4px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.14);
-    /* Header Height Estimate */
-    --header-height-estimate: 130px; /* Adjust if needed */
+
+    /* Header Height Estimate (Keep) */
+    --header-height-estimate: 100px;
 }
 
 /* --- Global Styles --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    font-family: 'Roboto', sans-serif; /* Sets default font */
-    line-height: 1.6;
-    background-color: var(--background-color); /* Sets dark background */
-    color: var(--text-primary-color); /* Sets light text */
-    font-size: 16px;
-}
+body { font-family: 'Roboto', sans-serif; line-height: 1.6; background-color: var(--background-color); color: var(--text-primary-color); font-size: 16px; }
 
-/* --- Sticky Header --- */
-header {
-    background-color: var(--card-background-color);
-    padding: 0;
-    box-shadow: var(--elevation-2);
-    /* MODIFIED: Replaced border-bottom with thicker red accent */
-    border-bottom: 3px solid var(--accent-color);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-.header-content {
-    max-width: 1100px; margin: 0 auto; padding: 0.5rem 1rem;
-    display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
-}
+/* --- Header --- */
+header { background-color: var(--card-background-color); padding: 0; box-shadow: var(--elevation-2); border-bottom: 3px solid var(--accent-color); position: sticky; top: 0; z-index: 100; }
+.header-content { max-width: 1100px; margin: 0 auto; padding: 0.5rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
 #logo-image { height: 35px; width: auto; }
 
 /* --- Calendar Navigation --- */
@@ -64,7 +54,7 @@ header {
 .calendar-container::-webkit-scrollbar-track { background: transparent; }
 .calendar-container::-webkit-scrollbar-thumb { background-color: var(--text-secondary-color); border-radius: 2px; }
 button.calendar-day { flex-grow: 1; min-width: 85px; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.5rem 0.25rem; border: 1px solid var(--divider-color); background-color: var(--card-background-color); color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center; transition: all 0.2s ease-out; font-weight: 500; flex-shrink: 0; }
-button.calendar-day:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-primary-color); color: var(--text-primary-color); }
+button.calendar-day:hover { background-color: var(--primary-grey-light-hover); border-color: var(--text-primary-color); color: var(--text-primary-color); }
 button.calendar-day.active { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; border-color: var(--accent-color-darker); box-shadow: var(--elevation-1); }
 button.calendar-day.active span, button.calendar-day.active b { color: var(--accent-color-text) !important; opacity: 1; }
 button.calendar-day:disabled { color: var(--disabled-text-color); background-color: var(--card-background-color); cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
@@ -91,8 +81,14 @@ section h2 { padding-left: 0; padding-right: 0; font-size: 1.5rem; font-weight: 
 #available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
 .slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
 button.league-slicer { padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent; color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none; display: inline-flex; align-items: center;}
-button.league-slicer:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
-button.league-slicer.active { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--button-text-color); font-weight: 700; }
+button.league-slicer:hover { background-color: var(--primary-grey-light-hover); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
+/* Active League Slicer Style */
+button.league-slicer.active {
+    background-color: var(--primary-grey-color); /* Use grey */
+    border-color: var(--primary-grey-color); /* Use grey */
+    color: var(--text-primary-color); /* Ensure light text */
+    font-weight: 700;
+}
 
 /* Flag images */
 .inline-flag { width: 20px; height: auto; vertical-align: middle; margin-right: 0.5em; display: inline-block; }
@@ -110,17 +106,30 @@ button.league-slicer.active { background-color: var(--primary-color); border-col
 .team-score { font-weight: 700; font-size: 0.8rem; min-width: 22px; text-align: center; flex-shrink: 0; margin-left: 0.5rem; padding: 1px 5px; border-radius: 4px; line-height: 1.4; display: inline-block; background-color: transparent; color: transparent; visibility: hidden; transition: background-color 0.2s ease, color 0.2s ease, visibility 0s ease 0.2s; }
 .team-score.has-score { background-color: var(--accent-color); color: var(--accent-color-text); visibility: visible; }
 .team-odd { flex-basis: 45px; flex-shrink: 0; text-align: right; font-weight: 500; font-size: 0.85rem; color: var(--text-secondary-color); }
-.pick-button { flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer; background-color: var(--primary-color); color: var(--button-text-color); text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4; }
-.pick-button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
+/* Pick button */
+.pick-button {
+    flex-shrink: 0; padding: 4px 10px; margin: 0; border: none; border-radius: 4px; cursor: pointer;
+    background-color: var(--primary-grey-color); /* Use grey */
+    color: var(--button-text-color); /* Ensure light text */
+    text-transform: uppercase; font-weight: 500; font-size: 0.7rem; box-shadow: var(--elevation-1);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease; line-height: 1.4;
+}
+.pick-button:hover:not(:disabled) {
+    background-color: var(--primary-grey-dark-hover); /* Use grey hover */
+    box-shadow: var(--elevation-2);
+}
 .pick-button:disabled { background-color: var(--disabled-bg-color); color: var(--disabled-text-color); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+/* Selected Pick Button Style (Red Accent) */
 .pick-button.selected-team { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; }
 .pick-button.selected-team:hover { background-color: var(--accent-color-darker); }
+/* Bottom Details */
 .fixture-details-bottom { font-size: 0.75rem; color: var(--text-secondary-color); margin-top: 0.3rem; text-align: left; padding-top: 0.3rem; border-top: 1px dashed var(--divider-color); min-height: 1.2em; }
 .fixture-details-bottom em { color: var(--text-primary-color); font-style: normal; font-weight: 500; }
 .fixture-details-bottom span[style*="color:red"] { color: var(--error-text-color) !important; font-style: italic; }
 
+
 /* --- Scoring History --- */
-#scoring-history { padding: 1.5rem; }
+#scoring-history {}
 #score-list { list-style: none; padding: 0; }
 #score-list li { background-color: var(--pastel-color-1); margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem; color: var(--text-primary-color); border: 1px solid var(--divider-color); }
 
