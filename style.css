@@ -1,0 +1,82 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+main {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+section {
+    margin-bottom: 2rem;
+}
+
+h2 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+    color: #333;
+}
+
+#fixture-list .fixture {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+#fixture-list .teams {
+    font-weight: bold;
+}
+
+#fixture-list .kickoff,
+#fixture-list .odds {
+    font-size: 0.9em;
+    color: #555;
+}
+
+#fixture-list button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#selection-status {
+    font-weight: bold;
+    color: navy;
+}
+
+footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    font-size: 0.8em;
+    color: #777;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+#score-list li {
+    background-color: #eef;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-radius: 3px;
+}
