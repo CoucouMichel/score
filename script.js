@@ -234,20 +234,21 @@ function populateDailyLeagueSlicers() {
     const sortedLeagues = [...leaguesToday.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
     // Create slicers for leagues available today, now with flags
-    sortedLeagues.forEach(([league, country]) => { // Destructure Map entry [leagueName, countryName]
-        const button = document.createElement('button');
-        const flag = getFlagEmoji(country); // Get the flag emoji
+   sortedLeagues.forEach(([league, country]) => { // Destructure Map entry [leagueName, countryName]
+    const button = document.createElement('button');
+    const flagClasses = getFlagClass(country); // Get CSS classes e.g., "fi fi-gb"
 
-        // Use innerHTML to correctly render the emoji next to the text
-        // Adding a non-breaking space (&nbsp;) for slight separation
-        button.innerHTML = `${flag}&nbsp;${league}`;
+    // Use innerHTML with a span for the flag icon
+    // Add appropriate classes to the span
+    // Add a non-breaking space (&nbsp;) for slight separation
+    button.innerHTML = `<span class="<span class="math-inline">\{flagClasses\}"\></span\>&nbsp;</span>{league}`;
 
-        button.classList.add('league-slicer');
-        if (selectedLeagueFilter === league) button.classList.add('active');
-        button.dataset.league = league; // Store league name in data attribute
-        button.addEventListener('click', handleSlicerClick);
-        leagueSlicerContainer.appendChild(button);
-    });
+    button.classList.add('league-slicer');
+    if (selectedLeagueFilter === league) button.classList.add('active');
+    button.dataset.league = league; // Store league name in data attribute
+    button.addEventListener('click', handleSlicerClick);
+    leagueSlicerContainer.appendChild(button);
+});
 
     // Hide the whole slicer area if no leagues are available for the day
     const slicerArea = document.getElementById('daily-league-slicers');
@@ -264,22 +265,26 @@ function getDateString(date) {
 }
 
 // NEW: Function to get flag emoji based on country name
-function getFlagEmoji(countryName) {
-    const countryMap = {
-        "England": "🇬🇧",
-        "Spain": "🇪🇸",
-        "Germany": "🇩🇪",
-        "Italy": "🇮🇹",
-        "France": "🇫🇷",
-        "Portugal": "🇵🇹",
-        "Netherlands": "🇳🇱",
-        "Belgium": "🇧🇪",
-        "Turkey": "🇹🇷",
-        "Scotland": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-        "UEFA": "🇪🇺" // Using EU flag for UEFA competitions
-        // Add more mappings if needed for other countries in your data
+function getFlagClass(countryName) {
+    // Map country name to flag-icon-css codes (lowercase)
+    // Check codes at: https://flagicons.lipis.dev/
+    const countryCodeMap = {
+        "England": "gb-en", // Uses Great Britain flag code
+        "Spain": "es",
+        "Germany": "de",
+        "Italy": "it",
+        "France": "fr",
+        "Portugal": "pt",
+        "Netherlands": "nl",
+        "Belgium": "be",
+        "Turkey": "tr",
+        "Scotland": "gb-sct", // Specific code for Scotland flag
+        "UEFA": "eu" // European Union flag for UEFA competitions
+        // Add more countries as needed, ensure codes are lowercase
     };
-    return countryMap[countryName] || "🏳️"; // Return mapped emoji or a default white flag
+    const code = countryCodeMap[countryName]; // Get the code
+    // Ensure countryName exists and has a code before returning classes
+    return code ? `fi fi-${code}` : ""; // Return classes "fi fi-xx" or empty string if no match
 }
 
 /**
@@ -339,12 +344,12 @@ function displayFixtures(fixtures, currentTime) {
         // --- Build Internal Structure ---
 
         // Top Details (with Flag)
-        const detailsTop = document.createElement('div');
-        detailsTop.classList.add('fixture-details-top');
-        const flag = getFlagEmoji(fixture.country); // Get flag
-        // Add flag before the text content
-        detailsTop.textContent = `${flag} ${fixture.competition} (${fixture.country}) - ${timeString}`;
-        fixtureElement.appendChild(detailsTop);
+    const detailsTop = document.createElement('div');
+    detailsTop.classList.add('fixture-details-top');
+    const flagClasses = getFlagClass(fixture.country); // Get flag classes
+    // Use innerHTML with span for the flag icon
+    detailsTop.innerHTML = `<span class="<span class="math-inline">\{flagClasses\}"\></span\>&nbsp;</span>{fixture.competition} (${fixture.country}) - ${timeString}`;
+    fixtureElement.appendChild(detailsTop);
 
         // Home Team Row
         const homeRow = document.createElement('div');
