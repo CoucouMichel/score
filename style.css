@@ -80,13 +80,16 @@ section h2 { /* For remaining H2s */
 
 /* Calendar Button Style */
 .calendar-container button {
-    width: 100%; padding: 8px 5px; border: 1px solid var(--divider-color);
-    background-color: transparent; color: var(--text-secondary-color);
+    width: 100%; padding: 8px 5px;
+    /* CHANGED LINE BELOW: Use card background for inactive buttons */
+    background-color: var(--card-background-color);
+    border: 1px solid var(--divider-color); /* Keep border */
+    color: var(--text-secondary-color);
     cursor: pointer; border-radius: 4px; text-align: center; font-size: 0.8rem; line-height: 1.3; font-weight: 500; margin-bottom: 4px; transition: all 0.2s ease-out;
 }
 .calendar-container button b { font-weight: 700; color: var(--text-primary-color); }
 .calendar-container button:hover {
-    background-color: var(--primary-color-light-hover);
+    background-color: var(--primary-color-light-hover); /* Keep subtle hover */
     border-color: var(--text-primary-color);
     color: var(--text-primary-color);
 }
@@ -96,11 +99,14 @@ section h2 { /* For remaining H2s */
     color: var(--accent-color-text); /* White text */
     font-weight: 700; border-color: var(--accent-color); box-shadow: var(--elevation-1);
 }
-.calendar-container button:disabled { color: var(--disabled-text-color); background: transparent; cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
+/* Adjusted disabled style to use card bg */
+.calendar-container button:disabled {
+    color: var(--disabled-text-color);
+    background-color: var(--card-background-color); /* Match inactive bg */
+    cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color);
+ }
 .day-pick-status { font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; height: 3em; line-height: 1.4; overflow: hidden; padding: 0 2px; }
 .day-pick-status b { color: var(--text-primary-color); } /* White bold text */
-
-
 /* --- Daily League Slicer Area --- */
 #available-fixtures .slicer-area { padding: 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 #available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
