@@ -1,4 +1,4 @@
-// script.js - Corrected detailsTop.innerHTML line
+// script.js - FINAL CORRECTED VERSION
 
 // --- Constants and Helpers ---
 const now = new Date("2025-04-19T12:00:00Z"); // Keep fixed date for demo consistency
@@ -11,13 +11,25 @@ function getDateString(date) {
 
 // Function to get flag icon CSS class
 function getFlagClass(countryName) {
+    // Map country name to flag-icon-css codes (lowercase)
+    // Check codes at: https://flagicons.lipis.dev/
     const countryCodeMap = {
-        "England": "gb", "Spain": "es", "Germany": "de", "Italy": "it",
-        "France": "fr", "Portugal": "pt", "Netherlands": "nl", "Belgium": "be",
-        "Turkey": "tr", "Scotland": "gb-sct", "UEFA": "eu"
+        "England": "gb", // Uses Great Britain flag code
+        "Spain": "es",
+        "Germany": "de",
+        "Italy": "it",
+        "France": "fr",
+        "Portugal": "pt",
+        "Netherlands": "nl",
+        "Belgium": "be",
+        "Turkey": "tr",
+        "Scotland": "gb-sct", // Specific code for Scotland flag
+        "UEFA": "eu" // European Union flag for UEFA competitions
+        // Add more countries as needed, ensure codes are lowercase
     };
     const code = countryCodeMap[countryName];
-    return code ? `fi fi-${code}` : "";
+    // Ensure countryName exists and has a code before returning classes
+    return code ? `fi fi-${code}` : ""; // Return classes "fi fi-xx" or empty string if no match
 }
 
 // --- Fake Data (Expanded version needed here) ---
@@ -156,12 +168,26 @@ const scoreListUl = document.getElementById('score-list');
 
 // --- Core Functions ---
 
-// generateCalendar() - Unchanged from previous step
+// Function to get flag icon CSS class
+function getFlagClass(countryName) {
+    const countryCodeMap = {
+        "England": "gb", "Spain": "es", "Germany": "de", "Italy": "it",
+        "France": "fr", "Portugal": "pt", "Netherlands": "nl", "Belgium": "be",
+        "Turkey": "tr", "Scotland": "gb-sct", "UEFA": "eu"
+    };
+    const code = countryCodeMap[countryName];
+    return code ? `fi fi-${code}` : "";
+}
+
+
+/**
+ * Generates calendar navigation (Yesterday, Today, +3 Days) with pick status.
+ */
 function generateCalendar() {
     weekViewContainer.innerHTML = '';
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    for (let i = -1; i <= 3; i++) {
+    for (let i = -1; i <= 3; i++) { // Loop for 5 days
         const date = new Date(today.getTime() + i * oneDay);
         const dateStr = getDateString(date);
         const dayContainer = document.createElement('div');
@@ -173,6 +199,7 @@ function generateCalendar() {
         button.innerHTML = buttonText;
         button.dataset.date = dateStr;
         if (getDateString(selectedDate) === dateStr) button.classList.add('active');
+
         button.addEventListener('click', () => {
             if (getDateString(selectedDate) !== dateStr) {
                 selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -182,10 +209,12 @@ function generateCalendar() {
                 updateDisplayedFixtures();
             }
         });
+
         const statusDiv = document.createElement('div');
         statusDiv.classList.add('day-pick-status');
         const selection = userSelections[dateStr];
         let statusText = "No Pick";
+
         if (selection) {
             const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
             if (fixture) {
@@ -197,14 +226,16 @@ function generateCalendar() {
             } else { statusText = "Pick Error"; }
         }
         statusDiv.innerHTML = statusText;
+
         dayContainer.appendChild(button);
         dayContainer.appendChild(statusDiv);
         weekViewContainer.appendChild(dayContainer);
     }
 }
 
-
-// populateDailyLeagueSlicers() - Unchanged from previous step
+/**
+ * Populates league slicers based ONLY on leagues available for the selected day.
+ */
 function populateDailyLeagueSlicers() {
     const selectedDateStr = getDateString(selectedDate);
     const leaguesToday = new Map();
@@ -229,7 +260,8 @@ function populateDailyLeagueSlicers() {
     sortedLeagues.forEach(([league, country]) => {
         const button = document.createElement('button');
         const flagClasses = getFlagClass(country);
-        button.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${league}`;
+        // Use innerHTML with correct template literal syntax for class
+        button.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${league}`; // Corrected this line
         button.classList.add('league-slicer');
         if (selectedLeagueFilter === league) button.classList.add('active');
         button.dataset.league = league;
@@ -242,19 +274,28 @@ function populateDailyLeagueSlicers() {
      }
 }
 
-// handleSlicerClick() - Unchanged from previous step
+/**
+ * Handles clicks on league slicer buttons.
+ */
 function handleSlicerClick(event) {
-    const clickedButton = event.target.closest('button'); // Ensure we get button if click is on span
-    if (!clickedButton || clickedButton.dataset.league === selectedLeagueFilter) return;
-    selectedLeagueFilter = clickedButton.dataset.league;
+    // Ensure we get the button even if the click is on the inner span/text
+    const clickedButton = event.target.closest('button.league-slicer');
+    if (!clickedButton || clickedButton.dataset.league === selectedLeagueFilter) return; // Prevent re-filter
+
+    selectedLeagueFilter = clickedButton.dataset.league; // Update state
+
+    // Update active class on slicer buttons
     document.querySelectorAll('#league-slicer-container .league-slicer').forEach(btn => {
         btn.classList.remove('active');
     });
     clickedButton.classList.add('active');
-    updateDisplayedFixtures();
+
+    updateDisplayedFixtures(); // Re-filter
 }
 
-// updateDisplayedFixtures() - Unchanged from previous step
+/**
+ * Filters fixtures based on current state (date, league) and calls displayFixtures.
+ */
 function updateDisplayedFixtures() {
     const selectedDateStr = getDateString(selectedDate);
     const realCurrentTime = new Date();
@@ -294,9 +335,9 @@ function displayFixtures(fixtures, currentTime) {
         // Top Details (with Flag Icon) - CORRECTED SYNTAX
         const detailsTop = document.createElement('div');
         detailsTop.classList.add('fixture-details-top');
-        const flagClasses = getFlagClass(fixture.country); // Get flag classes like "fi fi-de"
+        const flagClasses = getFlagClass(fixture.country);
         // Use innerHTML with correct template literal syntax for variables and class attribute
-        detailsTop.innerHTML = `<span class="<span class="math-inline">\{flagClasses\}"\></span\>&nbsp;</span>{fixture.competition} (${fixture.country}) - ${timeString}`;
+        detailsTop.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${fixture.competition} (${fixture.country}) - ${timeString}`;
         fixtureElement.appendChild(detailsTop);
 
 
@@ -324,9 +365,19 @@ function displayFixtures(fixtures, currentTime) {
         const detailsBottom = document.createElement('div');
         detailsBottom.classList.add('fixture-details-bottom');
         let bottomText = ''; // Start empty
+        if (fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') {
+            bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`;
+        }
+        if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
+
+        fixtureListDiv.appendChild(fixtureElement);
+    });
+}
 
 
-// handleSelection() - Unchanged from previous step
+/**
+ * Handles the logic when a user clicks a team selection button.
+ */
 function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     const selectedDateStr = getDateString(selectedDate);
     const fixture = fakeFixtures.find(f => f.fixtureId === fixtureId);
@@ -353,7 +404,9 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
 }
 
 
-// calculateScore() - Unchanged from previous step
+/**
+ * Calculates the score for a finished fixture based on the user's selection.
+ */
 function calculateScore(selection, fixture) {
     if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result) return null;
     let score = 0;
@@ -366,7 +419,9 @@ function calculateScore(selection, fixture) {
     return score;
 }
 
-// loadUserData() - Unchanged from previous step
+/**
+ * Loads user selections from localStorage.
+ */
 function loadUserData() {
     const savedSelections = localStorage.getItem('footballGameSelections');
     if (savedSelections) {
@@ -375,7 +430,9 @@ function loadUserData() {
     } else { userSelections = {}; }
 }
 
-// saveUserData() - Unchanged from previous step
+/**
+ * Saves the current userSelections object to localStorage.
+ */
 function saveUserData() {
     try { localStorage.setItem('footballGameSelections', JSON.stringify(userSelections)); }
     catch (e) { console.error("Error saving selections to localStorage:", e); }
