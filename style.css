@@ -73,7 +73,6 @@ section h2 { /* For remaining H2s */
 #calendar-nav {
     padding: 0.5rem; /* Less padding around the ribbon */
     border-radius: 6px;
-    border: 1px solid var(--divider-color);
     background-color: transparent;
     box-shadow: none;
     margin-bottom: 1.5rem; /* Keep space below */
