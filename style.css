@@ -1,35 +1,26 @@
-/* style.css - Yellow Pastel Theme / Futuristic Calendar */
+/* style.css - Dark Mode Only Version (Corrected) */
 
-/* --- Yellow/Amber Pastel Color Palette --- */
+/* --- Dark Mode Variables Defined as Base --- */
 :root {
-    /* Yellows & Ambers */
-    --primary-color: #FFF59D; /* Pale Yellow - Used for active calendar/slicer */
-    --primary-color-dark: #FFEE58; /* Brighter Yellow - Used for main action buttons */
-    --primary-color-text: #424242; /* Darker grey text for contrast on pale yellow */
-    --accent-color: #FFD54F; /* Amber/Gold - Used for selected fixture button */
-    --accent-color-darker: #FFC107; /* Darker Amber/Gold */
-    --accent-color-text: #212121; /* Black text for contrast on amber */
-
-    /* Neutrals */
-    --text-primary-color: #212121; /* Dark Grey/Black for main text */
-    --text-secondary-color: #757575; /* Medium Grey for secondary text */
-    --background-color: #fdfdfd; /* Very light off-white background */
-    --card-background-color: #ffffff; /* White for cards/sections */
-    --divider-color: #eeeeee; /* Lighter grey dividers */
-
-    /* Fixture Backgrounds */
-    --pastel-color-1: #FFFDE7; /* Very Pale Yellow */
-    --pastel-color-2: #FAFAFA; /* Off White/Very Light Grey */
-
-    /* Button States */
-    --button-text-color: var(--text-primary-color); /* Dark text on yellow buttons by default */
-    --button-hover-bg: rgba(0, 0, 0, 0.04);
-    --disabled-bg-color: rgba(0, 0, 0, 0.08);
-    --disabled-text-color: rgba(0, 0, 0, 0.26);
-
-    /* Elevation/Shadows (Subtle) */
-    --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    --elevation-2: 0 3px 6px 0 rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    --primary-color: #7986cb;           /* Lighter Indigo */
+    --primary-color-dark: #5c6bc0;
+    --primary-color-light-hover: rgba(255, 255, 255, 0.08); /* Subtle white hover */
+    --accent-color: #f06292;             /* Lighter Pink */
+    --accent-color-darker: #ec407a;       /* Hover/active pink */
+    --text-primary-color: rgba(255, 255, 255, 0.87); /* Whiteish */
+    --text-secondary-color: rgba(255, 255, 255, 0.60); /* Greyish */
+    --divider-color: rgba(255, 255, 255, 0.12);  /* Subtle white divider */
+    --background-color: #121212;           /* Very dark grey */
+    --card-background-color: #1e1e1e;           /* Slightly lighter grey for cards */
+    --button-text-color: rgba(255, 255, 255, 0.87);
+    --pastel-color-1: #2a2a2a;           /* Dark grey for alternating cards */
+    --pastel-color-2: #2f2f2f;           /* Slightly different dark grey */
+    --disabled-bg-color: rgba(255, 255, 255, 0.12);
+    --disabled-text-color: rgba(255, 255, 255, 0.3);
+    --error-text-color: #EF9A9A; /* Light red for errors */
+    /* Shadows less impactful, use subtle ones */
+    --elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3); /* Darker shadow base */
+    --elevation-2: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* --- Global Styles --- */
@@ -51,152 +42,85 @@ header {
     text-align: center;
     border-bottom: 1px solid var(--divider-color);
 }
-header h1 {
-    font-weight: 500;
-    font-size: 1.5rem;
-    margin: 0;
-}
+header h1 { font-weight: 500; font-size: 1.5rem; margin: 0; }
 
 /* --- Main Content Area --- */
 main { max-width: 900px; margin: 2rem auto; padding: 1rem; }
 section {
     background-color: var(--card-background-color);
     padding: 1.5rem;
-    border-radius: 6px; /* Slightly larger radius */
+    border-radius: 6px;
     box-shadow: var(--elevation-1);
     margin-bottom: 1.5rem;
-    border: 1px solid var(--divider-color); /* Add subtle border */
+    border: 1px solid var(--divider-color); /* Optional: Keep subtle border */
 }
-section h2 { /* Styling for remaining H2s */
-    font-size: 1.5rem;
-    font-weight: 500;
-    color: var(--text-primary-color);
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--divider-color);
-    margin-top: 0;
+section h2 { /* For remaining H2s like Scoring History */
+    font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color);
+    margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0;
 }
 
 /* --- Calendar Navigation --- */
-#calendar-nav {
-    padding: 0.75rem 1rem; /* Adjust padding */
-    border-radius: 6px;
-    border: 1px solid var(--divider-color);
-    /* Removed card background, let it blend more */
-    background-color: transparent;
-    box-shadow: none;
-}
+#calendar-nav { padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid var(--divider-color); background-color: transparent; box-shadow: none; }
 .calendar-container { display: flex; justify-content: space-around; gap: 8px; padding: 0; margin-bottom: 0; flex-wrap: wrap; }
 .calendar-day-container { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 75px; }
-
-/* Futuristic Calendar Button Style */
-.calendar-container button {
-    width: 100%; padding: 8px 5px; border: 1px solid transparent; /* Transparent border for size consistency */
-    background: linear-gradient(145deg, #ffffff, #f9f9f9); /* Subtle gradient */
-    color: var(--text-secondary-color); /* Dimmer text color */
-    cursor: pointer; border-radius: 4px; /* Sharp corners */
-    text-align: center; font-size: 0.8rem; line-height: 1.3; font-weight: 500; margin-bottom: 4px;
-    transition: all 0.2s ease-out;
-    box-shadow: inset 0 -1px 1px rgba(0,0,0,0.05), 0 1px 1px rgba(0,0,0,0.05); /* Inner shadow + outer */
+.calendar-container button { /* Default button state */
+    width: 100%; padding: 8px 5px; border: 1px solid var(--divider-color); /* Visible border */
+    background-color: transparent; color: var(--text-secondary-color); /* Dimmer text */
+    cursor: pointer; border-radius: 4px; text-align: center; font-size: 0.8rem; line-height: 1.3; font-weight: 500; margin-bottom: 4px; transition: all 0.2s ease-out;
 }
-.calendar-container button b { font-weight: 700; color: var(--text-primary-color); } /* Bolder 'Today' */
+.calendar-container button b { font-weight: 700; color: var(--text-primary-color); }
 .calendar-container button:hover {
-    border-color: var(--divider-color);
+    background-color: var(--primary-color-light-hover); /* Subtle hover */
+    border-color: var(--text-primary-color); /* Brighten border on hover */
     color: var(--text-primary-color);
-    transform: translateY(-1px); /* Slight lift */
-    box-shadow: inset 0 -1px 1px rgba(0,0,0,0.05), 0 2px 3px rgba(0,0,0,0.1);
 }
-/* Active Calendar Button Style */
-.calendar-container button.active {
-    background: var(--primary-color); /* Pale Yellow */
-    color: var(--primary-color-text); /* Darker text on yellow */
-    font-weight: 700;
-    border-color: #FFECB3; /* Lighter yellow border */
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); /* Inner press effect */
-    transform: translateY(0); /* Reset hover lift */
+.calendar-container button.active { /* Active button state */
+    background-color: var(--primary-color); color: var(--button-text-color);
+    font-weight: 700; border-color: var(--primary-color); box-shadow: var(--elevation-1);
 }
-.calendar-container button:disabled { /* Keep disabled style simple */
-    color: var(--disabled-text-color); background: var(--disabled-bg-color); cursor: not-allowed; opacity: 0.7; box-shadow: none; transform: none; border-color: transparent;
-}
+.calendar-container button:disabled { color: var(--disabled-text-color); background: transparent; cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
 .day-pick-status { font-size: 0.75rem; color: var(--text-secondary-color); text-align: center; height: 3em; line-height: 1.4; overflow: hidden; padding: 0 2px; }
-.day-pick-status b { color: var(--text-primary-color); } /* Dark bold text */
+.day-pick-status b { color: var(--primary-color); } /* Lighter primary for bold parts */
 
 
 /* --- Daily League Slicer Area --- */
-#available-fixtures .slicer-area {
-    padding: 1rem 0; /* Add padding now title is gone */
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--divider-color);
-    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
-}
+#available-fixtures .slicer-area { padding: 1rem 0; margin-bottom: 1rem; border-bottom: 1px solid var(--divider-color); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 #available-fixtures .slicer-area label { font-weight: 500; color: var(--text-secondary-color); flex-shrink: 0; margin-right: 5px; }
 .slicer-container { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex-grow: 1; }
 button.league-slicer {
     padding: 6px 12px; border: 1px solid var(--divider-color); background-color: transparent;
     color: var(--text-secondary-color); border-radius: 16px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s ease; box-shadow: none; text-transform: none;
 }
-button.league-slicer:hover {
-    background-color: var(--button-hover-bg);
-    border-color: var(--text-secondary-color);
-    color: var(--text-primary-color);
-}
-/* Active League Slicer Style */
-button.league-slicer.active {
-    background-color: var(--primary-color); /* Pale Yellow */
-    border-color: var(--primary-color);
-    color: var(--primary-color-text); /* Darker text */
-    font-weight: 700;
-}
+button.league-slicer:hover { background-color: var(--primary-color-light-hover); border-color: var(--text-secondary-color); color: var(--text-primary-color); }
+button.league-slicer.active { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--button-text-color); font-weight: 700; }
 
 
 /* --- Fixture List & Cards --- */
-#available-fixtures { padding-top: 0; /* Remove top padding as title is gone */ }
+#available-fixtures { padding-top: 0; border: none; box-shadow: none; background: none; } /* Make fixture section bg transparent */
 #fixture-list { display: grid; gap: 1rem; margin-top: 0; }
-.fixture {
-    border-radius: 6px; padding: 1rem; box-shadow: var(--elevation-1); transition: box-shadow 0.2s ease, background-color 0.2s ease; color: var(--text-primary-color); border: 1px solid var(--divider-color);
-}
-/* Alternating fixture backgrounds using new palette */
-.fixture:nth-child(odd) { background-color: var(--pastel-color-1); } /* Very Pale Yellow */
-.fixture:nth-child(even) { background-color: var(--pastel-color-2); } /* Off White */
-.fixture:hover { box-shadow: var(--elevation-2); transform: translateY(-1px); } /* Add subtle lift */
+.fixture { border-radius: 6px; padding: 1rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease; color: var(--text-primary-color); border: 1px solid var(--divider-color); }
+.fixture:nth-child(odd) { background-color: var(--pastel-color-1); } /* Dark pastel 1 */
+.fixture:nth-child(even) { background-color: var(--pastel-color-2); } /* Dark pastel 2 */
+.fixture:hover { background-color: #2c2c2c; border-color: #444; } /* Slightly lighter hover */
 .fixture .teams { font-weight: 500; font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-primary-color); }
 .fixture .details { font-size: 0.9rem; color: var(--text-secondary-color); margin-bottom: 0.75rem; }
+.fixture .details span[style*="color:red"] { color: var(--error-text-color) !important; } /* Style error text */
 
 /* --- Buttons inside Fixtures --- */
 #fixture-list button {
     padding: 8px 16px; margin: 8px 8px 0 0; border: none; border-radius: 4px; cursor: pointer;
-    background-color: var(--primary-color-dark); /* Brighter Yellow */
-    color: var(--button-text-color); /* Dark text */
+    background-color: var(--primary-color); color: var(--button-text-color);
     text-transform: uppercase; font-weight: 500; font-size: 0.875rem; box-shadow: var(--elevation-1); transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
-#fixture-list button:hover:not(:disabled) {
-    background-color: #FDD835; /* Slightly darker yellow */
-    box-shadow: var(--elevation-2);
-}
-#fixture-list button:disabled {
-     background-color: var(--disabled-bg-color);
-     color: var(--disabled-text-color);
-     box-shadow: none; cursor: not-allowed;
-}
-/* Selected Fixture Button Style */
-#fixture-list button.selected-team {
-    background-color: var(--accent-color); /* Amber/Gold */
-    color: var(--accent-color-text); /* Black text */
-    font-weight: 700;
-}
-#fixture-list button.selected-team:hover {
-     background-color: var(--accent-color-darker); /* Darker Amber/Gold */
-}
+#fixture-list button:hover:not(:disabled) { background-color: var(--primary-color-dark); box-shadow: var(--elevation-2); }
+#fixture-list button:disabled { background-color: var(--disabled-bg-color); color: var(--disabled-text-color); box-shadow: none; cursor: not-allowed; }
+#fixture-list button.selected-team { background-color: var(--accent-color); color: var(--text-primary-color); font-weight: 700; }
+#fixture-list button.selected-team:hover { background-color: var(--accent-color-darker); }
 
 
 /* --- Scoring History --- */
 #score-list { list-style: none; padding: 0; }
-#score-list li {
-    background-color: var(--pastel-color-1); /* Very Pale Yellow */
-    margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem;
-    color: var(--text-primary-color);
-    border: 1px solid var(--divider-color);
-}
+#score-list li { background-color: var(--pastel-color-1); margin-bottom: 8px; padding: 10px; border-radius: 4px; font-size: 0.95rem; color: var(--text-primary-color); border: 1px solid var(--divider-color); }
 
 /* --- Footer --- */
 footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem; color: var(--text-secondary-color); }
@@ -207,7 +131,7 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
     section { padding: 1rem; }
     section h2 { font-size: 1.3rem; }
     header { padding: 0.8rem 1rem; }
-    header h1 { font-size: 1.3rem; }
+    header h1 { font-size: 1.3rem; text-align: center;} /* Center title */
     .calendar-container { flex-wrap: wrap; }
     .calendar-day-container { min-width: 65px; }
     .calendar-container button { font-size: 0.8rem; }
