@@ -1,4 +1,4 @@
-// script.js - Final Version (Corrected Pick Logic / No Theme Toggle)
+// script.js - Corrected detailsTop.innerHTML line
 
 // --- Constants and Helpers ---
 const now = new Date("2025-04-19T12:00:00Z"); // Keep fixed date for demo consistency
@@ -7,6 +7,17 @@ const oneDay = 24 * oneHour;
 function getDateString(date) {
     const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     return adjustedDate.toISOString().split('T')[0];
+}
+
+// Function to get flag icon CSS class
+function getFlagClass(countryName) {
+    const countryCodeMap = {
+        "England": "gb", "Spain": "es", "Germany": "de", "Italy": "it",
+        "France": "fr", "Portugal": "pt", "Netherlands": "nl", "Belgium": "be",
+        "Turkey": "tr", "Scotland": "gb-sct", "UEFA": "eu"
+    };
+    const code = countryCodeMap[countryName];
+    return code ? `fi fi-${code}` : "";
 }
 
 // --- Fake Data (Expanded version needed here) ---
@@ -145,14 +156,12 @@ const scoreListUl = document.getElementById('score-list');
 
 // --- Core Functions ---
 
-/**
- * Generates calendar navigation (Yesterday, Today, +3 Days) with pick status.
- */
+// generateCalendar() - Unchanged from previous step
 function generateCalendar() {
     weekViewContainer.innerHTML = '';
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    for (let i = -1; i <= 3; i++) { // Loop for 5 days
+    for (let i = -1; i <= 3; i++) {
         const date = new Date(today.getTime() + i * oneDay);
         const dateStr = getDateString(date);
         const dayContainer = document.createElement('div');
@@ -164,7 +173,6 @@ function generateCalendar() {
         button.innerHTML = buttonText;
         button.dataset.date = dateStr;
         if (getDateString(selectedDate) === dateStr) button.classList.add('active');
-
         button.addEventListener('click', () => {
             if (getDateString(selectedDate) !== dateStr) {
                 selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -174,12 +182,10 @@ function generateCalendar() {
                 updateDisplayedFixtures();
             }
         });
-
         const statusDiv = document.createElement('div');
         statusDiv.classList.add('day-pick-status');
         const selection = userSelections[dateStr];
         let statusText = "No Pick";
-
         if (selection) {
             const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
             if (fixture) {
@@ -191,137 +197,79 @@ function generateCalendar() {
             } else { statusText = "Pick Error"; }
         }
         statusDiv.innerHTML = statusText;
-
         dayContainer.appendChild(button);
         dayContainer.appendChild(statusDiv);
         weekViewContainer.appendChild(dayContainer);
     }
 }
 
-/**
- * Populates league slicers based ONLY on leagues available for the selected day.
- */
+
+// populateDailyLeagueSlicers() - Unchanged from previous step
 function populateDailyLeagueSlicers() {
     const selectedDateStr = getDateString(selectedDate);
-    // Store league and its associated country
-    const leaguesToday = new Map(); // Map: leagueName -> countryName
-
-    // Find unique leagues and their countries for the selected day
+    const leaguesToday = new Map();
     fakeFixtures.forEach(fixture => {
         if (getDateString(new Date(fixture.kickOffTime)) === selectedDateStr) {
-            // Only add league if not already present
             if (!leaguesToday.has(fixture.competition)) {
                 leaguesToday.set(fixture.competition, fixture.country);
             }
         }
     });
-
-    leagueSlicerContainer.innerHTML = ''; // Clear previous slicers
-
-    // Create "All Leagues" button (no flag)
-    // Add it only if there are specific leagues to filter
+    leagueSlicerContainer.innerHTML = '';
     if (leaguesToday.size > 0) {
-        const allButton = document.createElement('button');
-        allButton.textContent = 'All Leagues';
-        allButton.classList.add('league-slicer');
-        if (selectedLeagueFilter === 'ALL') allButton.classList.add('active');
-        allButton.dataset.league = 'ALL';
-        allButton.addEventListener('click', handleSlicerClick);
-        leagueSlicerContainer.appendChild(allButton);
+         const allButton = document.createElement('button');
+         allButton.textContent = 'All Leagues';
+         allButton.classList.add('league-slicer');
+         if (selectedLeagueFilter === 'ALL') allButton.classList.add('active');
+         allButton.dataset.league = 'ALL';
+         allButton.addEventListener('click', handleSlicerClick);
+         leagueSlicerContainer.appendChild(allButton);
     }
-
-    // Sort leagues alphabetically for consistent order before creating buttons
     const sortedLeagues = [...leaguesToday.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-
-    // Create slicers for leagues available today, now with flags
-   sortedLeagues.forEach(([league, country]) => { // Destructure Map entry [leagueName, countryName]
-    const button = document.createElement('button');
-    const flagClasses = getFlagClass(country); // Get CSS classes e.g., "fi fi-gb"
-
-    // Use innerHTML with a span for the flag icon
-    // Add appropriate classes to the span
-    // Add a non-breaking space (&nbsp;) for slight separation
-    button.innerHTML = `<span class="<span class="math-inline">\{flagClasses\}"\></span\>&nbsp;</span>{league}`;
-
-    button.classList.add('league-slicer');
-    if (selectedLeagueFilter === league) button.classList.add('active');
-    button.dataset.league = league; // Store league name in data attribute
-    button.addEventListener('click', handleSlicerClick);
-    leagueSlicerContainer.appendChild(button);
-});
-
-    // Hide the whole slicer area if no leagues are available for the day
+    sortedLeagues.forEach(([league, country]) => {
+        const button = document.createElement('button');
+        const flagClasses = getFlagClass(country);
+        button.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${league}`;
+        button.classList.add('league-slicer');
+        if (selectedLeagueFilter === league) button.classList.add('active');
+        button.dataset.league = league;
+        button.addEventListener('click', handleSlicerClick);
+        leagueSlicerContainer.appendChild(button);
+    });
     const slicerArea = document.getElementById('daily-league-slicers');
-     if (slicerArea) { // Ensure element exists
-        slicerArea.style.display = leaguesToday.size > 0 ? 'flex' : 'none';
-    }
+     if (slicerArea) {
+         slicerArea.style.display = leaguesToday.size > 0 ? 'flex' : 'none';
+     }
 }
 
-// --- Helper Functions ---
-// Keep existing getDateString function...
-function getDateString(date) {
-    const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    return adjustedDate.toISOString().split('T')[0];
-}
-
-// NEW: Function to get flag emoji based on country name
-function getFlagClass(countryName) {
-    // Map country name to flag-icon-css codes (lowercase)
-    // Check codes at: https://flagicons.lipis.dev/
-    const countryCodeMap = {
-        "England": "gb-en", // Uses Great Britain flag code
-        "Spain": "es",
-        "Germany": "de",
-        "Italy": "it",
-        "France": "fr",
-        "Portugal": "pt",
-        "Netherlands": "nl",
-        "Belgium": "be",
-        "Turkey": "tr",
-        "Scotland": "gb-sct", // Specific code for Scotland flag
-        "UEFA": "eu" // European Union flag for UEFA competitions
-        // Add more countries as needed, ensure codes are lowercase
-    };
-    const code = countryCodeMap[countryName]; // Get the code
-    // Ensure countryName exists and has a code before returning classes
-    return code ? `fi fi-${code}` : ""; // Return classes "fi fi-xx" or empty string if no match
-}
-
-/**
- * Handles clicks on league slicer buttons.
- */
+// handleSlicerClick() - Unchanged from previous step
 function handleSlicerClick(event) {
-    const clickedButton = event.target;
-    if (clickedButton.dataset.league === selectedLeagueFilter) return; // Prevent re-filter
-    selectedLeagueFilter = clickedButton.dataset.league; // Update state
-
+    const clickedButton = event.target.closest('button'); // Ensure we get button if click is on span
+    if (!clickedButton || clickedButton.dataset.league === selectedLeagueFilter) return;
+    selectedLeagueFilter = clickedButton.dataset.league;
     document.querySelectorAll('#league-slicer-container .league-slicer').forEach(btn => {
         btn.classList.remove('active');
     });
     clickedButton.classList.add('active');
-    updateDisplayedFixtures(); // Re-filter
+    updateDisplayedFixtures();
 }
 
-/**
- * Filters fixtures based on current state (date, league) and calls displayFixtures.
- */
+// updateDisplayedFixtures() - Unchanged from previous step
 function updateDisplayedFixtures() {
     const selectedDateStr = getDateString(selectedDate);
     const realCurrentTime = new Date();
-
     const filteredFixtures = fakeFixtures.filter(fixture => {
         const fixtureDateStr = getDateString(new Date(fixture.kickOffTime));
         if (fixtureDateStr !== selectedDateStr) return false;
         if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
         return true;
     });
-
     filteredFixtures.sort((a, b) => new Date(a.kickOffTime) - new Date(b.kickOffTime));
     displayFixtures(filteredFixtures, realCurrentTime);
 }
 
 /**
- * Renders the list of fixtures using the condensed layout (Corrected button logic).
+ * Renders the list of fixtures using the condensed layout. (Includes fix for detailsTop.innerHTML)
  */
 function displayFixtures(fixtures, currentTime) {
     fixtureListDiv.innerHTML = ''; // Clear previous list
@@ -343,68 +291,32 @@ function displayFixtures(fixtures, currentTime) {
 
         // --- Build Internal Structure ---
 
-        // Top Details (with Flag)
-    const detailsTop = document.createElement('div');
-    detailsTop.classList.add('fixture-details-top');
-    const flagClasses = getFlagClass(fixture.country); // Get flag classes
-    // Use innerHTML with span for the flag icon
-    detailsTop.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${fixture.competition} (${fixture.country}) - ${timeString}`;
-    fixtureElement.appendChild(detailsTop);
+        // Top Details (with Flag Icon) - CORRECTED
+        const detailsTop = document.createElement('div');
+        detailsTop.classList.add('fixture-details-top');
+        const flagClasses = getFlagClass(fixture.country);
+        // Use innerHTML with correct template literal syntax
+        detailsTop.innerHTML = `<span class="${flagClasses}"></span>&nbsp;${fixture.competition} (${fixture.country}) - ${timeString}`;
+        fixtureElement.appendChild(detailsTop);
 
         // Home Team Row
-        const homeRow = document.createElement('div');
-        homeRow.classList.add('team-row');
-        const homeName = document.createElement('span');
-        homeName.classList.add('team-name');
-        homeName.textContent = fixture.homeTeam.name;
-        homeRow.appendChild(homeName);
-        const homeScoreSpan = document.createElement('span');
-        homeScoreSpan.classList.add('team-score');
-        if (fixture.status === 'FINISHED' && fixture.result !== null) { homeScoreSpan.textContent = fixture.result.homeScore; }
-        else { homeScoreSpan.innerHTML = '&nbsp;'; }
-        homeRow.appendChild(homeScoreSpan);
-        const homeOdd = document.createElement('span');
-        homeOdd.classList.add('team-odd');
-        homeOdd.textContent = fixture.odds.homeWin.toFixed(2);
-        homeRow.appendChild(homeOdd);
-        const homeButton = document.createElement('button');
-        homeButton.classList.add('pick-button');
-        homeButton.textContent = "Pick";
-        homeButton.disabled = !canSelect;
-        homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
-        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) {
-            homeButton.classList.add('selected-team');
-            homeButton.textContent = "Picked";
-        }
-        homeRow.appendChild(homeButton);
+        const homeRow = document.createElement('div'); homeRow.classList.add('team-row');
+        const homeName = document.createElement('span'); homeName.classList.add('team-name'); homeName.textContent = fixture.homeTeam.name; homeRow.appendChild(homeName);
+        const homeScoreSpan = document.createElement('span'); homeScoreSpan.classList.add('team-score');
+        if (fixture.status === 'FINISHED' && fixture.result !== null) homeScoreSpan.textContent = fixture.result.homeScore; else homeScoreSpan.innerHTML = '&nbsp;'; homeRow.appendChild(homeScoreSpan);
+        const homeOdd = document.createElement('span'); homeOdd.classList.add('team-odd'); homeOdd.textContent = fixture.odds.homeWin.toFixed(2); homeRow.appendChild(homeOdd);
+        const homeButton = document.createElement('button'); homeButton.classList.add('pick-button'); homeButton.textContent = "Pick"; homeButton.disabled = !canSelect; homeButton.onclick = () => handleSelection(fixture.fixtureId, fixture.homeTeam.id, fixture.homeTeam.name, fixture.odds.homeWin, fixture.odds.draw);
+        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.homeTeam.id) { homeButton.classList.add('selected-team'); homeButton.textContent = "Picked"; } homeRow.appendChild(homeButton);
         fixtureElement.appendChild(homeRow);
 
         // Away Team Row
-        const awayRow = document.createElement('div');
-        awayRow.classList.add('team-row');
-        const awayName = document.createElement('span');
-        awayName.classList.add('team-name');
-        awayName.textContent = fixture.awayTeam.name;
-        awayRow.appendChild(awayName);
-        const awayScoreSpan = document.createElement('span');
-        awayScoreSpan.classList.add('team-score');
-        if (fixture.status === 'FINISHED' && fixture.result !== null) { awayScoreSpan.textContent = fixture.result.awayScore; }
-        else { awayScoreSpan.innerHTML = '&nbsp;'; }
-        awayRow.appendChild(awayScoreSpan);
-        const awayOdd = document.createElement('span');
-        awayOdd.classList.add('team-odd');
-        awayOdd.textContent = fixture.odds.awayWin.toFixed(2);
-        awayRow.appendChild(awayOdd);
-        const awayButton = document.createElement('button');
-        awayButton.classList.add('pick-button');
-        awayButton.textContent = "Pick";
-        awayButton.disabled = !canSelect;
-        awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
-        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) {
-            awayButton.classList.add('selected-team');
-            awayButton.textContent = "Picked";
-        }
-        awayRow.appendChild(awayButton);
+        const awayRow = document.createElement('div'); awayRow.classList.add('team-row');
+        const awayName = document.createElement('span'); awayName.classList.add('team-name'); awayName.textContent = fixture.awayTeam.name; awayRow.appendChild(awayName);
+        const awayScoreSpan = document.createElement('span'); awayScoreSpan.classList.add('team-score');
+        if (fixture.status === 'FINISHED' && fixture.result !== null) awayScoreSpan.textContent = fixture.result.awayScore; else awayScoreSpan.innerHTML = '&nbsp;'; awayRow.appendChild(awayScoreSpan);
+        const awayOdd = document.createElement('span'); awayOdd.classList.add('team-odd'); awayOdd.textContent = fixture.odds.awayWin.toFixed(2); awayRow.appendChild(awayOdd);
+        const awayButton = document.createElement('button'); awayButton.classList.add('pick-button'); awayButton.textContent = "Pick"; awayButton.disabled = !canSelect; awayButton.onclick = () => handleSelection(fixture.fixtureId, fixture.awayTeam.id, fixture.awayTeam.name, fixture.odds.awayWin, fixture.odds.draw);
+        if (currentDaySelection && currentDaySelection.fixtureId === fixture.fixtureId && currentDaySelection.teamId === fixture.awayTeam.id) { awayButton.classList.add('selected-team'); awayButton.textContent = "Picked"; } awayRow.appendChild(awayButton);
         fixtureElement.appendChild(awayRow);
 
          // Bottom Details (Status only, if needed)
@@ -416,14 +328,12 @@ function displayFixtures(fixtures, currentTime) {
         }
         if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
 
-        // Append the fully constructed fixture card to the list
         fixtureListDiv.appendChild(fixtureElement);
     });
 }
 
-/**
- * Handles the logic when a user clicks a team selection button.
- */
+
+// handleSelection() - Unchanged from previous step
 function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     const selectedDateStr = getDateString(selectedDate);
     const fixture = fakeFixtures.find(f => f.fixtureId === fixtureId);
@@ -450,9 +360,7 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
 }
 
 
-/**
- * Calculates the score for a finished fixture based on the user's selection.
- */
+// calculateScore() - Unchanged from previous step
 function calculateScore(selection, fixture) {
     if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result) return null;
     let score = 0;
@@ -465,9 +373,7 @@ function calculateScore(selection, fixture) {
     return score;
 }
 
-/**
- * Loads user selections from localStorage.
- */
+// loadUserData() - Unchanged from previous step
 function loadUserData() {
     const savedSelections = localStorage.getItem('footballGameSelections');
     if (savedSelections) {
@@ -476,9 +382,7 @@ function loadUserData() {
     } else { userSelections = {}; }
 }
 
-/**
- * Saves the current userSelections object to localStorage.
- */
+// saveUserData() - Unchanged from previous step
 function saveUserData() {
     try { localStorage.setItem('footballGameSelections', JSON.stringify(userSelections)); }
     catch (e) { console.error("Error saving selections to localStorage:", e); }
@@ -490,5 +394,4 @@ document.addEventListener('DOMContentLoaded', () => {
     generateCalendar();
     populateDailyLeagueSlicers();
     updateDisplayedFixtures();
-    // displayScoreHistory(); // Optional
 });
