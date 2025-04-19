@@ -59,7 +59,7 @@ header {
 
 /* --- Main Content Area --- */
 main {
-    max-width: 1100px; /* Matches header content width */
+    max-width: 900px; /* Matches header content width */
     margin: 2rem auto;
     padding: 0 1rem; /* Horizontal padding */
 }
