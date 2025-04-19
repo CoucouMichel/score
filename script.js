@@ -162,12 +162,12 @@ const scoreListUl = document.getElementById('score-list');
 // --- Core Functions ---
 
 /**
- * Generates the 5-day calendar navigation, displaying info across four lines.
+ * Generates calendar navigation (Yesterday, Today, +3 Days), displaying info across three lines.
  */
 function generateCalendar() {
     weekViewContainer.innerHTML = ''; // Clear previous calendar
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']; // Using uppercase abbreviations
 
     // Loop for 5 days: Yesterday (i=-1) to Day+3 (i=3)
     for (let i = -1; i <= 3; i++) {
@@ -175,85 +175,78 @@ function generateCalendar() {
         const dateStr = getDateString(date);
 
         // Create the main clickable element for the day
-        // Using a button for better accessibility and click handling
         const dayButton = document.createElement('button');
-        dayButton.classList.add('calendar-day'); // New class for styling
+        dayButton.classList.add('calendar-day'); // Use this class for styling
         dayButton.dataset.date = dateStr;
 
-        // --- Determine content for each line ---
-        let line1Text = dayNames[date.getDay()]; // Default: 'Mon', 'Tue' etc.
+        // --- Determine content for each line (Now 3 lines) ---
+
+        // Line 1: Combined Day Name + Date Number
+        let line1Text = `${dayNames[date.getDay()]} ${date.getDate()}`; // e.g., "FRI 18"
         if (i === 0) {
-            line1Text = "Today";
+            line1Text = `<b>TODAY ${date.getDate()}</b>`; // Bold Today + Date
         }
-        // NOTE: "Yesterday" mention is removed as per request
+        // "Yesterday" mention removed
 
-        const line2Text = date.getDate(); // The date number
-
-        let line3Text = "No Pick"; // Default Pick Status
-        let line4Text = "&nbsp;"; // Default Bottom line (empty)
-
+        // Line 2: Pick Status
+        let line2Text = "No Pick";
         const selection = userSelections[dateStr];
         if (selection) {
-            // If a selection exists for this day
-            line3Text = `<b>${selection.teamName}</b>`; // Show selected team
+            line2Text = `<b>${selection.teamName}</b>`; // Show selected team
+        }
+
+        // Line 3: Odd / Score / Status
+        let line3Text = "&nbsp;"; // Default Bottom line (empty)
+        if (selection) { // Only show line 3 info if there's a pick
             const fixture = fakeFixtures.find(f => f.fixtureId === selection.fixtureId);
             if (fixture) {
                 if (fixture.status === 'FINISHED' && fixture.result) {
                     const score = calculateScore(selection, fixture);
-                    line4Text = score !== null ? `Score: <b>${score.toFixed(2)}</b>` : "Score Pend.";
+                    line3Text = score !== null ? `Score: <b>${score.toFixed(2)}</b>` : "Score Pend.";
                 } else if (fixture.status === 'SCHEDULED') {
-                    // Show the win odd for the selected team if scheduled
-                    line4Text = `Odd: ${selection.selectedWinOdd.toFixed(2)}`;
+                    line3Text = `Odd: ${selection.selectedWinOdd.toFixed(2)}`;
                 } else {
-                    // Show other statuses (Postponed, Cancelled etc.)
-                    line4Text = `(${fixture.status})`;
+                    line3Text = `(${fixture.status})`;
                 }
             } else {
-                line3Text = "Pick Error"; // Fixture data missing for selection
-                line4Text = "Error";
+                line3Text = "Error"; // Should not happen if selection exists
             }
         }
 
         // --- Create span elements for each line ---
         const line1Span = document.createElement('span');
         line1Span.classList.add('cal-line', 'cal-line-1');
-        line1Span.innerHTML = line1Text; // Use innerHTML for potential <b> tag
+        line1Span.innerHTML = line1Text; // Combined Day/Date
 
         const line2Span = document.createElement('span');
-        line2Span.classList.add('cal-line', 'cal-line-2');
-        line2Span.textContent = line2Text;
+        line2Span.classList.add('cal-line', 'cal-line-2'); // Was line 3
+        line2Span.innerHTML = line2Text; // Pick Status
 
         const line3Span = document.createElement('span');
-        line3Span.classList.add('cal-line', 'cal-line-3');
-        line3Span.innerHTML = line3Text; // Use innerHTML for potential <b> tag
-
-        const line4Span = document.createElement('span');
-        line4Span.classList.add('cal-line', 'cal-line-4');
-        line4Span.innerHTML = line4Text; // Use innerHTML for potential <b> tag
+        line3Span.classList.add('cal-line', 'cal-line-3'); // Was line 4
+        line3Span.innerHTML = line3Text; // Odd/Score/Status
 
         // Append lines to the button
         dayButton.appendChild(line1Span);
         dayButton.appendChild(line2Span);
         dayButton.appendChild(line3Span);
-        dayButton.appendChild(line4Span);
 
-        // Set active state using red accent color
+        // Set active state
         if (getDateString(selectedDate) === dateStr) {
             dayButton.classList.add('active');
         }
 
-        // Click listener for the day button
+        // Click listener
         dayButton.addEventListener('click', () => {
             if (getDateString(selectedDate) !== dateStr) {
                 selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                selectedLeagueFilter = 'ALL'; // Reset league filter
-                generateCalendar();         // Re-render calendar
-                populateDailyLeagueSlicers(); // Re-populate slicers
-                updateDisplayedFixtures();    // Update fixture list
+                selectedLeagueFilter = 'ALL';
+                generateCalendar();
+                populateDailyLeagueSlicers();
+                updateDisplayedFixtures();
             }
         });
 
-        // Append the day button to the main container
         weekViewContainer.appendChild(dayButton);
     }
 }
