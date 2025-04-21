@@ -191,10 +191,12 @@ async function updateDisplayedFixtures() {
     // Fetch data for the selected date FROM FIRESTORE
     const fixturesForDay = await fetchFixturesFromFirestore(selectedDateStr);
     currentFixtures = fixturesForDay; // Store globally
+    console.log(`Data after Firestore fetch for ${selectedDateStr}:`, currentFixtures); // Log data before filtering
 
     populateDailyLeagueSlicers(fixturesForDay); // Update slicers
 
     const filteredFixtures = currentFixtures.filter(fixture => { // Filter by league
+    console.log(`Data after league filter (${selectedLeagueFilter}):`, filteredFixtures); // Log data after filtering
         if (!fixture) return false;
         if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
         return true;
@@ -205,6 +207,7 @@ async function updateDisplayedFixtures() {
 }
 
 function displayFixtures(fixtures, currentTime) {
+   console.log(`--- displayFixtures called with ${fixtures?.length ?? 0} fixtures ---`); // Log start of display
     if (!fixtureListDiv) { console.error("Cannot display fixtures, list div not found."); return; }
     fixtureListDiv.innerHTML = '';
     if (!fixtures || fixtures.length === 0) { fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>'; return; }
