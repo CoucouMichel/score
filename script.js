@@ -438,6 +438,7 @@ async function initializeAppAndListeners() {
       // Initial Load
     generateCalendar();
     await updateDisplayedFixtures(); // Fetch initial data from Firestore and display
+  }
 
 // --- Run Initialization ---
 document.addEventListener('DOMContentLoaded', initializeAppAndListeners);
