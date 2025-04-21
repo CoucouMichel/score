@@ -53,45 +53,10 @@
         </div>
     </section>
 
-    <div id="calendar-section">
-        <button id="prev-day-btn" aria-label="Previous Days">
-            <svg viewBox="0 0 24 24" fill="currentColor" style="width: 2em; height: 2em;">
-                <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>
-            </svg>
-        </button>
-        <div class="calendar-container">
-            <button class="calendar-day prev-day">
-                <span class="cal-line cal-line-1">Mon</span>
-                <b class="cal-line cal-line-2">21</b>
-                <span class="cal-line cal-line-3"></span>
-            </button>
-            <button class="calendar-day active">
-                <span class="cal-line cal-line-1">Tue</span>
-                <b class="cal-line cal-line-2">22</b>
-                <span class="cal-line cal-line-3"></span>
-            </button>
-            <button class="calendar-day next-day">
-                <span class="cal-line cal-line-1">Wed</span>
-                <b class="cal-line cal-line-2">23</b>
-                <span class="cal-line cal-line-3"></span>
-            </button>
-            <button class="calendar-day next-day-2">
-                <span class="cal-line cal-line-1">Thu</span>
-                <b class="cal-line cal-line-2">24</b>
-                <span class="cal-line cal-line-3"></span>
-            </button>
-            <button class="calendar-day next-day-3">
-                <span class="cal-line cal-line-1">Fri</span>
-                <b class="cal-line cal-line-2">25</b>
-                <span class="cal-line cal-line-3"></span>
-            </button>
-        </div>
-        <button id="next-day-btn" aria-label="Next Days">
-            <svg viewBox="0 0 24 24" fill="currentColor" style="width: 2em; height: 2em;">
-                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-            </svg>
-        </button>
-    </div>
+    <section id="calendar-section">
+        <div id="week-view" class="calendar-container">
+            </div>
+    </section>
 
     <section id="available-fixtures">
          <div id="daily-league-slicers" class="slicer-area">
