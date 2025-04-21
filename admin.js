@@ -1,13 +1,10 @@
-// admin.js - Fetches from The Odds API and saves to Firestore
+// admin.js - Fetches data from TheSportsDB, Calculates Synthetic Odds, Saves to Firestore
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getFirestore, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-// Import auth is needed if you secure Firestore writes with rules based on login
-// import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-
+import { getFirestore, doc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 // --- Configuration ---
-// Paste the SAME firebaseConfig object you use in script.js
+// !! IMPORTANT: Paste the SAME firebaseConfig object you use in script.js !!
 const firebaseConfig = {
     apiKey: "AIzaSyAi_qvjnZlDo6r0Nu14JPs1XAvu_bRQmoM", // Use YOUR actual key
     authDomain: "oddscore-5ed5e.firebaseapp.com",    // Use YOUR domain
@@ -17,201 +14,341 @@ const firebaseConfig = {
     appId: "1:582289870654:web:bb025764a8d37f697f266f",  // Use YOUR App ID
     measurementId: "G-HCKHYJ0HZD"                  // Optional
 };
-// !! IMPORTANT: Paste The Odds API Key !!
-const oddsApiKey = "a5d733b1f9c23c11015d87ca5428c3a4";
+// TheSportsDB Free Test API Key (Consider getting a Patreon key for better stability/limits)
+const theSportsDbApiKey = "3";
 
-// Initialize Firebase
+// Define Leagues to fetch using TheSportsDB IDs (Verify these IDs!)
+const DESIRED_LEAGUES = {
+    // Format: { "League Name (for display/mapping)": leagueId }
+    "Premier League": 4328,
+    "La Liga": 4335,
+    "Serie A": 4332,
+    "Bundesliga": 4331,
+    "Ligue 1": 4334,
+    // Add more league IDs here - find them on TheSportsDB website/API
+    // e.g., Champions League: 4480 (?) - Often structured differently
+};
+const leagueIdsToFetch = Object.values(DESIRED_LEAGUES);
+
+// Define Seasons (Adjust years as needed)
+const CURRENT_SEASON = "2024-2025";
+const PREVIOUS_SEASON = "2023-2024";
+
+// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-// const auth = getAuth(app); // Initialize auth if your Firestore rules require login for writes
 console.log("Firebase initialized for Admin page!");
 
 // --- DOM Elements ---
 const fetchButton = document.getElementById('fetch-button');
-// Remove single date elements if not needed, or keep for specific updates
+// Remove single date elements if using 14-day fetch only
 // const fetchSingleButton = document.getElementById('fetch-single-button');
 // const singleDateInput = document.getElementById('single-date-input');
 const statusDiv = document.getElementById('status');
 
-// --- Helper: getDateString ---
+// --- Helper Functions ---
 function getDateString(date) {
     if (!(date instanceof Date) || isNaN(date.getTime())) return null;
     const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     return adjustedDate.toISOString().split('T')[0];
 }
 
-// --- Map Sport Keys to Country (for mapping function) ---
-const leagueSportKeys = {
-    "soccer_epl": { name: "Premier League", country: "England" },
-    "soccer_spain_la_liga": { name: "La Liga", country: "Spain" },
-    "soccer_germany_bundesliga": { name: "Bundesliga", country: "Germany" },
-    "soccer_italy_serie_a": { name: "Serie A", country: "Italy" },
-    "soccer_france_ligue1": { name: "Ligue 1", country: "France" },
-    "soccer_uefa_champions_league": { name: "Champions League", country: "UEFA"},
-    // Add more leagues if desired
-};
-const sportKeysToFetch = Object.keys(leagueSportKeys); // Get keys like 'soccer_epl'
-
 /**
- * Fetches upcoming odds for a SINGLE sport key from The Odds API.
- * @param {string} sportKey - The sport key (e.g., 'soccer_epl').
- * @returns {Promise<Array|null>} Array of raw event objects or null on error.
+ * Fetches data from a specific TheSportsDB endpoint.
+ * @param {string} endpoint - The endpoint path (e.g., 'lookuptable.php').
+ * @param {object} params - Query parameters as key-value pairs.
+ * @returns {Promise<object|null>} The JSON response data or null on error.
  */
-async function fetchOddsApiData(sportKey) {
-    console.log(`Workspaceing from The Odds API for ${sportKey}...`);
-    const regions = 'eu'; // uk, eu, au, us
-    const markets = 'h2h'; // Head-to-head (1X2 / Moneyline)
-    const oddsFormat = 'decimal'; const dateFormat = 'iso';
-    const url = `https://api.the-odds-api.com/v4/sports/${sportKey}/odds?apiKey=${oddsApiKey}&regions=${regions}&markets=${markets}&oddsFormat=${oddsFormat}&dateFormat=${dateFormat}`;
-
+async function fetchTSDBData(endpoint, params) {
+    const query = new URLSearchParams(params).toString();
+    const url = `https://www.thesportsdb.com/api/v1/json/${theSportsDbApiKey}/${endpoint}?${query}`;
+    // console.log("Fetching:", url); // Debug URL
     try {
         const response = await fetch(url);
-        const requestsRemaining = response.headers.get('x-requests-remaining');
-        if (requestsRemaining) console.log(`API Requests Remaining: ${requestsRemaining} (after fetching ${sportKey})`);
-
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error(`The Odds API Error for ${sportKey}:`, errorData);
-            throw new Error(`API Request Failed! Status: ${response.status} - ${errorData.message || 'Unknown error'}`);
+            throw new Error(`TheSportsDB API request failed! Status: ${response.status} for ${endpoint}`);
         }
-        const apiResult = await response.json();
-        // Add sport_key to each fixture for easier mapping later
-        if(Array.isArray(apiResult)) {
-             apiResult.forEach(item => item.sport_key_source = sportKey);
-        }
-        return Array.isArray(apiResult) ? apiResult : [];
+        const data = await response.json();
+        // Add small delay to respect rate limits (TheSportsDB free tier is rate-limited per minute)
+        await new Promise(resolve => setTimeout(resolve, 300)); // 300ms delay
+        return data;
     } catch (error) {
-        console.error(`Error fetching The Odds API data for ${sportKey}:`, error);
-        statusDiv.textContent = `Error fetching ${sportKey}: ${error.message}`;
+        console.error(`Error fetching ${endpoint}:`, error);
+        statusDiv.textContent = `Error fetching ${endpoint}: ${error.message}`;
         statusDiv.className = 'error';
         return null; // Indicate failure
     }
 }
 
-/**
- * Maps raw data from The Odds API /odds endpoint to our internal fixture format.
- */
-function mapOddsApiToFixtures(apiData) {
-    if (!Array.isArray(apiData)) return [];
+// --- Data Processing Functions ---
 
-    return apiData.map(item => {
+/**
+ * Calculates form points (W=3, D=1, L=0) from last N games.
+ * @param {string} teamId - The ID of the team to calculate form for.
+ * @param {Array} allRecentEvents - Array of recent event objects for the league.
+ * @param {number} numGames - Number of games to consider (e.g., 5).
+ * @returns {number} Form points (0-15 for 5 games).
+ */
+function calculateForm(teamId, allRecentEvents, numGames = 5) {
+    if (!teamId || !Array.isArray(allRecentEvents)) return 0;
+    let formPoints = 0;
+    let gamesCounted = 0;
+    // Sort events by date descending to easily get the latest
+    allRecentEvents.sort((a, b) => new Date(b.dateEvent) - new Date(a.dateEvent));
+
+    for (const event of allRecentEvents) {
+        if (gamesCounted >= numGames) break; // Stop after N games
+
+        // Check if team participated and scores are valid numbers
+        if (event.idHomeTeam === teamId || event.idAwayTeam === teamId) {
+             const homeScore = parseInt(event.intHomeScore, 10);
+             const awayScore = parseInt(event.intAwayScore, 10);
+
+            if (!isNaN(homeScore) && !isNaN(awayScore)) { // Only count if scores are valid
+                 gamesCounted++;
+                 if (event.idHomeTeam === teamId) { // Team played Home
+                     if (homeScore > awayScore) formPoints += 3; // Win
+                     else if (homeScore === awayScore) formPoints += 1; // Draw
+                 } else { // Team played Away
+                     if (awayScore > homeScore) formPoints += 3; // Win
+                     else if (awayScore === homeScore) formPoints += 1; // Draw
+                 }
+            }
+        }
+    }
+    // console.log(`Form for team ${teamId}: ${formPoints} points from ${gamesCounted} games.`);
+    return formPoints;
+}
+
+
+/**
+ * Calculates SYNTHETIC Home Win and Away Win odds based on ranks and form.
+ * Uses formula refined in response #100.
+ */
+function calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrevRank, awayPrevRank) {
+    // Use defaults if rank/form data is missing (treat as mid-table avg form)
+    homeRank = homeRank ?? 10; awayRank = awayRank ?? 10;
+    homeForm = homeForm ?? 7; awayForm = awayForm ?? 7;
+    homePrevRank = homePrevRank ?? 10; awayPrevRank = awayPrevRank ?? 10;
+
+    const rankDiff = awayRank - homeRank;
+    const formDiff = homeForm - awayForm;
+    const prevRankDiff = awayPrevRank - homePrevRank;
+
+    // Base odds & Scaling Factors (Tune these if needed)
+    const baseHome = 2.40; const baseAway = 2.70;
+    const rankScale = 0.07; const formScale = 0.025; const prevRankScale = 0.01;
+    const rankCap = 12; // Max rank difference effect
+
+    const cappedRankDiff = Math.max(-rankCap, Math.min(rankCap, rankDiff));
+    const rankAdj = cappedRankDiff * rankScale;
+    const formAdj = formDiff * formScale;
+    const prevRankAdj = prevRankDiff * prevRankScale;
+
+    let homeOdd = baseHome - rankAdj - formAdj - prevRankAdj;
+    let awayOdd = baseAway + rankAdj + formAdj + prevRankAdj;
+
+    homeOdd = Math.max(1.01, homeOdd); // Ensure min odd
+    awayOdd = Math.max(1.01, awayOdd);
+
+    return {
+        homeWin: parseFloat(homeOdd.toFixed(2)),
+        awayWin: parseFloat(awayOdd.toFixed(2))
+    };
+}
+
+
+/**
+ * Maps data from TheSportsDB events endpoints to our internal fixture format.
+ * Includes calculated synthetic odds.
+ */
+function mapTheSportsDbToFixtures(apiEvents, leagueName, leagueCountry, rankings, prevRankings, recentEventsMap) {
+    if (!Array.isArray(apiEvents)) return [];
+
+    return apiEvents.map(event => {
         try {
             // Basic validation
-            if (!item || !item.id || !item.commence_time || !item.home_team || !item.away_team || !item.sport_key_source) {
-                 console.warn("Skipping mapping due to missing core data:", item); return null;
+            if (!event || !event.idEvent || !event.strHomeTeam || !event.strAwayTeam || !event.idHomeTeam || !event.idAwayTeam || !event.dateEvent || !event.strTime) {
+                console.warn("Skipping TSB event due to missing core data:", event); return null;
             }
 
-            // Get league name and country from our map using sport_key_source
-            const leagueInfo = leagueSportKeys[item.sport_key_source];
-            const competitionName = leagueInfo?.name || item.sport_title || item.sport_key_source;
-            const countryName = leagueInfo?.country || "Unknown";
-
-            // --- Odds Extraction ---
-            // IMPORTANT: This logic needs verification against actual API response!
-            // It attempts to average H2H odds from available bookmakers.
-            let homeOdds = [], drawOdds = [], awayOdds = [];
-            if (Array.isArray(item.bookmakers)) {
-                item.bookmakers.forEach(bookie => {
-                    const h2hMarket = bookie.markets?.find(m => m.key === 'h2h');
-                    if (h2hMarket?.outcomes) {
-                        const home = h2hMarket.outcomes.find(o => o.name === item.home_team)?.price;
-                        const away = h2hMarket.outcomes.find(o => o.name === item.away_team)?.price;
-                        const draw = h2hMarket.outcomes.find(o => o.name === 'Draw')?.price;
-                        if (home) homeOdds.push(home);
-                        if (draw) drawOdds.push(draw);
-                        if (away) awayOdds.push(away);
-                    }
-                });
+            // Combine date and time - TheSportsDB stores them separately
+            // Time often includes timezone info like "19:00:00+00:00" or just "19:00:00" - try parsing robustly
+            const timePart = event.strTime.split('+')[0]; // Handle potential timezone offset string
+            const kickOffIso = `${event.dateEvent}T${timePart}Z`; // Assume UTC if no offset provided by API, might need adjustment!
+            const kickOffDate = new Date(kickOffIso);
+            if (isNaN(kickOffDate.getTime())) { // Check if date is valid
+                 console.warn("Skipping TSB event due to invalid date/time:", event.dateEvent, event.strTime); return null;
             }
-            const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
-            let homeWin = parseFloat(avg(homeOdds)) || 2.00; // Default if no odds found
-            let draw = parseFloat(avg(drawOdds)) || 3.00;
-            let awayWin = parseFloat(avg(awayOdds)) || 4.00;
-             // --- End Odds Extraction ---
+
+            // Status Mapping (TSDB uses text descriptions)
+            let internalStatus = 'SCHEDULED';
+            if (event.strStatus === 'Match Finished') internalStatus = 'FINISHED';
+            else if (event.strStatus?.includes('Postponed')) internalStatus = 'Postponed'; // Use API text
+            else if (event.strStatus?.includes('Cancelled')) internalStatus = 'Cancelled';
+            else if (event.intHomeScore !== null && event.intAwayScore !== null) internalStatus = 'LIVE'; // Basic check if scores exist but not finished
+
+
+            // Get Ranks & Form
+            const homeIdStr = String(event.idHomeTeam);
+            const awayIdStr = String(event.idAwayTeam);
+            const leagueIdStr = String(event.idLeague);
+
+            const homeRank = rankings?.[leagueIdStr]?.[homeIdStr];
+            const awayRank = rankings?.[leagueIdStr]?.[awayIdStr];
+            const homePrevRank = prevRankings?.[leagueIdStr]?.[homeIdStr];
+            const awayPrevRank = prevRankings?.[leagueIdStr]?.[awayIdStr];
+            const homeForm = calculateForm(homeIdStr, recentEventsMap?.[leagueIdStr] || []);
+            const awayForm = calculateForm(awayIdStr, recentEventsMap?.[leagueIdStr] || []);
+
+             // Calculate Synthetic Odds
+             const syntheticOdds = calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrevRank, awayPrevRank);
 
             return {
-                fixtureId: item.id, // Use API's event ID
-                competition: competitionName,
-                country: countryName,
-                kickOffTime: item.commence_time, // ISO8601 string
-                status: 'SCHEDULED', // Assume scheduled from this endpoint
-                homeTeam: { id: item.home_team, name: item.home_team }, // Use names as IDs
-                awayTeam: { id: item.away_team, name: item.away_team },
-                odds: { homeWin, draw, awayWin },
-                result: null // No results from this endpoint
+                fixtureId: String(event.idEvent),
+                competition: event.strLeague || leagueName, // Use league name from event or map
+                country: leagueCountry || event.strCountry || "Unknown", // Try multiple sources
+                kickOffTime: kickOffDate.toISOString(), // Use calculated ISO string
+                status: internalStatus,
+                homeTeam: { id: homeIdStr, name: event.strHomeTeam },
+                awayTeam: { id: awayIdStr, name: event.strAwayTeam },
+                odds: syntheticOdds, // Use calculated odds
+                result: internalStatus === 'FINISHED' ? {
+                    homeScore: parseInt(event.intHomeScore, 10),
+                    awayScore: parseInt(event.intAwayScore, 10)
+                } : null
             };
-        } catch(mapError){ console.error("Error mapping Odds API fixture:", mapError, "Item:", item); return null; }
+        } catch(mapError){ console.error("Error mapping TSB event:", mapError, "Event:", event); return null; }
     }).filter(fixture => fixture !== null);
 }
 
 
 // --- Firestore Saving Function ---
 async function saveFixturesToFirestore(fixturesData) {
-     if (!statusDiv) { console.error("Status div missing"); return; } // Check element
-     if (!fixturesData || fixturesData.length === 0) {
-         statusDiv.textContent = "No valid fixtures found/mapped to save."; statusDiv.className = ''; return;
-     }
-     statusDiv.textContent = "Processing fixtures..."; statusDiv.className = '';
+     if (!statusDiv) { console.error("Status div missing"); return; }
+     if (!fixturesData || fixturesData.length === 0) { statusDiv.textContent = "No valid fixtures found/mapped to save."; statusDiv.className = ''; return; }
+     statusDiv.textContent = "Processing fixtures for save..."; statusDiv.className = '';
      const fixturesByDate = {};
-     fixturesData.forEach(fixture => { /* ... Keep grouping logic ... */ });
-     console.log("Fixtures grouped by date:", fixturesByDate);
+     fixturesData.forEach(fixture => { try { const d = getDateString(new Date(fixture.kickOffTime)); if(!d) return; if (!fixturesByDate[d]) fixturesByDate[d] = []; fixturesByDate[d].push(fixture); } catch (e) { console.error(e); }});
+     console.log("Fixtures grouped by date:", Object.keys(fixturesByDate).length, "dates");
+     if (Object.keys(fixturesByDate).length === 0) { statusDiv.textContent = "No fixtures with valid dates found."; return;}
      statusDiv.textContent = `Saving fixtures for ${Object.keys(fixturesByDate).length} dates...`;
-     const batch = writeBatch(db); let operations = 0;
-     for (const dateStr in fixturesByDate) { /* ... Keep batching logic ... */ }
-     try {
-         await batch.commit(); console.log("Firestore successfully updated!");
-         statusDiv.textContent = `Successfully saved/merged fixtures for ${Object.keys(fixturesByDate).length} dates.`; statusDiv.className = 'success';
-     } catch (error) {
-         console.error("Error writing batch to Firestore: ", error);
-         statusDiv.textContent = `Error saving to Firestore: ${error.message}. Check Firestore rules or console.`; statusDiv.className = 'error';
+     const batch = writeBatch(db); let operations = 0; const maxBatch = 490; // Keep below 500 limit
+     let totalFixturesSaved = 0;
+
+     for (const dateStr in fixturesByDate) {
+         const docRef = doc(db, "fixturesByDate", dateStr);
+         // Overwrite the entire day's fixtures with the newly calculated set
+         batch.set(docRef, { fixtures: fixturesByDate[dateStr], fetchedAt: new Date().toISOString() });
+         operations++;
+         totalFixturesSaved += fixturesByDate[dateStr].length;
+         if (operations >= maxBatch) { console.log(`Committing batch of ${operations} dates...`); await batch.commit(); batch = writeBatch(db); operations = 0; statusDiv.textContent = `Saving... (${totalFixturesSaved} fixtures...)`; }
      }
+     try {
+         if (operations > 0) { // Commit any remaining operations
+            console.log(`Committing final batch of ${operations} dates...`);
+            await batch.commit();
+         }
+         console.log("Firestore successfully updated!");
+         statusDiv.textContent = `Successfully saved ${totalFixturesSaved} fixtures for ${Object.keys(fixturesByDate).length} dates.`; statusDiv.className = 'success';
+     } catch (error) { console.error("Error writing final batch to Firestore: ", error); statusDiv.textContent = `Error saving: ${error.message}.`; statusDiv.className = 'error'; }
 }
 
 
-// --- Event Listener for the Main Fetch Button ---
+// --- Main Fetch Logic (Event Listener for Button) ---
 if (fetchButton) {
     fetchButton.addEventListener('click', async () => {
-        statusDiv.textContent = `Workspaceing ${sportKeysToFetch.length} leagues from The Odds API... (Uses ${sportKeysToFetch.length} requests)`;
-        statusDiv.className = '';
-        fetchButton.disabled = true;
+        statusDiv.textContent = "Starting data fetch process..."; statusDiv.className = '';
+        fetchButton.disabled = true; // Disable button during fetch
 
-        // Fetch all desired leagues concurrently
-        const promises = sportKeysToFetch.map(key => fetchOddsApiData(key));
-        const results = await Promise.allSettled(promises);
+        try {
+            const leagueIds = Object.values(DESIRED_LEAGUES);
+            const leagueEntries = Object.entries(DESIRED_LEAGUES); // Get [name, id] pairs
 
-        let combinedRawData = [];
-        let fetchErrors = 0;
-        results.forEach((result, index) => {
-            if (result.status === 'fulfilled' && result.value !== null) {
-                 if (Array.isArray(result.value)) {
-                    combinedRawData.push(...result.value); // Add fixtures from this league
-                 }
-            } else {
-                fetchErrors++;
-                console.error(`Failed to fetch/process league ${sportKeysToFetch[index]}:`, result.reason);
-            }
-        });
+            // --- 1. Fetch all required data concurrently ---
+            statusDiv.textContent = "Fetching standings and results...";
+            const promises = [];
+            leagueIds.forEach(id => {
+                promises.push(fetchTSDBData('lookuptable.php', { l: id, s: CURRENT_SEASON }));      // Current Standings
+                promises.push(fetchTSDBData('lookuptable.php', { l: id, s: PREVIOUS_SEASON }));     // Previous Standings
+                promises.push(fetchTSDBData('eventspastleague.php', { id: id })); // Last 15 Results
+                promises.push(fetchTSDBData('eventsnextleague.php', { id: id })); // Next 15 Fixtures
+            });
 
-        statusDiv.textContent = `Finished fetching ${sportKeysToFetch.length - fetchErrors}/${sportKeysToFetch.length} leagues.`;
+            const results = await Promise.allSettled(promises);
+            console.log("API Fetch Results:", results);
 
-        if (combinedRawData.length > 0) {
-            const mappedFixtures = mapOddsApiToFixtures(combinedRawData);
-            if (mappedFixtures.length > 0) {
-                 await saveFixturesToFirestore(mappedFixtures); // Save mapped results
-            } else {
-                 statusDiv.textContent += " No relevant fixtures found after mapping/filtering.";
+            // --- 2. Process and Store Standings/Results ---
+            statusDiv.textContent = "Processing fetched data...";
+            const currentRanks = {}; // { leagueId: { teamId: rank, ... }, ... }
+            const previousRanks = {};
+            const recentEventsMap = {}; // { leagueId: [ event1, event2, ... ], ... }
+            const allTeamsMap = {}; // { teamId: teamName }
+            const combinedUpcomingEvents = []; // Raw upcoming events from all leagues
+            let errorCount = 0;
+
+            results.forEach((result, index) => {
+                if (result.status !== 'fulfilled' || !result.value) {
+                    console.error(`API call failed for index ${index}`); errorCount++; return;
+                }
+                const data = result.value;
+                const requestIndex = index % 4; // 0=currRank, 1=prevRank, 2=pastEvents, 3=nextEvents
+                const leagueIndex = Math.floor(index / 4);
+                const [leagueName, leagueId] = leagueEntries[leagueIndex];
+                const leagueIdStr = String(leagueId);
+
+                if (requestIndex === 0 && data.table) { // Current Standings
+                    currentRanks[leagueIdStr] = {};
+                    data.table.forEach(t => {
+                        currentRanks[leagueIdStr][String(t.idTeam)] = parseInt(t.intRank, 10);
+                        if (t.idTeam && t.strTeam) allTeamsMap[String(t.idTeam)] = t.strTeam; // Store team name
+                    });
+                } else if (requestIndex === 1 && data.table) { // Previous Standings
+                    previousRanks[leagueIdStr] = {};
+                    data.table.forEach(t => {
+                        previousRanks[leagueIdStr][String(t.idTeam)] = parseInt(t.intRank, 10);
+                         if (t.idTeam && t.strTeam && !allTeamsMap[String(t.idTeam)]) allTeamsMap[String(t.idTeam)] = t.strTeam; // Add team if missed
+                    });
+                } else if (requestIndex === 2 && data.events) { // Recent Results
+                    recentEventsMap[leagueIdStr] = data.events;
+                } else if (requestIndex === 3 && data.events) { // Upcoming Fixtures
+                    combinedUpcomingEvents.push(...data.events);
+                }
+            });
+
+            if (errorCount > 0) {
+                 statusDiv.textContent = `Completed with ${errorCount} fetch errors. Data may be incomplete. Check console.`;
                  statusDiv.className = 'error';
+            } else {
+                 statusDiv.textContent = "Data fetched successfully. Calculating odds...";
             }
-        } else {
-             statusDiv.textContent += " No data retrieved from API.";
-             statusDiv.className = fetchErrors > 0 ? 'error' : '';
-        }
 
-        fetchButton.disabled = false;
+            // --- 3. Calculate Odds and Map Fixtures ---
+            const finalMappedFixtures = mapTheSportsDbToFixtures(
+                combinedUpcomingEvents,
+                null, // League Name will come from event object
+                null, // Country will come from event object
+                currentRanks,
+                previousRanks,
+                recentEventsMap
+            );
+
+            console.log(`Mapped ${finalMappedFixtures.length} fixtures with synthetic odds.`);
+
+             // --- 4. Save to Firestore ---
+            await saveFixturesToFirestore(finalMappedFixtures);
+
+        } catch (overallError) {
+            console.error("Error in overall admin fetch process:", overallError);
+            statusDiv.textContent = `Error: ${overallError.message}`;
+            statusDiv.className = 'error';
+        } finally {
+            fetchButton.disabled = false; // Re-enable button
+        }
     });
 } else {
     console.error("Fetch Button not found!");
 }
 
-// Remove or comment out the single date fetch logic if not needed
-// if (fetchSingleButton) { ... }
+// Remove single date fetch button listener if element removed from HTML
+// if (fetchSingleButton) { fetchSingleButton.addEventListener(...); }
