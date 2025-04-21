@@ -26,6 +26,10 @@ const DESIRED_LEAGUES = {
     "Ligue 1":        { id: 4334, country: "France" },
     // Add UCL/UEL later if needed and IDs confirmed
 };
+
+const oneHour = 60 * 60 * 1000;
+const oneDay = 24 * oneHour;
+
 const leagueEntries = Object.entries(DESIRED_LEAGUES); // Array of [name, {id, country}]
 
 // Define Seasons (Adjust years as needed based on API data for current date)
