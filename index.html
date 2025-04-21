@@ -39,6 +39,7 @@
 
         <div id="signup-form" style="display: none;">
             <h3>Sign Up</h3>
+            <input type="text" id="signup-username" placeholder="Username (min 3 chars)" required="" minlength="3">
             <input type="email" id="signup-email" placeholder="Email" required>
             <input type="password" id="signup-password" placeholder="Password" required>
             <button id="signup-button">Sign Up</button>
@@ -47,7 +48,7 @@
         </div>
 
         <div id="user-info" style="display: none;">
-            <p>Welcome, <span id="user-email"></span>!</p>
+             <p>Welcome, <span id="user-display-name"></span>!</p>
             <button id="logout-button">Logout</button>
         </div>
     </section>
