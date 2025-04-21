@@ -1,9 +1,9 @@
-// script.js - COMPLETE - Firebase Auth + Reads Fixtures from Firestore
+// script.js - COMPLETE, CORRECTED VERSION - Firebase Auth + Reads Fixtures from Firestore
 
 // --- Firebase Initialization (ES Module Version) ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"; // Added doc, getDoc
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"; // Added Firestore functions used
 
 // !! IMPORTANT: Replace with the actual config from your Firebase Console !!
 const firebaseConfig = {
@@ -29,6 +29,7 @@ const oneDay = 24 * oneHour;
 
 function getDateString(date) {
     if (!(date instanceof Date) || isNaN(date.getTime())) {
+        console.error("Invalid date passed to getDateString:", date);
         const today = new Date(); return today.toISOString().split('T')[0];
     }
     const adjustedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
@@ -48,31 +49,33 @@ function getFlagUrl(countryName) {
 }
 
 // --- State Variables ---
-let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Default to actual today
 let selectedLeagueFilter = 'ALL';
 let userSelections = {}; // Holds picks for the CURRENT user (loaded locally or from DB)
 let currentUserId = null;
+let currentUserProfile = null; // Store fetched profile info
 let currentFixtures = []; // Holds fixtures for the currently displayed day (fetched from Firestore)
-let isUpdatingFixtures = false;
+let isUpdatingFixtures = false; // Flag to prevent concurrent updates
 
 // --- DOM Element References (Declared globally, assigned in init) ---
 let weekViewContainer, fixtureListDiv, leagueSlicerContainer, scoreListUl;
 let authSection, loginForm, signupForm, userInfo;
 let loginEmailInput, loginPasswordInput, loginButton, loginErrorP;
-let showSignupButton, signupEmailInput, signupPasswordInput, signupButton, signupErrorP;
-let showLoginButton, userEmailSpan, logoutButton;
+let showSignupButton, signupEmailInput, signupPasswordInput, signupUsernameInput, signupButton, signupErrorP;
+let showLoginButton, userDisplayNameSpan, logoutButton;
 
 
 // --- Authentication State Listener ---
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async (user) => { // Make async to fetch profile
     // Use optional chaining for safety as elements might not be assigned yet on initial load
     loginErrorP?.textContent && (loginErrorP.textContent = '');
     signupErrorP?.textContent && (signupErrorP.textContent = '');
 
     if (user) { // User signed in
-        console.log("Auth State Changed: User logged in:", user.email, user.uid);
         currentUserId = user.uid;
-        if(userEmailSpan) userEmailSpan.textContent = user.email;
+        console.log("Auth State Changed: User logged in:", user.email, currentUserId);
+        // Display Email first, then try to fetch and display Username
+        if(userDisplayNameSpan) userDisplayNameSpan.textContent = user.email; // Show email initially
         if(loginForm) loginForm.style.display = 'none';
         if(signupForm) signupForm.style.display = 'none';
         if(userInfo) userInfo.style.display = 'block';
@@ -80,29 +83,45 @@ onAuthStateChanged(auth, user => {
              authSection.style.border = 'none'; authSection.style.boxShadow = 'none';
              authSection.style.background = 'none'; authSection.style.padding = '0 0 1.5rem 0';
         }
+
+        // --- Fetch User Profile from Firestore ---
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                currentUserProfile = docSnap.data();
+                console.log("User profile data:", currentUserProfile);
+                // Check elements exist again before updating
+                if (userDisplayNameSpan && currentUserProfile.username) {
+                    userDisplayNameSpan.textContent = currentUserProfile.username; // Update display name
+                }
+            } else { console.log("No user profile found for UID:", user.uid); currentUserProfile = { email: user.email }; if(userDisplayNameSpan) userDisplayNameSpan.textContent = user.email + " (No Profile)"; }
+        } catch (error) { console.error("Error fetching user profile:", error); currentUserProfile = { email: user.email }; if(userDisplayNameSpan) userDisplayNameSpan.textContent = user.email + " (Profile Error)"; }
+        // --- End Fetch User Profile ---
+
         loadUserPicksFromFirestore(user.uid); // Placeholder call
+
     } else { // User signed out
         console.log("Auth State Changed: User logged out");
         currentUserId = null;
-        if(userEmailSpan) userEmailSpan.textContent = '';
+        currentUserProfile = null;
+        if(userDisplayNameSpan) userDisplayNameSpan.textContent = '';
         if(loginForm) loginForm.style.display = 'block';
         if(signupForm) signupForm.style.display = 'none';
         if(userInfo) userInfo.style.display = 'none';
          if(authSection) { /* Restore section styling */
-             authSection.style.border = '1px solid var(--divider-color)';
-             authSection.style.boxShadow = 'var(--elevation-1)';
-             authSection.style.background = 'var(--card-background-color)';
-             authSection.style.padding = '1.5rem';
+             authSection.style.border = '1px solid var(--divider-color)'; authSection.style.boxShadow = 'var(--elevation-1)';
+             authSection.style.background = 'var(--card-background-color)'; authSection.style.padding = '1.5rem';
          }
         userSelections = {}; // Clear local state
         localStorage.removeItem('footballGameSelections');
-        // Refresh UI after clearing data
-        requestAnimationFrame(() => {
+        requestAnimationFrame(() => { // Refresh UI after clearing data
              if(typeof generateCalendar === 'function') generateCalendar();
              if(typeof updateDisplayedFixtures === 'function') updateDisplayedFixtures();
         });
     }
 });
+
 
 // --- Firestore Fixture Fetch Function ---
 async function fetchFixturesFromFirestore(dateStr) {
@@ -145,11 +164,11 @@ function generateCalendar() {
         const line3Span = document.createElement('span'); line3Span.classList.add('cal-line', 'cal-line-3'); line3Span.innerHTML = line3Text;
         dayButton.appendChild(line1Span); dayButton.appendChild(line2Span); dayButton.appendChild(line3Span);
         if (getDateString(selectedDate) === dateStr) dayButton.classList.add('active');
-        dayButton.addEventListener('click', async () => { // Make async
+        dayButton.addEventListener('click', async () => {
             if (getDateString(selectedDate) !== dateStr) {
                 selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                selectedLeagueFilter = 'ALL'; generateCalendar(); // Redraw sync
-                await updateDisplayedFixtures(); // Fetch/display async for new date
+                selectedLeagueFilter = 'ALL'; generateCalendar();
+                await updateDisplayedFixtures();
             }
         });
         weekViewContainer.appendChild(dayButton);
@@ -179,63 +198,45 @@ function handleSlicerClick(event) {
     selectedLeagueFilter = clickedButton.dataset.league;
     document.querySelectorAll('#league-slicer-container .league-slicer').forEach(btn => btn.classList.remove('active'));
     clickedButton.classList.add('active');
-    updateDisplayedFixtures(); // Refilter based on currentFixtures data
+    updateDisplayedFixtures(); // Refilter based on currently loaded currentFixtures
 }
 
-// MODIFIED updateDisplayedFixtures to prevent concurrency
 async function updateDisplayedFixtures() {
-    // Add check at the very beginning
-    if (isUpdatingFixtures) {
-        console.log("UpdateDisplayedFixtures already running, skipping concurrent call.");
-        return; // Exit if already running
-    }
-    isUpdatingFixtures = true; // Set the flag
-
-    // Check if necessary elements exist
-    if (!fixtureListDiv || !leagueSlicerContainer) {
-        console.error("UI containers not ready for updateDisplayedFixtures");
-        isUpdatingFixtures = false; // Reset flag before exiting
-        return;
-    }
-
+    if (isUpdatingFixtures) { console.log("UpdateDisplayedFixtures already running..."); return; }
+    isUpdatingFixtures = true;
+    if (!fixtureListDiv || !leagueSlicerContainer) { console.error("UI containers not ready for updateDisplayedFixtures"); isUpdatingFixtures = false; return; }
     const selectedDateStr = getDateString(selectedDate);
     const realCurrentTime = new Date();
     console.log(`Updating display for date: ${selectedDateStr}, league: ${selectedLeagueFilter}`);
-    fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center;">Loading matches...</p>';
+    fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">Loading matches...</p>';
 
-    try { // Wrap the core logic in try...finally
+    try {
         const fixturesForDay = await fetchFixturesFromFirestore(selectedDateStr);
-        currentFixtures = fixturesForDay;
-        // console.log(`Data after Firestore fetch for ${selectedDateStr}:`, currentFixtures); // Keep logs from prev step if needed
+        currentFixtures = fixturesForDay; // Store globally
 
-        populateDailyLeagueSlicers(fixturesForDay);
+        populateDailyLeagueSlicers(fixturesForDay); // Update slicers
 
-        // Filter fetched data by league
-        const filteredFixtures = currentFixtures.filter(fixture => { // Declaration is here
+        const filteredFixtures = currentFixtures.filter(fixture => { // Filter global data
             if (!fixture) return false;
-            // Usage of other variables is here (line ~199)
             if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
             return true;
         });
-        // console.log(`Data after league filter (${selectedLeagueFilter}):`, filteredFixtures); // Keep logs if needed
-
-        // Log before accessing filteredFixtures again
         console.log(`Found ${filteredFixtures.length} fixtures to display after filtering.`);
         filteredFixtures.sort((a, b) => { try { return new Date(a.kickOffTime) - new Date(b.kickOffTime); } catch(e) { return 0; }});
-        displayFixtures(filteredFixtures, realCurrentTime); // Pass filtered data to display
+        displayFixtures(filteredFixtures, realCurrentTime); // Display the filtered list
 
     } catch (error) {
         console.error("Error during updateDisplayedFixtures:", error);
-        if(fixtureListDiv) fixtureListDiv.innerHTML = '<p style="color: var(--error-text-color); text-align: center;">Error loading fixtures.</p>';
+        if(fixtureListDiv) fixtureListDiv.innerHTML = '<p style="color: var(--error-text-color); text-align: center; grid-column: 1 / -1;">Error loading fixtures.</p>';
     } finally {
-        isUpdatingFixtures = false; // <<< IMPORTANT: Reset flag when done (success or error)
+        isUpdatingFixtures = false; // Reset flag
     }
 }
 
 function displayFixtures(fixtures, currentTime) {
-   console.log(`--- displayFixtures called with ${fixtures?.length ?? 0} fixtures ---`); // Log start of display
     if (!fixtureListDiv) { console.error("Cannot display fixtures, list div not found."); return; }
     fixtureListDiv.innerHTML = '';
+    // console.log(`--- displayFixtures rendering ${fixtures?.length ?? 0} fixtures ---`);
     if (!fixtures || fixtures.length === 0) { fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">No matches found for the selected day/filters.</p>'; return; }
     const currentDaySelection = userSelections[getDateString(selectedDate)];
     fixtures.forEach((fixture, index) => {
@@ -252,32 +253,27 @@ function displayFixtures(fixtures, currentTime) {
              else if (fixture.status === 'FINISHED' && fixture.result) { const sel = { teamId: fixture.awayTeam.id, selectedWinOdd: fixture.odds.awayWin, fixtureDrawOdd: fixture.odds.draw }; const pts = calculateScore(sel, fixture); const span = document.createElement('span'); span.classList.add('fixture-points'); if (pts !== null) { span.textContent = `${pts.toFixed(1)} pts`; if (pts > 0) span.classList.add('positive'); } else { span.textContent = '-'; } awayRow.appendChild(span); }
             fixtureElement.appendChild(awayRow);
             const detailsBottom = document.createElement('div'); detailsBottom.classList.add('fixture-details-bottom'); let bottomText = ''; if (fixture.status && fixture.status !== 'SCHEDULED' && fixture.status !== 'FINISHED') { bottomText = `<span style="font-style:italic; color:var(--error-text-color)">(${fixture.status})</span>`; } if (bottomText) { detailsBottom.innerHTML = bottomText; fixtureElement.appendChild(detailsBottom); }
-            fixtureListDiv.appendChild(fixtureElement);
+            if(fixtureListDiv) fixtureListDiv.appendChild(fixtureElement); // Check again before append
         } catch (error) { console.error(`Error processing fixture ${fixture?.fixtureId || `index ${index}`}:`, error); }
     });
 }
 
 // handleSelection - checks login, locks, saves locally (Firestore TODO)
-function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
+function handleSelection(fixtureId, teamId, teamName /* removed odds params */ ) {
     if (!auth.currentUser) { alert("Please log in or sign up to make a pick!"); return; }
     const selectedDateStr = getDateString(selectedDate);
     const realCurrentTime = new Date();
     const existingSelection = userSelections[selectedDateStr];
-    if (existingSelection) {
-        const existingFixture = currentFixtures.find(f => f?.fixtureId === existingSelection.fixtureId);
-        if (existingFixture?.kickOffTime && new Date(existingFixture.kickOffTime) <= realCurrentTime) { alert(`Pick locked for ${selectedDateStr}.`); return; }
-    }
+    // Find fixtures from the globally stored currentFixtures array
+    const existingFixture = currentFixtures.find(f => f?.fixtureId === existingSelection?.fixtureId);
+    if (existingSelection && existingFixture?.kickOffTime && new Date(existingFixture.kickOffTime) <= realCurrentTime) { alert(`Pick locked for ${selectedDateStr}.`); return; }
     const clickedFixture = currentFixtures.find(f => f?.fixtureId === fixtureId);
-    if (!clickedFixture || !clickedFixture.kickOffTime) { console.error("Clicked fixture details not found", fixtureId); return; }
+    if (!clickedFixture || !clickedFixture.kickOffTime || !clickedFixture.odds) { console.error("Clicked fixture details or odds missing", fixtureId); return; }
     const clickedKickOff = new Date(clickedFixture.kickOffTime);
     if (clickedKickOff <= realCurrentTime) { alert("Match started."); return; }
-
-    // Get odds from the fixture data we have (which came from Firestore/API)
-    const actualHomeOdd = clickedFixture.odds?.homeWin;
-    const actualAwayOdd = clickedFixture.odds?.awayWin;
-    const actualDrawOdd = clickedFixture.odds?.draw;
-    // Use the odd corresponding to the selected team
-    const selectedOddForCalc = (String(teamId) === String(clickedFixture.homeTeam.id)) ? actualHomeOdd : actualAwayOdd;
+    // Get relevant odds from the fixture data
+    const homeWinOdd = clickedFixture.odds.homeWin; const awayWinOdd = clickedFixture.odds.awayWin;
+    const selectedOddForSave = (String(teamId) === String(clickedFixture.homeTeam?.id)) ? homeWinOdd : awayWinOdd;
 
     if (existingSelection && existingSelection.fixtureId === fixtureId && existingSelection.teamId === teamId) {
         delete userSelections[selectedDateStr]; console.log(`Deselected team ${teamId} for ${selectedDateStr}`);
@@ -285,8 +281,8 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     } else {
         const newSelection = {
             fixtureId: fixtureId, teamId: teamId, teamName: teamName || 'Unknown',
-            selectedWinOdd: selectedOddForCalc || 1.0, // Use actual odd or fallback
-            fixtureDrawOdd: actualDrawOdd || 1.0, // Use actual draw odd or fallback
+            selectedWinOdd: selectedOddForSave || 1.0, // Store the odd for the WINNING outcome selected
+            // No draw odd needed
             selectionTime: realCurrentTime.toISOString(), userId: auth.currentUser.uid
         };
         userSelections[selectedDateStr] = newSelection;
@@ -295,21 +291,26 @@ function handleSelection(fixtureId, teamId, teamName, teamWinOdd, drawOdd) {
     }
     saveUserDataToLocal(); // Temp save
     generateCalendar(); // Update calendar UI
-    updateDisplayedFixtures(); // Update fixture list UI (button states)
+    updateDisplayedFixtures(); // Update fixture list UI
 }
 
-// calculateScore - uses Math.max, checks data
+
+// calculateScore - uses Win/Draw/Loss multipliers and new Goal Pts
 function calculateScore(selection, fixture) {
-    if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result || selection.selectedWinOdd === undefined || selection.fixtureDrawOdd === undefined) { return null; }
-    let score = 0; const isHome = String(fixture.homeTeam?.id) === String(selection.teamId);
+    if (!selection || !fixture || fixture.status !== 'FINISHED' || !fixture.result || selection.selectedWinOdd === undefined || selection.teamId === undefined || !fixture.homeTeam?.id || !fixture.awayTeam?.id || fixture.result.homeScore === null || fixture.result.homeScore === undefined || fixture.result.awayScore === null || fixture.result.awayScore === undefined) { return null; }
+    let score = 0; const teamId = String(selection.teamId); const homeId = String(fixture.homeTeam.id); const isHome = (teamId === homeId);
     const teamScore = isHome ? fixture.result.homeScore : fixture.result.awayScore;
     const oppScore = isHome ? fixture.result.awayScore : fixture.result.homeScore;
-    if (teamScore === null || teamScore === undefined || oppScore === null || oppScore === undefined) return null;
-    if (teamScore > oppScore) score += (selection.selectedWinOdd || 1.0) * 5;
-    else if (teamScore === oppScore) score += (selection.fixtureDrawOdd || 1.0) * 2;
-    score += teamScore * 3; score -= oppScore * 1;
-    return Math.max(0, score);
+    const pickedOdd = selection.selectedWinOdd || 1.0; // Use the odd stored with the pick
+    let resultMultiplier = 0; // Loss
+    if (teamScore > oppScore) { resultMultiplier = 5; } // Win
+    else if (teamScore === oppScore) { resultMultiplier = 2.5; } // Draw
+    const outcomePoints = pickedOdd * resultMultiplier;
+    const goalPoints = (teamScore * 2.5) - (oppScore * 1);
+    const totalScore = outcomePoints + goalPoints;
+    return Math.max(0, totalScore); // Min score is 0
 }
+
 
 // Loads from local storage only
 function loadUserDataFromLocal() {
@@ -329,10 +330,10 @@ function saveUserDataToLocal() {
 // Placeholder for Firestore loading
 function loadUserPicksFromFirestore(userId) {
     console.log(`TODO: Load picks for user ${userId} from Firestore and update userSelections object.`);
-    userSelections = {}; // Clear local state on login for now
+    userSelections = {}; // Clear local state on login
     console.log("Cleared local userSelections, waiting for Firestore load (not implemented yet).");
     if(typeof generateCalendar === 'function') generateCalendar(); // Refresh UI
-    if(typeof updateDisplayedFixtures === 'function') updateDisplayedFixtures(); // Refresh fixtures
+    if(typeof updateDisplayedFixtures === 'function') updateDisplayedFixtures();
 }
 
 // Auth error helper
@@ -342,6 +343,7 @@ function getFriendlyAuthError(error) {
         case 'auth/weak-password': return 'Password needs 6+ characters.'; case 'auth/email-already-in-use': return 'Email already registered.'; default: return 'An unknown auth error occurred.';
     }
 }
+
 
 // --- Initialization Function ---
 async function initializeAppAndListeners() {
@@ -363,25 +365,48 @@ async function initializeAppAndListeners() {
     showSignupButton = document.getElementById('show-signup');
     signupEmailInput = document.getElementById('signup-email');
     signupPasswordInput = document.getElementById('signup-password');
+    signupUsernameInput = document.getElementById('signup-username'); // Assign new input
     signupButton = document.getElementById('signup-button');
     signupErrorP = document.getElementById('signup-error');
     showLoginButton = document.getElementById('show-login');
-    userEmailSpan = document.getElementById('user-email');
+    userDisplayNameSpan = document.getElementById('user-display-name'); // Use new ID
     logoutButton = document.getElementById('logout-button');
 
-     if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !userInfo || !leagueSlicerContainer) { console.error("One or more critical DOM elements not found!"); return; }
+     if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !userInfo || !leagueSlicerContainer || !signupUsernameInput || !userDisplayNameSpan) {
+         console.error("One or more critical DOM elements not found!"); return;
+     }
 
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
     if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
     if (loginButton) { loginButton.addEventListener('click', () => { if (!loginEmailInput || !loginPasswordInput) return; const email = loginEmailInput.value; const password = loginPasswordInput.value; if(loginErrorP) loginErrorP.textContent = ''; signInWithEmailAndPassword(auth, email, password).catch((err) => { if(loginErrorP) loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(err)}`;}); }); }
-    if (signupButton) { signupButton.addEventListener('click', () => { if (!signupEmailInput || !signupPasswordInput) return; const email = signupEmailInput.value; const password = signupPasswordInput.value; if(signupErrorP) signupErrorP.textContent = ''; createUserWithEmailAndPassword(auth, email, password).catch((err) => { if(signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(err)}`;}); }); }
-    if (logoutButton) { logoutButton.addEventListener('click', () => { signOut(auth).catch((err) => { console.error(err); alert("Logout failed."); }); }); }
+    // Updated Signup Listener
+    if (signupButton) {
+        signupButton.addEventListener('click', () => {
+             if (!signupEmailInput || !signupPasswordInput || !signupUsernameInput) return;
+             const email = signupEmailInput.value; const password = signupPasswordInput.value; const username = signupUsernameInput.value.trim();
+             if(signupErrorP) signupErrorP.textContent = '';
+             if (username.length < 3) { if(signupErrorP) signupErrorP.textContent = 'Username must be at least 3 characters.'; return; }
+             if (/\s/.test(username)) { if(signupErrorP) signupErrorP.textContent = 'Username cannot contain spaces.'; return; }
+             console.log(`Attempting signup for ${email} with username ${username}`);
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user; console.log("Signup successful:", user.uid);
+                    const userDocRef = doc(db, "users", user.uid);
+                    // Use serverTimestamp import
+                    return setDoc(userDocRef, { username: username, email: user.email, joinedAt: serverTimestamp() });
+                })
+                .then(() => { console.log("User profile saved."); if(signupUsernameInput) signupUsernameInput.value = ''; if(signupEmailInput) signupEmailInput.value = ''; if(signupPasswordInput) signupPasswordInput.value = ''; })
+                .catch((error) => { console.error("Signup/Profile Save Error:", error); if(signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(error)}`; });
+        });
+    }
+    if (logoutButton) { logoutButton.addEventListener('click', () => { signOut(auth).catch(/*...*/); }); }
+
 
     // Initial Load
-    loadUserDataFromLocal(); // Load any pre-existing local picks (for non-logged-in or before Firestore load)
-    generateCalendar(); // Draw calendar initially
-    await updateDisplayedFixtures(); // Fetch initial data from Firestore and display fixtures/slicers
+    loadUserDataFromLocal();
+    generateCalendar();
+    await updateDisplayedFixtures(); // Fetch initial data from Firestore and display
 
     console.log("Initial setup complete.");
 }
