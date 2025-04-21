@@ -369,16 +369,6 @@ function calculateScore(selection, fixture) {
     return Math.max(0, totalScore); // Min score is 0
 }
 
-
-// Placeholder for Firestore loading
-function loadUserPicksFromFirestore(userId) {
-    console.log(`TODO: Load picks for user ${userId} from Firestore and update userSelections object.`);
-    userSelections = {}; // Clear local state on login
-    console.log("Cleared local userSelections, waiting for Firestore load (not implemented yet).");
-    if(typeof generateCalendar === 'function') generateCalendar(); // Refresh UI
-    if(typeof updateDisplayedFixtures === 'function') updateDisplayedFixtures();
-}
-
 // Auth error helper
 function getFriendlyAuthError(error) {
     switch (error.code) {
