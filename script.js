@@ -445,6 +445,9 @@ async function initializeAppAndListeners() {
     }
     if (logoutButton) { logoutButton.addEventListener('click', () => { signOut(auth).catch(/*...*/); }); }
 
+      // Initial Load
+    generateCalendar();
+    await updateDisplayedFixtures(); // Fetch initial data from Firestore and display
 
 // --- Run Initialization ---
 document.addEventListener('DOMContentLoaded', initializeAppAndListeners);
