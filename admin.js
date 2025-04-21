@@ -53,17 +53,21 @@ function getDateString(date) {
 
 async function fetchTSDBData(endpoint, params) {
     const query = new URLSearchParams(params).toString();
-    const url = `https://www.thesportsdb.com/api/v1/json/${theSportsDbApiKey}/${endpoint}?${query}`;
-    // console.log("Fetching:", url); // Debug URL
+    const url = `https://www.thesportsdb.com/api/v1/json/<span class="math-inline">\{theSportsDbApiKey\}/</span>{endpoint}?${query}`;
+    console.log("Attempting to fetch:", url); // Log URL
     try {
         const response = await fetch(url);
-        if (!response.ok) { throw new Error(`Workspace failed: ${response.status}`); }
-        const data = await response.json();
-        await new Promise(resolve => setTimeout(resolve, 300)); // Rate limit delay
+        const responseText = await response.text(); // Get raw text first
+        console.log(`Raw response text for <span class="math-inline">\{endpoint\} \(</span>{params.l || params.id}):`, responseText.substring(0, 500) + "..."); // Log first 500 chars
+
+        if (!response.ok) {
+            throw new Error(`Workspace failed: ${response.status} - ${responseText}`);
+        }
+        const data = JSON.parse(responseText); // Parse text
+         await new Promise(resolve => setTimeout(resolve, 300));
         return data;
-    } catch (error) {
-        console.error(`Error fetching ${endpoint} with params ${JSON.stringify(params)}:`, error);
-        return null; // Indicate failure
+    } catch (error) { // ... error handling ...
+        return null;
     }
 }
 
