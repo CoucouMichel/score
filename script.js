@@ -53,6 +53,7 @@ let selectedLeagueFilter = 'ALL';
 let userSelections = {}; // Holds picks for the CURRENT user (loaded locally or from DB)
 let currentUserId = null;
 let currentFixtures = []; // Holds fixtures for the currently displayed day (fetched from Firestore)
+let isUpdatingFixtures = false;
 
 // --- DOM Element References (Declared globally, assigned in init) ---
 let weekViewContainer, fixtureListDiv, leagueSlicerContainer, scoreListUl;
@@ -181,29 +182,54 @@ function handleSlicerClick(event) {
     updateDisplayedFixtures(); // Refilter based on currentFixtures data
 }
 
+// MODIFIED updateDisplayedFixtures to prevent concurrency
 async function updateDisplayedFixtures() {
-    if (!fixtureListDiv || !leagueSlicerContainer) { console.error("UI containers not ready for updateDisplayedFixtures"); return; }
+    // Add check at the very beginning
+    if (isUpdatingFixtures) {
+        console.log("UpdateDisplayedFixtures already running, skipping concurrent call.");
+        return; // Exit if already running
+    }
+    isUpdatingFixtures = true; // Set the flag
+
+    // Check if necessary elements exist
+    if (!fixtureListDiv || !leagueSlicerContainer) {
+        console.error("UI containers not ready for updateDisplayedFixtures");
+        isUpdatingFixtures = false; // Reset flag before exiting
+        return;
+    }
+
     const selectedDateStr = getDateString(selectedDate);
     const realCurrentTime = new Date();
-    console.log(`Updating fixtures display for date: ${selectedDateStr}, league: ${selectedLeagueFilter}`);
+    console.log(`Updating display for date: ${selectedDateStr}, league: ${selectedLeagueFilter}`);
     fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center;">Loading matches...</p>';
 
-    // Fetch data for the selected date FROM FIRESTORE
-    const fixturesForDay = await fetchFixturesFromFirestore(selectedDateStr);
-    currentFixtures = fixturesForDay; // Store globally
-    console.log(`Data after Firestore fetch for ${selectedDateStr}:`, currentFixtures); // Log data before filtering
+    try { // Wrap the core logic in try...finally
+        const fixturesForDay = await fetchFixturesFromFirestore(selectedDateStr);
+        currentFixtures = fixturesForDay;
+        // console.log(`Data after Firestore fetch for ${selectedDateStr}:`, currentFixtures); // Keep logs from prev step if needed
 
-    populateDailyLeagueSlicers(fixturesForDay); // Update slicers
+        populateDailyLeagueSlicers(fixturesForDay);
 
-    const filteredFixtures = currentFixtures.filter(fixture => { // Filter by league
-    console.log(`Data after league filter (${selectedLeagueFilter}):`, filteredFixtures); // Log data after filtering
-        if (!fixture) return false;
-        if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
-        return true;
-    });
-    console.log(`Found ${filteredFixtures.length} fixtures to display after filtering.`);
-    filteredFixtures.sort((a, b) => { try { return new Date(a.kickOffTime) - new Date(b.kickOffTime); } catch(e) { return 0; }});
-    displayFixtures(filteredFixtures, realCurrentTime);
+        // Filter fetched data by league
+        const filteredFixtures = currentFixtures.filter(fixture => { // Declaration is here
+            if (!fixture) return false;
+            // Usage of other variables is here (line ~199)
+            if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
+            return true;
+        });
+        // console.log(`Data after league filter (${selectedLeagueFilter}):`, filteredFixtures); // Keep logs if needed
+
+        // Log before accessing filteredFixtures again
+        console.log(`Found ${filteredFixtures.length} fixtures to display after filtering.`);
+        filteredFixtures.sort((a, b) => { try { return new Date(a.kickOffTime) - new Date(b.kickOffTime); } catch(e) { return 0; }});
+        displayFixtures(filteredFixtures, realCurrentTime); // Pass filtered data to display
+
+    } catch (error) {
+        console.error("Error during updateDisplayedFixtures:", error);
+        if(fixtureListDiv) fixtureListDiv.innerHTML = '<p style="color: var(--error-text-color); text-align: center;">Error loading fixtures.</p>';
+    } finally {
+        isUpdatingFixtures = false; // <<< IMPORTANT: Reset flag when done (success or error)
+    }
 }
 
 function displayFixtures(fixtures, currentTime) {
