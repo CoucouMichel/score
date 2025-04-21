@@ -3,8 +3,8 @@
 /* --- Palette: Dark with Gold Primary, Dark Surface, Red Accent --- */
 :root {
     /* Primary Gold/Brown */
-    --primary-color: #cdfc25; /* Gold - Used for active slicer, default pick button */
-    --primary-color-dark: #98ba1e; /* Lighter Gold for Hover */
+    --primary-color: #b6985b; /* Gold - Used for active slicer, default pick button */
+    --primary-color-dark: #bfa36c; /* Lighter Gold for Hover */
     --primary-color-text: #000000; /* Black text for contrast on Gold */
 
     /* Accent Red (Kept for selections) */
@@ -76,147 +76,29 @@ main {
 
 /* --- Calendar Section (Back in Main) --- */
 #calendar-section {
-    display: flex; /* Enable flex layout for arrows and container */
-    align-items: center; /* Vertically align items in the center */
-    width: 1100px; /* Set the fixed width for the entire section */
-    padding: 0.75rem 0;
-    margin-bottom: 1.5rem;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
+    padding: 0.75rem 0; margin-bottom: 1.5rem; background-color: transparent;
+    border: none; box-shadow: none;
     border-bottom: 1px solid var(--divider-color); /* Separator line */
 }
-
-#prev-day-btn,
-#next-day-btn {
-    background: none;
-    color: var(--text-secondary-color);
-    border: none;
-    padding: 0.5rem;
-    margin: 0 0.5rem;
-    cursor: pointer;
-    transition: color 0.2s ease-out;
-    display: flex; /* Center the SVG */
-    align-items: center;
-    justify-content: center;
-}
-
-#prev-day-btn:hover,
-#next-day-btn:hover {
-    color: var(--text-primary-color);
-}
-
 .calendar-container { /* #week-view */
-    display: flex;
-    justify-content: space-between; /* Distribute space evenly */
-    gap: 8px;
-    padding: 0;
-    flex-wrap: nowrap; /* Prevent wrapping for the fixed 5-day view */
-    overflow-x: auto; /* Enable horizontal scrolling if needed on smaller screens */
-    -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+    display: flex; justify-content: space-around; gap: 8px;
+    padding: 0; flex-wrap: wrap; /* Allow wrapping */
 }
-
 /* Calendar Button Style */
-button.calendar-day {
-    flex: 0 0 auto; /* Don't grow, don't shrink, base width auto */
-    min-width: 200px; /* Adjust to fit within the 1100px width */
-    width: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-around;
-    padding: 0.5rem 0.25rem;
-    border: 1px solid var(--divider-color);
-    background-color: var(--card-background-color);
-    color: var(--text-secondary-color);
-    cursor: pointer;
-    border-radius: 4px;
-    text-align: center;
-    transition: all 0.2s ease-out;
-    font-weight: 500;
-} /* Removed flex-shrink: 0 */
-
-button.calendar-day:hover {
-    background-color: var(--button-hover-bg);
-    border-color: var(--text-primary-color);
-    color: var(--text-primary-color);
-}
-
-button.calendar-day.active {
-    background-color: var(--accent-color);
-    color: var(--accent-color-text);
-    font-weight: 900;
-    border-color: var(--accent-color-darker);
-    box-shadow: var(--elevation-1);
-}
-
-button.calendar-day.active span,
-button.calendar-day.active b {
-    color: var(--accent-color-text) !important;
-    opacity: 1;
-}
-
-button.calendar-day:disabled {
-    color: var(--disabled-text-color);
-    background-color: var(--card-background-color);
-    cursor: not-allowed;
-    opacity: 0.5;
-    border-color: var(--divider-color);
-}
-
+button.calendar-day { flex-grow: 1; min-width: 85px; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.5rem 0.25rem; border: 1px solid var(--divider-color); background-color: var(--card-background-color); color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center; transition: all 0.2s ease-out; font-weight: 500; } /* Removed flex-shrink: 0 */
+button.calendar-day:hover { background-color: var(--button-hover-bg); border-color: var(--text-primary-color); color: var(--text-primary-color); }
+button.calendar-day.active { background-color: var(--accent-color); color: var(--accent-color-text); font-weight: 700; border-color: var(--accent-color-darker); box-shadow: var(--elevation-1); }
+button.calendar-day.active span, button.calendar-day.active b { color: var(--accent-color-text) !important; opacity: 1; }
+button.calendar-day:disabled { color: var(--disabled-text-color); background-color: var(--card-background-color); cursor: not-allowed; opacity: 0.5; border-color: var(--divider-color); }
 /* Calendar Lines (3 lines) */
-.cal-line {
-    display: block;
-    width: 100%;
-    text-align: center;
-    line-height: 1.35;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    padding: 0 2px;
-}
-
-.cal-line-1 {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--text-primary-color);
-    text-transform: uppercase;
-    margin-bottom: 2px;
-}
-
-.cal-line-2 {
-    font-size: 0.9rem;
-    font-weight: 400;
-    color: var(--text-secondary-color);
-    min-height: 1.2em;
-    margin-bottom: 2px;
-}
-
-.cal-line-2 b {
-    color: var(--text-primary-color);
-    font-weight: 700;
-}
-
-.cal-line-3 {
-    font-size: 0.65rem;
-    font-weight: 400;
-    color: var(--text-secondary-color);
-    min-height: 1.2em;
-}
-
-.cal-line-3 b {
-    color: var(--text-primary-color);
-    font-weight: 700;
-}
-
-button.calendar-day.active .cal-line-3 b {
-    color: var(--accent-color-text) !important;
-}
-
-.cal-line-3 span[style*="color:var(--error-text-color)"] {
-    color: var(--error-text-color) !important;
-    font-style: italic;
-}
+.cal-line { display: block; width: 100%; text-align: center; line-height: 1.35; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 2px; }
+.cal-line-1 { font-size: 0.75rem; font-weight: 700; color: var(--text-primary-color); text-transform: uppercase; margin-bottom: 2px; }
+.cal-line-2 { font-size: 0.7rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; margin-bottom: 2px; }
+.cal-line-2 b { color: var(--text-primary-color); font-weight: 700; }
+.cal-line-3 { font-size: 0.65rem; font-weight: 400; color: var(--text-secondary-color); min-height: 1.2em; }
+.cal-line-3 b { color: var(--text-primary-color); font-weight: 700; }
+button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !important; }
+.cal-line-3 span[style*="color:var(--error-text-color)"] { color: var(--error-text-color) !important; font-style: italic; }
 
 
 /* --- Sections within Main --- */
