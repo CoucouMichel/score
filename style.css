@@ -78,6 +78,7 @@ main {
 #calendar-section {
     display: flex; /* Enable flex layout for arrows and container */
     align-items: center; /* Vertically align items in the center */
+    width: 1100px; /* Set the fixed width for the entire section */
     padding: 0.75rem 0;
     margin-bottom: 1.5rem;
     background-color: transparent;
@@ -118,7 +119,7 @@ main {
 /* Calendar Button Style */
 button.calendar-day {
     flex: 0 0 auto; /* Don't grow, don't shrink, base width auto */
-    min-width: 60px; /* Adjust as needed */
+    min-width: 200px; /* Adjust to fit within the 1100px width */
     width: auto;
     display: flex;
     flex-direction: column;
