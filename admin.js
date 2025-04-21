@@ -15,7 +15,7 @@ const firebaseConfig = {
     measurementId: "G-HCKHYJ0HZD"                  // Optional
 };
 // TheSportsDB Free Test API Key
-const theSportsDbApiKey = "3";
+const theSportsDbApiKey = "874902";
 
 // Define Leagues with ID and Country (Verify IDs!)
 const DESIRED_LEAGUES = {
