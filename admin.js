@@ -24,6 +24,10 @@ const DESIRED_LEAGUES = {
     "Serie A":        { id: 4332, country: "Italy" },
     "Bundesliga":     { id: 4331, country: "Germany" },
     "Ligue 1":        { id: 4334, country: "France" },
+    "Eredivisie"      { id: 4337, country: "Netherlands" },   
+    "Ligue 2":        { id: 4401, country: "France" },
+    "Süper Lig":      { id: 4339, country: "Turkey" },
+    "Primeira Liga":  { id: 4344, country: "Portugal" },
     // Add UCL/UEL later if needed and IDs confirmed
 };
 
