@@ -202,7 +202,7 @@ function generateCalendar() {
     const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']; // Using uppercase abbreviations
 
     // Loop for 5 days relative to selectedDate: Day-1, Day, Day+1, Day+2, Day+3
-    for (let i = 0; i <= 5; i++) {
+    for (let i = 1; i <= 5; i++) {
         const date = new Date(selectedDate.getTime() + i * oneDay); // Calculate date based on selectedDate
         const dateStr = getDateString(date);
         if (!dateStr) continue;
