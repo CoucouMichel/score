@@ -332,62 +332,94 @@ function displayFixtures(fixtures, currentTime) {
     });
 }
 
-// handleSelection - checks login, locks, saves locally (Firestore TODO)
+// REPLACE the existing handleSelection function in script.js
+
+/**
+ * Handles team selection. Allows changing picks until the *selected* game starts.
+ * Saves/Deletes picks from Firestore.
+ */
 async function handleSelection(fixtureId, teamId, teamName /* removed odds params */ ) {
     // 1. Check Login
-    if (!auth.currentUser) { alert("Please log in or sign up to make a pick!"); return; }
+    if (!auth.currentUser) {
+        alert("Please log in or sign up to make a pick!");
+        return;
+    }
     const userId = auth.currentUser.uid;
-
-    // 2. Check if Pick Already Exists for this Date (using local state which reflects Firestore)
     const selectedDateStr = getDateString(selectedDate);
-    if (userSelections[selectedDateStr]) {
-        alert(`You have already picked ${userSelections[selectedDateStr].teamName} for ${selectedDateStr}. Your pick is final for the day!`);
-        return; // Exit, pick already made and locked
+    const realCurrentTime = new Date();
+
+    // 2. Check if an existing pick for this date is LOCKED (game started)
+    const existingSelection = userSelections[selectedDateStr];
+    if (existingSelection) {
+        // Find the fixture corresponding to the *existing* pick in our current fixture list
+        const existingFixture = currentFixtures.find(f => f?.fixtureId === existingSelection.fixtureId);
+        if (existingFixture?.kickOffTime && new Date(existingFixture.kickOffTime) <= realCurrentTime) {
+            // If the KICKED OFF game is the one selected, the pick is locked
+            alert(`Your pick (${existingSelection.teamName}) for ${selectedDateStr} is locked because the match has started.`);
+            return; // Cannot change or deselect
+        }
+        // If we reach here, a pick exists but is NOT locked yet.
     }
 
-    // 3. Check if Clicked Game Has Started
-    const realCurrentTime = new Date();
+    // 3. Check if the game the user is trying to CLICK ON NOW has started
     const clickedFixture = currentFixtures.find(f => f?.fixtureId === fixtureId);
     if (!clickedFixture || !clickedFixture.kickOffTime || !clickedFixture.odds || !clickedFixture.homeTeam?.id) {
-        console.error("Cannot make pick: Clicked fixture details/odds missing", fixtureId); alert("Could not find details for the selected match."); return;
+        console.error("Cannot make pick: Clicked fixture details/odds missing", fixtureId);
+        alert("Could not find details for the selected match.");
+        return;
     }
     const clickedKickOff = new Date(clickedFixture.kickOffTime);
-    if (clickedKickOff <= realCurrentTime) { alert("This match has already started..."); return; }
+    if (clickedKickOff <= realCurrentTime) {
+        alert("This match has already started, you cannot select it.");
+        return; // Cannot select a game that has already started
+    }
 
-    // 4. Prepare Selection Data
-    const homeWinOdd = clickedFixture.odds.homeWin;
-    const awayWinOdd = clickedFixture.odds.awayWin;
-    // We store the odd for the team the user picked (Home or Away)
-    const pickedOddForSave = (String(teamId) === String(clickedFixture.homeTeam.id)) ? homeWinOdd : awayWinOdd;
+    // --- If checks pass, handle Select / Deselect / Overwrite ---
 
-    const newSelection = {
-        userId: userId,
-        date: selectedDateStr, // Save the date the pick is for
-        fixtureId: fixtureId,
-        teamId: String(teamId), // Ensure string
-        teamName: teamName || 'Unknown',
-        pickedOdd: pickedOddForSave || 1.0, // Store the odd AT TIME OF PICK
-        selectionTime: realCurrentTime.toISOString()
-        // No draw odd needed
-    };
-    console.log(`Attempting to save final pick:`, newSelection);
+    // 4. Handle Deselection (Clicking the *same already selected* team again)
+    if (existingSelection && existingSelection.fixtureId === fixtureId && String(existingSelection.teamId) === String(teamId)) {
+        console.log(`Deselecting team ${teamId} for ${selectedDateStr}`);
+        // Attempt to delete from Firestore FIRST
+        const deleteSuccess = await deletePickFromFirestore(userId, selectedDateStr);
+        if (deleteSuccess) {
+            delete userSelections[selectedDateStr]; // Remove from local state only on success
+            // saveUserDataToLocal(); // Keep removed or add back if needed for immediate offline state
+            generateCalendar();
+            updateDisplayedFixtures();
+        } else {
+            console.error("Failed to delete pick from Firestore. Local state not changed.");
+            // Optional: alert user deletion failed
+        }
+    }
+    // 5. Handle New Selection or Overwriting an Existing (unlocked) Pick
+    else {
+        // Get odds from the fixture data
+        const homeWinOdd = clickedFixture.odds.homeWin;
+        const awayWinOdd = clickedFixture.odds.awayWin;
+        const selectedOddForSave = (String(teamId) === String(clickedFixture.homeTeam.id)) ? homeWinOdd : awayWinOdd;
 
-    // --- Optional: Show Saving State ---
-    // e.g., temporarily disable buttons
+        const newSelection = {
+            userId: userId,
+            date: selectedDateStr,
+            fixtureId: fixtureId,
+            teamId: String(teamId),
+            teamName: teamName || 'Unknown',
+            pickedOdd: selectedOddForSave || 1.0,
+            selectionTime: realCurrentTime.toISOString()
+        };
 
-    // 5. Save to Firestore
-    const saveSuccess = await savePickToFirestore(newSelection);
+        console.log(`Saving/Updating pick for ${selectedDateStr}:`, newSelection);
+        // Attempt to save/overwrite in Firestore
+        const saveSuccess = await savePickToFirestore(newSelection);
 
-    // 6. Update UI if Save Successful
-    if (saveSuccess) {
-        userSelections[selectedDateStr] = newSelection; // Update local state *after* successful save
-        // REMOVED call to saveUserDataToLocal()
-        generateCalendar(); // Update calendar UI to show new pick
-        updateDisplayedFixtures(); // Update fixture list UI (button states change to reflect pick)
-    } else {
-        // Handle save failure (alert already shown in savePickToFirestore)
-        console.error("Failed to save pick to Firestore.");
-        // Re-enable buttons maybe?
+        if (saveSuccess) {
+            userSelections[selectedDateStr] = newSelection; // Update local state on success
+            // saveUserDataToLocal(); // Keep removed or add back
+            generateCalendar();
+            updateDisplayedFixtures();
+        } else {
+            console.error("Failed to save pick to Firestore.");
+        }
     }
 }
 
