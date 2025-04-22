@@ -404,6 +404,7 @@ const loginButton = document.getElementById('loginButton'); // Match the ID in h
     showLoginButton = document.getElementById('show-login');
     userDisplayNameSpan = document.getElementById('user-display-name'); // Use new ID
     logoutButton = document.getElementById('logout-button');
+  
 
      if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !userInfo || !leagueSlicerContainer || !signupUsernameInput || !userDisplayNameSpan) {
          console.error("One or more critical DOM elements not found!"); return;
@@ -416,13 +417,10 @@ const loginButton = document.getElementById('loginButton');
 
 if (loginButton) {
     loginButton.addEventListener('click', async (event) => {
-        event.preventDefault();
+        event.preventDefault(); // Prevent default form submission
 
-        const emailInput = document.getElementById('loginEmail');
-        const passwordInput = document.getElementById('loginPassword');
-
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
+        const email = loginEmailInput.value.trim();
+        const password = loginPasswordInput.value.trim();
 
         if (!email || !password) {
             alert('Please fill out both the email and password fields.');
