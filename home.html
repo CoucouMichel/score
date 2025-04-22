@@ -27,6 +27,7 @@
                <div class="field">
                   <input type="submit" id="loginButton" value="LOGIN">
                </div>
+               <p id="loginError" class="error-message"></p>
             </form>
             <div class="login">
                Or login with
@@ -67,9 +68,9 @@
             const loginForm = document.getElementById('loginForm');
             const emailInput = document.getElementById('loginEmail');
             const passwordInput = document.getElementById('loginPassword');
-            const loginButton = document.getElementById('loginButton');
+            const loginError = document.getElementById('loginError');
 
-            if (loginForm && loginButton) {
+            if (loginForm) {
                loginForm.addEventListener('submit', (event) => {
                   event.preventDefault(); // Prevent default form submission
 
@@ -77,29 +78,26 @@
                   const password = passwordInput.value.trim();
 
                   if (!email || !password) {
-                     alert('Please fill out both the email and password fields.');
+                     loginError.textContent = 'Please fill out both the email and password fields.';
                      return;
                   }
 
-                  // Example login logic (replace with actual authentication logic)
-                  console.log(`Attempting to log in with Email: ${email} and Password: ${password}`);
-
-                  // Replace this with your authentication function
-                  fakeAuthLogin(email, password);
+                  // Firebase Authentication for Login
+                  signInWithEmailAndPassword(auth, email, password)
+                     .then((userCredential) => {
+                        const user = userCredential.user;
+                        console.log("Login successful:", user.email);
+                        alert("Login successful! Redirecting...");
+                        // Redirect to another page (e.g., dashboard.html)
+                        window.location.href = 'dashboard.html';
+                     })
+                     .catch((error) => {
+                        console.error("Login error:", error);
+                        loginError.textContent = `Login Failed: ${getFriendlyAuthError(error)}`;
+                     });
                });
             }
          });
-
-         // Example authentication function
-         function fakeAuthLogin(email, password) {
-            if (email === 'test@example.com' && password === 'password') {
-               alert('Login successful!');
-               // Redirect to another page or handle successful login
-               window.location.href = 'dashboard.html';
-            } else {
-               alert('Invalid email or password.');
-            }
-         }
       </script>
    </body>
 </html>
