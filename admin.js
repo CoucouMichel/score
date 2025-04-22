@@ -119,34 +119,60 @@ function calculateForm(teamId, allRecentEvents, numGames = 5) {
  * Calculates SYNTHETIC Home Win and Away Win odds.
  * Uses current rank as fallback if previous rank is missing.
  */
-function calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrevRank, awayPrevRank) {
-    // Use current rank as fallback if previous rank is missing/undefined
-    const prevRankH = homePrevRank ?? homeRank ?? 10; // Fallback chain
-    const prevRankA = awayPrevRank ?? awayRank ?? 10; // Fallback chain
-    // Use default rank 10 if current rank is also missing
+// admin.js
+
+/**
+ * Calculates SYNTHETIC Home Win and Away Win odds based on ranks, form (as percentage),
+ * history, and season progress.
+ * @param {number} homeRank - Current rank
+ * @param {number} awayRank - Current rank
+ * @param {number} homeFormPts - Points from last 5 games (0-15)
+ * @param {number} awayFormPts - Points from last 5 games (0-15)
+ * @param {number} homePrevRank - Previous season rank
+ * @param {number} awayPrevRank - Previous season rank
+ * @param {number} leagueAvgGamesPlayed - Average games played in the league this season.
+ */
+function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, homePrevRank, awayPrevRank, leagueAvgGamesPlayed) {
+    // Use fallbacks if data is missing
+    const prevRankH = homePrevRank ?? homeRank ?? 10;
+    const prevRankA = awayPrevRank ?? awayRank ?? 10;
     const rankH = homeRank ?? 10;
     const rankA = awayRank ?? 10;
-    // Use default form 7 if missing
-    const formH = homeForm ?? 7;
-    const formA = awayForm ?? 7;
+    const formH_Pts = homeFormPts ?? 7; // Default to 7/15 points if form missing
+    const formA_Pts = awayFormPts ?? 7;
+    const avgGames = leagueAvgGamesPlayed ?? 10;
 
-    const rankDiff = rankA - rankH;
-    const formDiff = formH - formA;
-    const prevRankDiff = prevRankA - prevRankH; // Use the derived/fallback prev ranks
+    // --- Calculate Differences ---
+    const rankDiff = rankA - rankH; // Positive if home team is better ranked
+    const prevRankDiff = prevRankA - prevRankH;
 
-    // Base odds & Scaling Factors
-    const baseHome = 2.40; const baseAway = 2.70;
-    const rankScale = 0.07; const formScale = 0.025; const prevRankScale = 0.01;
-    const rankCap = 12;
+    // --- NEW: Calculate Form Percentage Difference ---
+    const homeFormPerc = formH_Pts / 15.0; // Form as 0.0 to 1.0
+    const awayFormPerc = formA_Pts / 15.0;
+    const formPercDiff = homeFormPerc - awayFormPerc; // Range -1.0 to +1.0. Positive means home form better.
 
+    // --- Define Weights, Caps, Factors ---
+    const baseHome = 2.35; const baseAway = 2.65;
+    const rankScale = 0.08; const prevRankScale = 0.005;
+    const rankCap = 14;
+    const maxGamesForFactor = 25;
+    // NEW: Scaling factor for form percentage difference (How much should 100% form diff change odds?)
+    const formPercScale = 0.40; // e.g., 100% better form adjusts odds by 0.40 points
+
+    const seasonProgressFactor = Math.min(1.0, Math.max(0, avgGames) / maxGamesForFactor);
+
+    // --- Calculate Adjustments ---
     const cappedRankDiff = Math.max(-rankCap, Math.min(rankCap, rankDiff));
-    const rankAdj = cappedRankDiff * rankScale;
-    const formAdj = formDiff * formScale;
-    const prevRankAdj = prevRankDiff * prevRankScale; // Use adjustment based on available data
+    const rankAdj = cappedRankDiff * rankScale * seasonProgressFactor;
+    const formAdj = formPercDiff * formPercScale; // Use new form adjustment
+    const prevRankAdj = prevRankDiff * prevRankScale * seasonProgressFactor;
 
+    // Calculate Raw Odds
+    // Better rank/form/history for home team REDUCES home odd, INCREASES away odd
     let homeOdd = baseHome - rankAdj - formAdj - prevRankAdj;
     let awayOdd = baseAway + rankAdj + formAdj + prevRankAdj;
 
+    // Apply Minimum Constraint
     homeOdd = Math.max(1.01, homeOdd);
     awayOdd = Math.max(1.01, awayOdd);
 
