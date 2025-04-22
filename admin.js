@@ -137,10 +137,9 @@ function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, ho
 
     // --- Tweakable Parameters ---
     const MIN_ODD = 1.25; // Your requested minimum odd
-    // Tier boundaries based on absolute difference in CURRENT rank
     const RANK_DIFF_TIERS = [2, 7, 12]; // Tier 0: <=2, T1: 3-7, T2: 8-12, T3: >12
-    // Base odds when Home team is Favored (H / A)
-    const ODDS_TIERS_H = [2.40, 1.95, 1.65, 1.45]; // Tier 0, 1, 2, 3
+    // Base odds when Home team is Favored (H / A) - Tweak these to adjust baseline
+    const ODDS_TIERS_H = [2.40, 1.95, 1.65, 1.40]; // Tier 0, 1, 2, 3
     const ODDS_TIERS_A = [2.85, 4.40, 6.20, 8.00]; // Tier 0, 1, 2, 3
     // Adjustment Scales
     const FORM_PERC_SCALE = 0.15;   // How much form % diff adjusts base tier odd
@@ -153,44 +152,48 @@ function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, ho
     const rankA = awayRank ?? 10;
     const formH_Pts = homeFormPts ?? 7;
     const formA_Pts = awayFormPts ?? 7;
-    // Use current rank as fallback for previous if missing
     const prevRankH = homePrevRank ?? rankH;
     const prevRankA = awayPrevRank ?? rankA;
 
-
-    // 1. Determine Tier Odds based on Current Rank Difference
+    // 1. Determine Tier Index based on Current Rank Difference
     const rankDiff = rankA - rankH; // Positive if home ranked higher
     const absRankDiff = Math.abs(rankDiff);
     let tierIndex = 0;
     if (absRankDiff <= RANK_DIFF_TIERS[0]) { tierIndex = 0; }
     else if (absRankDiff <= RANK_DIFF_TIERS[1]) { tierIndex = 1; }
     else if (absRankDiff <= RANK_DIFF_TIERS[2]) { tierIndex = 2; }
-    else { tierIndex = 3; }
+    else { tierIndex = 3; } // Highest tier
 
-    let tierHomeOdd = ODDS_TIERS_H[tierIndex];
-    let tierAwayOdd = ODDS_TIERS_A[tierIndex];
-
-    // If Away team is favored (rankDiff is negative), swap the tier odds
-    if (rankDiff < 0) {
-        [tierHomeOdd, tierAwayOdd] = [tierAwayOdd, tierHomeOdd];
+    // 2. Get Base Tier Odds, applying the new Away Favorite logic
+    let tierHomeOdd, tierAwayOdd;
+    if (rankDiff >= 0) { // Home is Favored (or ranks equal)
+        tierHomeOdd = ODDS_TIERS_H[tierIndex];
+        tierAwayOdd = ODDS_TIERS_A[tierIndex];
+    } else { // Away is Favored
+        // *** NEW LOGIC ***
+        // If it's the highest tier difference (tierIndex 3), use Tier 2 odds instead for swapping
+        const effectiveTierIndex = (tierIndex === 3) ? 2 : tierIndex;
+        // Home (underdog) gets the corresponding Away Tier odd (capped at Tier 2 if needed)
+        tierHomeOdd = ODDS_TIERS_A[effectiveTierIndex];
+        // Away (favorite) gets the corresponding Home Tier odd (capped at Tier 2 if needed)
+        tierAwayOdd = ODDS_TIERS_H[effectiveTierIndex];
+        // *** END NEW LOGIC ***
     }
 
-    // 2. Calculate Form Adjustment
+    // 3. Calculate Form Adjustment
     const homeFormPerc = formH_Pts / 15.0;
     const awayFormPerc = formA_Pts / 15.0;
-    const formPercDiff = homeFormPerc - awayFormPerc; // Positive if home form better
-    // Adjustment is negative if home form better (lowers home odd)
+    const formPercDiff = homeFormPerc - awayFormPerc;
     const formAdjH = -(formPercDiff * FORM_PERC_SCALE);
     const formAdjA = +(formPercDiff * FORM_PERC_SCALE);
 
-    // 3. Calculate Previous Rank Adjustment
-    const prevRankDiff = prevRankA - prevRankH; // Positive if home finished higher
+    // 4. Calculate Previous Rank Adjustment
+    const prevRankDiff = prevRankA - prevRankH;
     const cappedPrevRankDiff = Math.max(-PREV_RANK_CAP, Math.min(PREV_RANK_CAP, prevRankDiff));
-    // Adjustment is negative if home finished higher (lowers home odd)
     const prevRankAdjH = -(cappedPrevRankDiff * PREV_RANK_SCALE);
     const prevRankAdjA = +(cappedPrevRankDiff * PREV_RANK_SCALE);
 
-    // 4. Combine and Apply Minimum
+    // 5. Combine and Apply Minimum
     let finalHomeOdd = tierHomeOdd + formAdjH + prevRankAdjH;
     let finalAwayOdd = tierAwayOdd + formAdjA + prevRankAdjA;
 
