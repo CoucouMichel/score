@@ -442,3 +442,40 @@ async function initializeAppAndListeners() {
 
 // --- Run Initialization ---
 document.addEventListener('DOMContentLoaded', initializeAppAndListeners);
+
+// Modal handling logic
+const authModal = document.getElementById('authModal');
+const loginButton = document.getElementById('loginButton');
+const closeModal = document.getElementById('closeModal');
+const loginForm = document.getElementById('login-form');
+const signupForm = document.getElementById('signup-form');
+const showSignup = document.getElementById('show-signup');
+const showLogin = document.getElementById('show-login');
+
+// Open Modal
+loginButton.addEventListener('click', () => {
+    authModal.style.display = 'block';
+});
+
+// Close Modal
+closeModal.addEventListener('click', () => {
+    authModal.style.display = 'none';
+});
+
+// Close Modal if clicking outside the modal content
+window.addEventListener('click', (event) => {
+    if (event.target === authModal) {
+        authModal.style.display = 'none';
+    }
+});
+
+// Toggle between Login and Signup forms
+showSignup.addEventListener('click', () => {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+});
+
+showLogin.addEventListener('click', () => {
+    signupForm.style.display = 'none';
+    loginForm.style.display = 'block';
+});
