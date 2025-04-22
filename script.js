@@ -37,6 +37,17 @@ function getDateString(date) {
     return adjustedDate.toISOString().split('T')[0];
 }
 
+ * Gets the date for the start of the week (Sunday) containing the given date.
+ */
+function getStartOfWeek(date) {
+  const dt = new Date(date); // Clone date
+  const day = dt.getDay(); // 0 = Sunday
+  const diff = dt.getDate() - day;
+  dt.setHours(0, 0, 0, 0); // Avoid DST issues
+  dt.setDate(diff);
+  return dt;
+}
+
 // Flag Mapping & URL Generation
 const flagCodeMap = {
     "England": "gb-eng", "Spain": "es", "Germany": "de", "Italy": "it",
@@ -431,6 +442,8 @@ async function initializeAppAndListeners() {
     showLoginButton = document.getElementById('show-login');
     userDisplayNameSpan = document.getElementById('user-display-name'); // Use new ID
     logoutButton = document.getElementById('logout-button');
+    const prevWeekBtn = document.getElementById('cal-prev-week');
+    const nextWeekBtn = document.getElementById('cal-next-week');
 
      if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !userInfo || !leagueSlicerContainer || !signupUsernameInput || !userDisplayNameSpan) {
          console.error("One or more critical DOM elements not found!"); return;
@@ -461,7 +474,22 @@ async function initializeAppAndListeners() {
         });
     }
     if (logoutButton) { logoutButton.addEventListener('click', () => { signOut(auth).catch(/*...*/); }); }
+  
+  // *** ADD Event Listeners for Calendar Navigation ***
+    prevWeekBtn.addEventListener('click', async () => {
+        selectedDate.setDate(selectedDate.getDate() - 5); // Move back 7 days
+        generateCalendar(); // Redraw calendar for the new week
+        await updateDisplayedFixtures(); // Fetch/display fixtures for the new selected date
+    });
 
+    nextWeekBtn.addEventListener('click', async () => {
+        selectedDate.setDate(selectedDate.getDate() + 5); // Move forward 7 days
+        generateCalendar(); // Redraw calendar for the new week
+        await updateDisplayedFixtures(); // Fetch/display fixtures for the new selected date
+    });
+    // *** END Calendar Navigation Listeners ***
+
+  
       // Initial Load
     generateCalendar();
     await updateDisplayedFixtures(); // Fetch initial data from Firestore and display
