@@ -11,6 +11,16 @@
 </head>
 <body>
 
+<script>
+    // Example check for user authentication
+    const userIsAuthenticated = false; // Replace with actual authentication logic
+
+    if (!userIsAuthenticated) {
+        // Redirect to home.html for login
+        window.location.href = 'home.html';
+    }
+</script>
+    
 <header>
     <div class="header-content">
         <a href="index.html" style="line-height: 0;"> <img src="logo.png" alt="Site Logo" id="logo-image">
@@ -64,16 +74,6 @@
 </footer>
 
 <script src="script.js" type="module"></script>
-
-<script>
-    // Example check for user authentication
-    const userIsAuthenticated = false; // Replace with actual authentication logic
-
-    if (!userIsAuthenticated) {
-        // Redirect to home.html for login
-        window.location.href = 'home.html';
-    }
-</script>
     
 </body>
 </html>
