@@ -37,6 +37,8 @@ function getDateString(date) {
     return adjustedDate.toISOString().split('T')[0];
 }
 
+// --- Add this Helper Function (e.g., after getDateString) ---
+/**
  * Gets the date for the start of the week (Sunday) containing the given date.
  */
 function getStartOfWeek(date) {
