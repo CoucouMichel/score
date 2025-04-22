@@ -413,7 +413,6 @@ const loginButton = document.getElementById('loginButton'); // Match the ID in h
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
     if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
-const loginButton = document.getElementById('loginButton');
 
 if (loginButton) {
     loginButton.addEventListener('click', async (event) => {
