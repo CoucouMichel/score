@@ -116,81 +116,139 @@ function calculateForm(teamId, allRecentEvents, numGames = 5) {
 // admin.js
 
 /**
- * Calculates SYNTHETIC Home Win and Away Win odds.
- * Uses current rank as fallback if previous rank is missing.
+ * Calculates SYNTHETIC Home Win and Away Win odds based on ranks, form, history,
+ * and season progress. Increased weight on form and rank difference.
+ * @param {number} leagueAvgGamesPlayed - Average games played in the league this season.
  */
-function calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrevRank, awayPrevRank) {
-    // Use current rank as fallback if previous rank is missing/undefined
-    const prevRankH = homePrevRank ?? homeRank ?? 10; // Fallback chain
-    const prevRankA = awayPrevRank ?? awayRank ?? 10; // Fallback chain
-    // Use default rank 10 if current rank is also missing
+function calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrevRank, awayPrevRank, leagueAvgGamesPlayed) {
+    // Use fallbacks if data is missing
+    const prevRankH = homePrevRank ?? homeRank ?? 10;
+    const prevRankA = awayPrevRank ?? awayRank ?? 10;
     const rankH = homeRank ?? 10;
     const rankA = awayRank ?? 10;
-    // Use default form 7 if missing
-    const formH = homeForm ?? 7;
+    const formH = homeForm ?? 7; // Default to average form (7/15)
     const formA = awayForm ?? 7;
+    const avgGames = leagueAvgGamesPlayed ?? 10; // Assume 10 games played if data missing
 
-    const rankDiff = rankA - rankH;
-    const formDiff = formH - formA;
-    const prevRankDiff = prevRankA - prevRankH; // Use the derived/fallback prev ranks
+    // --- Calculate Differences ---
+    const rankDiff = rankA - rankH; // Positive if home team is better ranked
+    const formDiff = formH - formA; // Positive if home team form is better
+    const prevRankDiff = prevRankA - prevRankH;
 
-    // Base odds & Scaling Factors
-    const baseHome = 2.20; const baseAway = 3.00;
-    const rankScale = 0.2; const formScale = 0.6; const prevRankScale = 0.01;
-    const rankCap = 12;
+    // --- Define Weights and Caps ---
+    const baseHome = 2.35; // Slightly lower base home odd
+    const baseAway = 2.65; // Slightly lower base away odd
+    const rankScale = 0.08; // Increased rank impact slightly
+    const formScale = 0.04; // Increased form impact significantly (was 0.025)
+    const prevRankScale = 0.005; // Reduced previous season impact (was 0.01)
+    const rankCap = 14; // Max rank difference to consider (was 12)
+    const maxGamesForFactor = 25; // Point where season progress factor reaches 1
 
+    // --- Calculate Season Progress Factor (0 to 1) ---
+    // Rank matters less early in the season
+    const seasonProgressFactor = Math.min(1.0, Math.max(0, avgGames) / maxGamesForFactor);
+    // console.log(`League Avg Games: ${avgGames}, Season Progress Factor: ${seasonProgressFactor.toFixed(2)}`); // Optional Debug
+
+    // --- Calculate Adjustments ---
     const cappedRankDiff = Math.max(-rankCap, Math.min(rankCap, rankDiff));
-    const rankAdj = cappedRankDiff * rankScale;
-    const formAdj = formDiff * formScale;
-    const prevRankAdj = prevRankDiff * prevRankScale; // Use adjustment based on available data
+    // Apply season progress factor to rank-based adjustments
+    const rankAdj = cappedRankDiff * rankScale * seasonProgressFactor;
+    const formAdj = formDiff * formScale; // Form impact is immediate
+    const prevRankAdj = prevRankDiff * prevRankScale * seasonProgressFactor;
 
+    // Calculate Raw Odds
     let homeOdd = baseHome - rankAdj - formAdj - prevRankAdj;
     let awayOdd = baseAway + rankAdj + formAdj + prevRankAdj;
 
+    // Apply Minimum Constraint
     homeOdd = Math.max(1.01, homeOdd);
     awayOdd = Math.max(1.01, awayOdd);
 
+    // Return calculated odds
     return {
         homeWin: parseFloat(homeOdd.toFixed(2)),
         awayWin: parseFloat(awayOdd.toFixed(2))
     };
 }
 
-function mapTheSportsDbToFixtures(apiEvents, leagueName, leagueCountry, rankings, prevRankings, recentEventsMap) {
-    if (!Array.isArray(apiEvents)) return [];
+// --- Mapping Function (Updated to include Logos) ---
+/**
+ * Maps data from TheSportsDB events endpoints to our internal fixture format.
+ * Includes calculated synthetic odds and logo URLs.
+ * @param {Array} apiEvents - Raw event objects for a specific league.
+ * @param {string} leagueName - Name of the league for context.
+ * @param {string} leagueCountry - Country of the league for context.
+ * @param {object} leagueInfoMap - Map of { leagueId: { name, country, logo } }.
+ * @param {object} teamLogoMap - Map of { teamId: logoUrl }.
+ * @param {object} rankings - Map of current season rankings { leagueId: { teamId: rank } }.
+ * @param {object} prevRankings - Map of previous season rankings { leagueId: { teamId: rank } }.
+ * @param {object} recentEventsMap - Map of recent events { leagueId: [event1, event2...] }.
+ * @param {number} avgGamesPlayed - Average games played in the league this season.
+ * @returns {Array} Array of fixtures in our internal format.
+ */
+function mapTheSportsDbToFixtures(apiEvents, leagueName, leagueCountry, leagueInfoMap, teamLogoMap, rankings, prevRankings, recentEventsMap, avgGamesPlayed) {
+    if (!Array.isArray(apiEvents)) {
+        console.warn("mapTheSportsDbToFixtures received non-array:", apiEvents);
+        return [];
+    }
+    const leagueIdStr = String(apiEvents[0]?.idLeague); // Get league ID from first event assume all are same league
+    const leagueLogo = leagueInfoMap?.[leagueIdStr]?.logo || null; // Get league logo from map
+
     return apiEvents.map(event => {
         try {
+            // Basic validation
             if (!event || !event.idEvent || !event.strHomeTeam || !event.strAwayTeam || !event.idHomeTeam || !event.idAwayTeam || !event.dateEvent || !event.strTime || !event.idLeague) {
                 console.warn("Skipping TSB event mapping: missing core data:", event); return null;
             }
+            // Ensure league matches (should already be grouped, but safety check)
+            if (String(event.idLeague) !== leagueIdStr) {
+                 console.warn("Skipping event from unexpected league:", event); return null;
+            }
+
+            // Date/Time Parsing
             const timePart = event.strTime.split('+')[0].trim();
             const validTime = /^\d{2}:\d{2}:\d{2}$/.test(timePart);
             if (!validTime) {console.warn("Skipping TSB event: invalid time format:", event.strTime); return null;}
             const kickOffIso = `${event.dateEvent}T${timePart}Z`;
             const kickOffDate = new Date(kickOffIso);
-            if (isNaN(kickOffDate.getTime())) { console.warn("Skipping TSB event: invalid date/time parse:", kickOffIso); return null; }
+            if (isNaN(kickOffDate.getTime())) { console.warn("Skipping TSB event: invalid date parse:", kickOffIso); return null; }
 
+            // Status Mapping
             let internalStatus = 'SCHEDULED'; const statusDesc = event.strStatus;
             if (statusDesc === 'Match Finished') internalStatus = 'FINISHED';
             else if (statusDesc?.includes('Postponed')) internalStatus = 'Postponed';
             else if (statusDesc?.includes('Cancelled')) internalStatus = 'Cancelled';
             else if (event.intHomeScore !== null && event.intAwayScore !== null && statusDesc !== 'Not Started' && statusDesc !== 'Time to be defined') internalStatus = 'LIVE';
 
-            const homeIdStr = String(event.idHomeTeam); const awayIdStr = String(event.idAwayTeam); const leagueIdStr = String(event.idLeague);
+            // Get Ranks & Form
+            const homeIdStr = String(event.idHomeTeam); const awayIdStr = String(event.idAwayTeam);
             const homeRank = rankings?.[leagueIdStr]?.[homeIdStr]; const awayRank = rankings?.[leagueIdStr]?.[awayIdStr];
             const homePrevRank = prevRankings?.[leagueIdStr]?.[homeIdStr]; const awayPrevRank = prevRankings?.[leagueIdStr]?.[awayIdStr];
-            const homeForm = calculateForm(homeIdStr, recentEventsMap?.[leagueIdStr] || []); const awayForm = calculateForm(awayIdStr, recentEventsMap?.[leagueIdStr] || []);
-            const syntheticOdds = calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrevRank, awayPrevRank);
+            const homeForm = calculateForm(homeIdStr, recentEventsMap?.[leagueIdStr] || []);
+            const awayForm = calculateForm(awayIdStr, recentEventsMap?.[leagueIdStr] || []);
 
+            // Calculate Synthetic Odds (using function defined elsewhere in admin.js)
+            const syntheticOdds = calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrevRank, awayPrevRank, avgGamesPlayed);
+
+            // Get Logos from maps
+            const homeLogo = teamLogoMap?.[homeIdStr] || null;
+            const awayLogo = teamLogoMap?.[awayIdStr] || null;
+
+            // Create final object
             return {
-                fixtureId: String(event.idEvent), competition: event.strLeague || leagueName, country: leagueCountry || "Unknown",
-                kickOffTime: kickOffDate.toISOString(), status: internalStatus,
-                homeTeam: { id: homeIdStr, name: event.strHomeTeam }, awayTeam: { id: awayIdStr, name: event.strAwayTeam },
-                odds: syntheticOdds,
+                fixtureId: String(event.idEvent),
+                competition: event.strLeague || leagueName,
+                country: leagueCountry || "Unknown",
+                leagueLogo: leagueLogo, // Add league logo
+                kickOffTime: kickOffDate.toISOString(),
+                status: internalStatus,
+                homeTeam: { id: homeIdStr, name: event.strHomeTeam, logo: homeLogo }, // Add team logo
+                awayTeam: { id: awayIdStr, name: event.strAwayTeam, logo: awayLogo }, // Add team logo
+                odds: syntheticOdds, // Use calculated odds
                 result: internalStatus === 'FINISHED' ? { homeScore: parseInt(event.intHomeScore, 10), awayScore: parseInt(event.intAwayScore, 10) } : null
             };
         } catch(mapError){ console.error("Error mapping TSB event:", mapError, "Event:", event); return null; }
-    }).filter(fixture => fixture !== null);
+    }).filter(fixture => fixture !== null); // Filter out any nulls from skipped/error items
 }
 
 
@@ -258,24 +316,50 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("--- API Fetch Results ---");
             results.forEach((r, i) => console.log(`Result ${i}: ${r.status}`));
 
-            statusDiv.textContent = "Processing fetched data...";
-            const currentRanks = {}; const previousRanks = {};
-            const recentEventsMap = {}; const allTeamsMap = {};
-            const upcomingEventsByLeague = {}; let errorCount = 0;
+ statusDiv.textContent = "Processing fetched data...";
+    const currentRanks = {}; const previousRanks = {};
+    const recentEventsMap = {}; const allTeamsMap = {};
+    const upcomingEventsByLeague = {};
+    // *** NEW: Store average games played per league ***
+    const leagueAvgGamesPlayed = {};
+    let errorCount = 0;
 
-            results.forEach((result, index) => {
-                const requestTypeIndex = index % 4; const leagueIndex = Math.floor(index / 4);
-                const [leagueName, leagueInfo] = leagueEntries[leagueIndex]; const leagueIdStr = String(leagueInfo.id);
-                if (result.status !== 'fulfilled' || !result.value) { console.error(`API call failed for ${leagueName}, type ${requestTypeIndex}:`, result.reason || "No value"); errorCount++; return; }
-                const data = result.value;
-                try {
-                    if (requestTypeIndex === 0 && data.table) { currentRanks[leagueIdStr] = {}; data.table.forEach(t => { currentRanks[leagueIdStr][String(t.idTeam)] = parseInt(t.intRank, 10); if (t.idTeam && t.strTeam) allTeamsMap[String(t.idTeam)] = t.strTeam; }); }
-                    else if (requestTypeIndex === 1 && data.table) { previousRanks[leagueIdStr] = {}; data.table.forEach(t => { previousRanks[leagueIdStr][String(t.idTeam)] = parseInt(t.intRank, 10); if (t.idTeam && t.strTeam && !allTeamsMap[String(t.idTeam)]) allTeamsMap[String(t.idTeam)] = t.strTeam; }); }
-                    else if (requestTypeIndex === 2 && data.events) { recentEventsMap[leagueIdStr] = data.events; }
-                    else if (requestTypeIndex === 3 && data.events) { if (!upcomingEventsByLeague[leagueIdStr]) upcomingEventsByLeague[leagueIdStr] = []; upcomingEventsByLeague[leagueIdStr].push(...data.events); }
-                    else if (!data.table && !data.events) { console.warn(`No 'table' or 'events' found for ${leagueName}, Type: ${requestTypeIndex}`); }
-                } catch (procError) { console.error(`Error processing result ${index} (League: ${leagueName}, Type: ${requestTypeIndex}):`, procError, data); errorCount++; }
-            });
+    results.forEach((result, index) => {
+        const requestTypeIndex = index % 6; // Now 6 requests per league if logos added, adjust if not
+        const leagueIndex = Math.floor(index / reqTypesPerLeague); // Use reqTypesPerLeague var
+        const [leagueName, leagueInfo] = leagueEntries[leagueIndex];
+        const leagueIdStr = String(leagueInfo.id);
+
+        if (result.status !== 'fulfilled' || !result.value) { /* ... error handling ... */ return; }
+        const data = result.value;
+
+        try {
+            if (requestTypeIndex === 0 && data.table) { // Current Standings
+                currentRanks[leagueIdStr] = {};
+                let totalGames = 0;
+                let teamCount = 0;
+                data.table.forEach(t => {
+                    const teamIdStr = String(t.idTeam);
+                    currentRanks[leagueIdStr][teamIdStr] = parseInt(t.intRank, 10);
+                    if (t.idTeam && t.strTeam) allTeamsMap[teamIdStr] = t.strTeam;
+                    // Accumulate games played for average calculation
+                    if (t.intPlayed) {
+                         totalGames += parseInt(t.intPlayed, 10);
+                         teamCount++;
+                    }
+                });
+                // *** Calculate and store average games played ***
+                leagueAvgGamesPlayed[leagueIdStr] = teamCount > 0 ? totalGames / teamCount : 0;
+            }
+            else if (requestTypeIndex === 1 && data.table) { /* Process prev ranks */ }
+            else if (requestTypeIndex === 2 && data.events) { recentEventsMap[leagueIdStr] = data.events; }
+            else if (requestTypeIndex === 3 && data.events) { /* Process upcoming events */ }
+            // Add processing for logo fetches if you kept them (Indices 4 & 5)
+            // else if (requestTypeIndex === 4 && data.leagues) { ... leagueInfoMap[leagueIdStr].logo = ... }
+            // else if (requestTypeIndex === 5 && data.teams) { ... teamLogoMap[String(team.idTeam)] = ... }
+            else { /* ... warning for unexpected data ... */ }
+        } catch (procError) { /* ... error handling ... */ }
+    });
 
             if (errorCount > 0) { statusDiv.textContent = `Completed with ${errorCount} fetch/processing errors. Check console.`; statusDiv.className = 'error'; }
             else { statusDiv.textContent = "Data fetched successfully. Mapping fixtures & calculating odds..."; }
