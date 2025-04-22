@@ -479,13 +479,13 @@ async function initializeAppAndListeners() {
   
   // *** ADD Event Listeners for Calendar Navigation ***
     prevWeekBtn.addEventListener('click', async () => {
-        selectedDate.setDate(selectedDate.getDate() - 5); // Move back 7 days
+        selectedDate.setDate(selectedDate.getDate() - 1); // Move back 7 days
         generateCalendar(); // Redraw calendar for the new week
         await updateDisplayedFixtures(); // Fetch/display fixtures for the new selected date
     });
 
     nextWeekBtn.addEventListener('click', async () => {
-        selectedDate.setDate(selectedDate.getDate() + 5); // Move forward 7 days
+        selectedDate.setDate(selectedDate.getDate() + 1); // Move forward 7 days
         generateCalendar(); // Redraw calendar for the new week
         await updateDisplayedFixtures(); // Fetch/display fixtures for the new selected date
     });
