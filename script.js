@@ -391,7 +391,6 @@ async function initializeAppAndListeners() {
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
     userInfo = document.getElementById('user-info');
-    loginEmailInput = document.getElementById('loginEmail');
 const loginEmailInput = document.getElementById('loginEmail'); // Match the ID in home.html
 const loginPasswordInput = document.getElementById('loginPassword'); // Match the ID in home.html
 const loginButton = document.getElementById('loginButton'); // Match the ID in home.html
