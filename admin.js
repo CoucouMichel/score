@@ -136,7 +136,7 @@ function calculateSyntheticOdds(homeRank, awayRank, homeForm, awayForm, homePrev
 
     // Base odds & Scaling Factors
     const baseHome = 2.20; const baseAway = 3.00;
-    const rankScale = 0.07; const formScale = 0.025; const prevRankScale = 0.01;
+    const rankScale = 0.2; const formScale = 0.6; const prevRankScale = 0.01;
     const rankCap = 12;
 
     const cappedRankDiff = Math.max(-rankCap, Math.min(rankCap, rankDiff));
