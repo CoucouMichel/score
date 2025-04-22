@@ -392,9 +392,9 @@ async function initializeAppAndListeners() {
     signupForm = document.getElementById('signup-form');
     userInfo = document.getElementById('user-info');
     loginEmailInput = document.getElementById('loginEmail');
-    loginPasswordInput = document.getElementById('loginPassword');
-    loginButton = document.getElementById('loginButton');
-    loginErrorP = document.getElementById('login-error');
+const loginEmailInput = document.getElementById('loginEmail'); // Match the ID in home.html
+const loginPasswordInput = document.getElementById('loginPassword'); // Match the ID in home.html
+const loginButton = document.getElementById('loginButton'); // Match the ID in home.html
     showSignupButton = document.getElementById('show-signup');
     signupEmailInput = document.getElementById('signup-email');
     signupPasswordInput = document.getElementById('signup-password');
