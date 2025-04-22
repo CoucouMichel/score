@@ -412,32 +412,31 @@ async function initializeAppAndListeners() {
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
     if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
-    if (loginButton) {
+  const loginButton = document.getElementById('loginButton');
+
+if (loginButton) {
     loginButton.addEventListener('click', async (event) => {
         event.preventDefault(); // Prevent default form submission
 
-        if (!loginEmailInput || !loginPasswordInput) return;
+        const emailInput = document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('loginPassword');
 
-        const email = loginEmailInput.value.trim();
-        const password = loginPasswordInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
 
         if (!email || !password) {
-            loginErrorP.textContent = 'Please fill out both the email and password fields.';
+            alert('Please fill out both the email and password fields.');
             return;
         }
 
         try {
-            // Firebase Authentication
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-            console.log("Login successful:", user.email);
-            alert("Login successful! Redirecting...");
-            
-            // Redirect to another page
-            window.location.href = 'dashboard.html';
+            console.log("Login successful:", userCredential.user.email);
+            alert("Login successful!");
+            window.location.href = 'index.html'; // Redirect to index.html
         } catch (error) {
             console.error("Login error:", error);
-            loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(error)}`;
+            alert("Login failed. Please check your credentials.");
         }
     });
 }
