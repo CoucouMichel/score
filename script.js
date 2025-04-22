@@ -443,33 +443,39 @@ async function initializeAppAndListeners() {
 // --- Run Initialization ---
 document.addEventListener('DOMContentLoaded', initializeAppAndListeners);
 
-// Use existing global variables for modal handling
-loginButton.addEventListener('click', () => {
-    const authModal = document.getElementById('authModal'); // Local declaration is fine
-    authModal.style.display = 'block';
-});
+// Modal handling logic (starting at line 445)
+const authModal = document.getElementById('authModal');
+const closeModal = document.getElementById('closeModal');
 
-const closeModal = document.getElementById('closeModal'); // Local declaration is fine
-closeModal.addEventListener('click', () => {
-    const authModal = document.getElementById('authModal');
-    authModal.style.display = 'none';
-});
+// Ensure these elements exist before attaching event listeners
+if (authModal && closeModal && loginButton && showSignupButton && showLoginButton) {
+    // Open Modal
+    loginButton.addEventListener('click', () => {
+        authModal.style.display = 'block';
+    });
 
-// Close modal if clicking outside the modal content
-window.addEventListener('click', (event) => {
-    const authModal = document.getElementById('authModal');
-    if (event.target === authModal) {
+    // Close Modal
+    closeModal.addEventListener('click', () => {
         authModal.style.display = 'none';
-    }
-});
+    });
 
-// Toggle between Login and Signup forms
-showSignupButton.addEventListener('click', () => {
-    loginForm.style.display = 'none';
-    signupForm.style.display = 'block';
-});
+    // Close Modal if clicking outside the modal content
+    window.addEventListener('click', (event) => {
+        if (event.target === authModal) {
+            authModal.style.display = 'none';
+        }
+    });
 
-showLoginButton.addEventListener('click', () => {
-    signupForm.style.display = 'none';
-    loginForm.style.display = 'block';
-});
+    // Toggle between Login and Signup forms
+    showSignupButton.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+    });
+
+    showLoginButton.addEventListener('click', () => {
+        signupForm.style.display = 'none';
+        loginForm.style.display = 'block';
+    });
+} else {
+    console.error("Critical modal-related elements are missing. Modal functionality cannot be initialized.");
+}
