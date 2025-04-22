@@ -391,9 +391,9 @@ async function initializeAppAndListeners() {
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
     userInfo = document.getElementById('user-info');
-    loginEmailInput = document.getElementById('login-email');
-    loginPasswordInput = document.getElementById('login-password');
-    loginButton = document.getElementById('login-button');
+    loginEmailInput = document.getElementById('loginEmail');
+    loginPasswordInput = document.getElementById('loginPassword');
+    loginButton = document.getElementById('loginButton');
     loginErrorP = document.getElementById('login-error');
     showSignupButton = document.getElementById('show-signup');
     signupEmailInput = document.getElementById('signup-email');
@@ -412,7 +412,35 @@ async function initializeAppAndListeners() {
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
     if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
-    if (loginButton) { loginButton.addEventListener('click', () => { if (!loginEmailInput || !loginPasswordInput) return; const email = loginEmailInput.value; const password = loginPasswordInput.value; if(loginErrorP) loginErrorP.textContent = ''; signInWithEmailAndPassword(auth, email, password).catch((err) => { if(loginErrorP) loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(err)}`;}); }); }
+    if (loginButton) {
+    loginButton.addEventListener('click', async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        if (!loginEmailInput || !loginPasswordInput) return;
+
+        const email = loginEmailInput.value.trim();
+        const password = loginPasswordInput.value.trim();
+
+        if (!email || !password) {
+            loginErrorP.textContent = 'Please fill out both the email and password fields.';
+            return;
+        }
+
+        try {
+            // Firebase Authentication
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            console.log("Login successful:", user.email);
+            alert("Login successful! Redirecting...");
+            
+            // Redirect to another page
+            window.location.href = 'dashboard.html';
+        } catch (error) {
+            console.error("Login error:", error);
+            loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(error)}`;
+        }
+    });
+}
     // Updated Signup Listener
     if (signupButton) {
         signupButton.addEventListener('click', () => {
