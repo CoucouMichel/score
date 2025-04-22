@@ -122,65 +122,88 @@ function calculateForm(teamId, allRecentEvents, numGames = 5) {
 // admin.js
 
 /**
- * Calculates SYNTHETIC Home Win and Away Win odds based on ranks, form (as percentage),
- * history, and season progress.
+ * Calculates SYNTHETIC Home Win and Away Win odds based on TIERED rank difference,
+ * form percentage difference, and previous rank difference.
+ * Designed to be easily tweakable via parameters.
  * @param {number} homeRank - Current rank
  * @param {number} awayRank - Current rank
  * @param {number} homeFormPts - Points from last 5 games (0-15)
  * @param {number} awayFormPts - Points from last 5 games (0-15)
  * @param {number} homePrevRank - Previous season rank
  * @param {number} awayPrevRank - Previous season rank
- * @param {number} leagueAvgGamesPlayed - Average games played in the league this season.
+ * // Removed avgGamesPlayed for now, keeping it simple
  */
-function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, homePrevRank, awayPrevRank, leagueAvgGamesPlayed) {
+function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, homePrevRank, awayPrevRank) {
+
+    // --- Tweakable Parameters ---
+    const MIN_ODD = 1.25; // Your requested minimum odd
+    // Tier boundaries based on absolute difference in CURRENT rank
+    const RANK_DIFF_TIERS = [2, 7, 12]; // Tier 0: <=2, T1: 3-7, T2: 8-12, T3: >12
+    // Base odds when Home team is Favored (H / A)
+    const ODDS_TIERS_H = [2.40, 1.95, 1.65, 1.45]; // Tier 0, 1, 2, 3
+    const ODDS_TIERS_A = [2.85, 4.40, 6.20, 8.00]; // Tier 0, 1, 2, 3
+    // Adjustment Scales
+    const FORM_PERC_SCALE = 0.15;   // How much form % diff adjusts base tier odd
+    const PREV_RANK_SCALE = 0.015;  // How much previous rank diff adjusts base tier odd
+    const PREV_RANK_CAP = 15;     // Max previous rank difference to consider
+    // --- End Tweakable Parameters ---
+
     // Use fallbacks if data is missing
-    const prevRankH = homePrevRank ?? homeRank ?? 10;
-    const prevRankA = awayPrevRank ?? awayRank ?? 10;
     const rankH = homeRank ?? 10;
     const rankA = awayRank ?? 10;
-    const formH_Pts = homeFormPts ?? 7; // Default to 7/15 points if form missing
+    const formH_Pts = homeFormPts ?? 7;
     const formA_Pts = awayFormPts ?? 7;
-    const avgGames = leagueAvgGamesPlayed ?? 10;
+    // Use current rank as fallback for previous if missing
+    const prevRankH = homePrevRank ?? rankH;
+    const prevRankA = awayPrevRank ?? rankA;
 
-    // --- Calculate Differences ---
-    const rankDiff = rankA - rankH; // Positive if home team is better ranked
-    const prevRankDiff = prevRankA - prevRankH;
 
-    // --- NEW: Calculate Form Percentage Difference ---
-    const homeFormPerc = formH_Pts / 15.0; // Form as 0.0 to 1.0
+    // 1. Determine Tier Odds based on Current Rank Difference
+    const rankDiff = rankA - rankH; // Positive if home ranked higher
+    const absRankDiff = Math.abs(rankDiff);
+    let tierIndex = 0;
+    if (absRankDiff <= RANK_DIFF_TIERS[0]) { tierIndex = 0; }
+    else if (absRankDiff <= RANK_DIFF_TIERS[1]) { tierIndex = 1; }
+    else if (absRankDiff <= RANK_DIFF_TIERS[2]) { tierIndex = 2; }
+    else { tierIndex = 3; }
+
+    let tierHomeOdd = ODDS_TIERS_H[tierIndex];
+    let tierAwayOdd = ODDS_TIERS_A[tierIndex];
+
+    // If Away team is favored (rankDiff is negative), swap the tier odds
+    if (rankDiff < 0) {
+        [tierHomeOdd, tierAwayOdd] = [tierAwayOdd, tierHomeOdd];
+    }
+
+    // 2. Calculate Form Adjustment
+    const homeFormPerc = formH_Pts / 15.0;
     const awayFormPerc = formA_Pts / 15.0;
-    const formPercDiff = homeFormPerc - awayFormPerc; // Range -1.0 to +1.0. Positive means home form better.
+    const formPercDiff = homeFormPerc - awayFormPerc; // Positive if home form better
+    // Adjustment is negative if home form better (lowers home odd)
+    const formAdjH = -(formPercDiff * FORM_PERC_SCALE);
+    const formAdjA = +(formPercDiff * FORM_PERC_SCALE);
 
-    // --- Define Weights, Caps, Factors ---
-    const baseHome = 2.35; const baseAway = 2.65;
-    const rankScale = 0.08; const prevRankScale = 0.005;
-    const rankCap = 14;
-    const maxGamesForFactor = 25;
-    // NEW: Scaling factor for form percentage difference (How much should 100% form diff change odds?)
-    const formPercScale = 0.40; // e.g., 100% better form adjusts odds by 0.40 points
+    // 3. Calculate Previous Rank Adjustment
+    const prevRankDiff = prevRankA - prevRankH; // Positive if home finished higher
+    const cappedPrevRankDiff = Math.max(-PREV_RANK_CAP, Math.min(PREV_RANK_CAP, prevRankDiff));
+    // Adjustment is negative if home finished higher (lowers home odd)
+    const prevRankAdjH = -(cappedPrevRankDiff * PREV_RANK_SCALE);
+    const prevRankAdjA = +(cappedPrevRankDiff * PREV_RANK_SCALE);
 
-    const seasonProgressFactor = Math.min(1.0, Math.max(0, avgGames) / maxGamesForFactor);
+    // 4. Combine and Apply Minimum
+    let finalHomeOdd = tierHomeOdd + formAdjH + prevRankAdjH;
+    let finalAwayOdd = tierAwayOdd + formAdjA + prevRankAdjA;
 
-    // --- Calculate Adjustments ---
-    const cappedRankDiff = Math.max(-rankCap, Math.min(rankCap, rankDiff));
-    const rankAdj = cappedRankDiff * rankScale * seasonProgressFactor;
-    const formAdj = formPercDiff * formPercScale; // Use new form adjustment
-    const prevRankAdj = prevRankDiff * prevRankScale * seasonProgressFactor;
+    finalHomeOdd = Math.max(MIN_ODD, finalHomeOdd);
+    finalAwayOdd = Math.max(MIN_ODD, finalAwayOdd);
 
-    // Calculate Raw Odds
-    // Better rank/form/history for home team REDUCES home odd, INCREASES away odd
-    let homeOdd = baseHome - rankAdj - formAdj - prevRankAdj;
-    let awayOdd = baseAway + rankAdj + formAdj + prevRankAdj;
-
-    // Apply Minimum Constraint
-    homeOdd = Math.max(1.01, homeOdd);
-    awayOdd = Math.max(1.01, awayOdd);
-
+    // Return formatted odds
     return {
-        homeWin: parseFloat(homeOdd.toFixed(2)),
-        awayWin: parseFloat(awayOdd.toFixed(2))
+        homeWin: parseFloat(finalHomeOdd.toFixed(2)),
+        awayWin: parseFloat(finalAwayOdd.toFixed(2))
     };
 }
+
 
 function mapTheSportsDbToFixtures(apiEvents, leagueName, leagueCountry, rankings, prevRankings, recentEventsMap) {
     if (!Array.isArray(apiEvents)) return [];
