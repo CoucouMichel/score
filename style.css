@@ -74,15 +74,67 @@ main {
     padding: 0 1rem 2rem 1rem; /* Standard padding, no top offset needed */
 }
 
-/* --- Calendar Section (Back in Main) --- */
+/* style.css */
+
+/* --- Calendar Section (Updated) --- */
 #calendar-section {
-    padding: 0.75rem 0; margin-bottom: 1.5rem; background-color: transparent;
-    border: none; box-shadow: none;
-    border-bottom: 1px solid var(--divider-color); /* Separator line */
+    padding: 0.5rem 0; /* Adjust padding */
+    margin-bottom: 1.5rem;
+    background-color: transparent; border: none; box-shadow: none;
+    border-bottom: 1px solid var(--divider-color);
+    /* Add Flexbox to align buttons and calendar */
+    display: flex;
+    align-items: center; /* Vertically center items */
+    justify-content: space-between; /* Space out items */
+    gap: 0.5rem; /* Gap between buttons and calendar */
 }
+
 .calendar-container { /* #week-view */
-    display: flex; justify-content: space-around; gap: 8px;
-    padding: 0; flex-wrap: wrap; /* Allow wrapping */
+    display: flex;
+    justify-content: space-around;
+    gap: 6px; /* Adjust gap between day buttons */
+    padding: 0;
+    flex-wrap: wrap; /* Allow wrapping on narrow screens */
+    /* Make it take up available space between nav buttons */
+    flex-grow: 1;
+    overflow: hidden; /* Hide internal overflow if needed */
+}
+
+/* Style for Prev/Next Week Buttons */
+button.cal-nav-button {
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    background: var(--card-background-color);
+    color: var(--text-secondary-color);
+    border: 1px solid var(--divider-color);
+    border-radius: 50%; /* Make it round */
+    width: 30px; /* Fixed size */
+    height: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+button.cal-nav-button:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--text-primary-color);
+    color: var(--text-primary-color);
+}
+
+/* Keep existing calendar day button styles (button.calendar-day, .cal-line-*) */
+/* ... */
+
+/* Responsive: Maybe reduce size of nav buttons */
+@media (max-width: 480px) {
+    button.cal-nav-button {
+         width: 26px; height: 26px; font-size: 1rem;
+    }
+    .calendar-container { gap: 4px; }
+    button.calendar-day { min-width: 55px; } /* Adjust min-width */
 }
 /* Calendar Button Style */
 button.calendar-day { flex-grow: 1; min-width: 85px; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.5rem 0.25rem; border: 1px solid var(--divider-color); background-color: var(--card-background-color); color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center; transition: all 0.2s ease-out; font-weight: 500; } /* Removed flex-shrink: 0 */
