@@ -149,9 +149,9 @@ function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, ho
     const ODDS_TIERS_H = [2.40, 1.85, 1.65, 1.40]; // Tier 0, 1, 2, 3
     const ODDS_TIERS_A = [2.85, 4.40, 6.20, 8.00]; // Tier 0, 1, 2, 3
     // Adjustment Scales
-    const FORM_PERC_SCALE = 0.7;   // How much form % diff adjusts base tier odd
-    const PREV_RANK_SCALE = 0.05;  // How much previous rank diff adjusts base tier odd
-    const PREV_RANK_CAP = 15;     // Max previous rank difference to consider
+    const FORM_PERC_SCALE = 0.5;   // How much form % diff adjusts base tier odd
+    const PREV_RANK_SCALE = 0.02;  // How much previous rank diff adjusts base tier odd
+    const PREV_RANK_CAP = 18;     // Max previous rank difference to consider
     // --- End Tweakable Parameters ---
 
     // Use fallbacks if data is missing
