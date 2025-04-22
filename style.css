@@ -147,6 +147,7 @@ button.league-slicer.active { background-color: var(--primary-color); border-col
 /* --- Footer --- */
 footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem; color: var(--text-secondary-color); }
 
+/* --- Sign In Page (Home) --- */
 @import url('https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700|Poppins:400,500&display=swap');
 *{
   margin: 0;
@@ -155,7 +156,7 @@ footer { text-align: center; margin-top: 3rem; padding: 1rem; font-size: 0.85rem
   user-select: none;
 }
 .bg-img{
-  background: url('bg.jpg');
+  background: url('home.png');
   height: 100vh;
   background-size: cover;
   background-position: center;
