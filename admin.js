@@ -28,6 +28,14 @@ const DESIRED_LEAGUES = {
     "Ligue 2":        { id: 4401, country: "France" },
     "Süper Lig":      { id: 4339, country: "Turkey" },
     "Primeira Liga":  { id: 4344, country: "Portugal" },
+    "Coupe de France":        { id: 4484, country: "France" },
+    "MLS":        { id: 4346, country: "United States" },
+    "UEFA Champions League":        { id: 4480, country: "Europe" },
+        "UEFA Europa League":        { id: 4481, country: "Europe" },
+        "UEFA Conference League":        { id: 5071, country: "Europe" },
+        "UEFA Nations League":        { id: 4490, country: "Europe" },
+    
+    
     // Add UCL/UEL later if needed and IDs confirmed
 };
 
@@ -146,11 +154,11 @@ function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, ho
     const MIN_ODD = 1.25; // Your requested minimum odd
     const RANK_DIFF_TIERS = [2, 7, 12]; // Tier 0: <=2, T1: 3-7, T2: 8-12, T3: >12
     // Base odds when Home team is Favored (H / A) - Tweak these to adjust baseline
-    const ODDS_TIERS_H = [2.40, 1.85, 1.65, 1.40]; // Tier 0, 1, 2, 3
+    const ODDS_TIERS_H = [2.40, 1.85, 1.55, 1.40]; // Tier 0, 1, 2, 3
     const ODDS_TIERS_A = [2.85, 4.40, 6.20, 8.00]; // Tier 0, 1, 2, 3
     // Adjustment Scales
-    const FORM_PERC_SCALE = 0.5;   // How much form % diff adjusts base tier odd
-    const PREV_RANK_SCALE = 0.02;  // How much previous rank diff adjusts base tier odd
+    const FORM_PERC_SCALE = 0.7;   // How much form % diff adjusts base tier odd
+    const PREV_RANK_SCALE = 0.15;  // How much previous rank diff adjusts base tier odd
     const PREV_RANK_CAP = 18;     // Max previous rank difference to consider
     // --- End Tweakable Parameters ---
 
