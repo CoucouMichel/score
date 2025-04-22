@@ -13,8 +13,7 @@
     
 <header>
     <div class="header-content">
-        <a href="index.html" style="line-height: 0;">
-            <img src="logo.png" alt="Site Logo" id="logo-image">
+        <a href="index.html" style="line-height: 0;"> <img src="logo.png" alt="Site Logo" id="logo-image">
         </a>
         <nav>
             <ul>
@@ -23,105 +22,62 @@
                 <li><a href="ranking.html" class="header-nav-link">Rankings</a></li>
                 <li><a href="rules.html" class="header-nav-link">Rules</a></li>
                 <li><a href="settings.html" class="header-nav-link">Settings</a></li>
-                <li><button id="loginButton" class="header-button">Login</button></li>
             </ul>
         </nav>
     </div>
 </header>
 
 <main>
+    <section id="auth-section">
+        <div id="login-form">
+            <h3>Login</h3>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button id="login-button">Login</button>
+            <p>Don't have an account? <button id="show-signup" class="link-button">Sign Up</button></p>
+            <p id="login-error" class="error-message"></p>
+        </div>
+
+        <div id="signup-form" style="display: none;">
+            <h3>Sign Up</h3>
+            <input type="text" id="signup-username" placeholder="Username (min 3 chars)" required="" minlength="3">
+            <input type="email" id="signup-email" placeholder="Email" required>
+            <input type="password" id="signup-password" placeholder="Password" required>
+            <button id="signup-button">Sign Up</button>
+            <p>Already have an account? <button id="show-login" class="link-button">Login</button></p>
+            <p id="signup-error" class="error-message"></p>
+        </div>
+
+        <div id="user-info" style="display: none;">
+             <p>Welcome, <span id="user-display-name"></span>!</p>
+            <button id="logout-button">Logout</button>
+        </div>
+    </section>
+
     <section id="calendar-section">
         <div id="week-view" class="calendar-container">
-        </div>
+            </div>
     </section>
 
     <section id="available-fixtures">
-        <div id="daily-league-slicers" class="slicer-area">
+         <div id="daily-league-slicers" class="slicer-area">
             <label>Filter by League:</label>
             <div id="league-slicer-container" class="slicer-container">
-            </div>
-        </div>
-        <div id="fixture-list">Loading matches...</div>
+                 </div>
+         </div>
+         <div id="fixture-list">Loading matches...</div>
     </section>
 
     <section style="text-align: center; background: none; border: none; box-shadow: none;">
-        <a href="ranking.html" class="back-link">View Rankings</a>
-    </section>
+          <a href="ranking.html" class="back-link">View Rankings</a>
+     </section>
 </main>
 
 <footer>
     <p>Game data is currently mocked for testing.</p>
 </footer>
 
-<!-- Modal for Login/Signup -->
-<div id="authModal" class="modal">
-    <div class="modal-content">
-        <span class="close-button" id="closeModal">&times;</span>
-        <div id="auth-section">
-            <form id="login-form">
-                <h3>Login</h3>
-                <input type="email" id="login-email" placeholder="Email" required>
-                <input type="password" id="login-password" placeholder="Password" required>
-                <button id="login-submit">Login</button>
-                <p>Don't have an account? <button id="show-signup" class="link-button">Sign Up</button></p>
-                <p id="login-error" class="error-message"></p>
-            </form>
+<script src="script.js" type="module"></script>
 
-            <form id="signup-form" style="display: none;">
-                <h3>Sign Up</h3>
-                <input type="text" id="signup-username" placeholder="Username (min 3 chars)" required minlength="3">
-                <input type="email" id="signup-email" placeholder="Email" required>
-                <input type="password" id="signup-password" placeholder="Password" required>
-                <button id="signup-submit">Sign Up</button>
-                <p>Already have an account? <button id="show-login" class="link-button">Login</button></p>
-                <p id="signup-error" class="error-message"></p>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script src="script.js" defer></script>
-<script>
-    // JavaScript for Modal Functionality
-    document.addEventListener('DOMContentLoaded', () => {
-        const authModal = document.getElementById('authModal');
-        const loginButton = document.getElementById('loginButton');
-        const closeModal = document.getElementById('closeModal');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const showSignup = document.getElementById('show-signup');
-        const showLogin = document.getElementById('show-login');
-        const loginError = document.getElementById('login-error');
-        const signupError = document.getElementById('signup-error');
-
-        // Open Modal
-        loginButton.addEventListener('click', () => {
-            authModal.style.display = 'block';
-        });
-
-        // Close Modal
-        closeModal.addEventListener('click', () => {
-            authModal.style.display = 'none';
-        });
-
-        // Close Modal if clicking outside the modal content
-        window.addEventListener('click', (event) => {
-            if (event.target === authModal) {
-                authModal.style.display = 'none';
-            }
-        });
-
-        // Toggle between Login and Signup forms
-        showSignup.addEventListener('click', () => {
-            loginForm.style.display = 'none';
-            signupForm.style.display = 'block';
-        });
-
-        showLogin.addEventListener('click', () => {
-            signupForm.style.display = 'none';
-            loginForm.style.display = 'block';
-        });
-    });
-</script>
 </body>
 </html>
