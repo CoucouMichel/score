@@ -236,31 +236,34 @@ function handleSlicerClick(event) {
 }
 
 async function updateDisplayedFixtures() {
-    if (isUpdatingFixtures) {
-        console.log("UpdateDisplayedFixtures already running...");
-        return;
-    }
-
-    if (!fixtureListDiv || !leagueSlicerContainer) {
-        console.error("UI containers not ready for updateDisplayedFixtures");
-        return;
-    }
-
+    if (isUpdatingFixtures) { console.log("UpdateDisplayedFixtures already running..."); return; }
     isUpdatingFixtures = true;
+    if (!fixtureListDiv || !leagueSlicerContainer) { console.error("UI containers not ready for updateDisplayedFixtures"); isUpdatingFixtures = false; return; }
+    const selectedDateStr = getDateString(selectedDate);
+    const realCurrentTime = new Date();
+    console.log(`Updating display for date: ${selectedDateStr}, league: ${selectedLeagueFilter}`);
+    fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">Loading matches...</p>';
 
-    // Fetch and display the fixtures
     try {
-        const selectedDateStr = getDateString(selectedDate);
         const fixturesForDay = await fetchFixturesFromFirestore(selectedDateStr);
-        currentFixtures = fixturesForDay;
-        console.log(`Found ${fixturesForDay.length} fixtures for ${selectedDateStr}`);
-        // Update UI
-        populateDailyLeagueSlicers(fixturesForDay);
-        displayFixtures(currentFixtures, new Date());
+        currentFixtures = fixturesForDay; // Store globally
+
+        populateDailyLeagueSlicers(fixturesForDay); // Update slicers
+
+        const filteredFixtures = currentFixtures.filter(fixture => { // Filter global data
+            if (!fixture) return false;
+            if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
+            return true;
+        });
+        console.log(`Found ${filteredFixtures.length} fixtures to display after filtering.`);
+        filteredFixtures.sort((a, b) => { try { return new Date(a.kickOffTime) - new Date(b.kickOffTime); } catch(e) { return 0; }});
+        displayFixtures(filteredFixtures, realCurrentTime); // Display the filtered list
+
     } catch (error) {
         console.error("Error during updateDisplayedFixtures:", error);
+        if(fixtureListDiv) fixtureListDiv.innerHTML = '<p style="color: var(--error-text-color); text-align: center; grid-column: 1 / -1;">Error loading fixtures.</p>';
     } finally {
-        isUpdatingFixtures = false;
+        isUpdatingFixtures = false; // Reset flag
     }
 }
 
@@ -388,9 +391,10 @@ async function initializeAppAndListeners() {
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
     userInfo = document.getElementById('user-info');
-const loginEmailInput = document.getElementById('loginEmail'); // Match the ID in home.html
-const loginPasswordInput = document.getElementById('loginPassword'); // Match the ID in home.html
-const loginButton = document.getElementById('loginButton'); // Match the ID in home.html
+    loginEmailInput = document.getElementById('login-email');
+    loginPasswordInput = document.getElementById('login-password');
+    loginButton = document.getElementById('login-button');
+    loginErrorP = document.getElementById('login-error');
     showSignupButton = document.getElementById('show-signup');
     signupEmailInput = document.getElementById('signup-email');
     signupPasswordInput = document.getElementById('signup-password');
@@ -400,7 +404,6 @@ const loginButton = document.getElementById('loginButton'); // Match the ID in h
     showLoginButton = document.getElementById('show-login');
     userDisplayNameSpan = document.getElementById('user-display-name'); // Use new ID
     logoutButton = document.getElementById('logout-button');
-  
 
      if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !userInfo || !leagueSlicerContainer || !signupUsernameInput || !userDisplayNameSpan) {
          console.error("One or more critical DOM elements not found!"); return;
@@ -409,30 +412,7 @@ const loginButton = document.getElementById('loginButton'); // Match the ID in h
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
     if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
-
-if (loginButton) {
-    loginButton.addEventListener('click', async (event) => {
-        event.preventDefault(); // Prevent default form submission
-
-        const email = loginEmailInput.value.trim();
-        const password = loginPasswordInput.value.trim();
-
-        if (!email || !password) {
-            alert('Please fill out both the email and password fields.');
-            return;
-        }
-
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log("Login successful:", userCredential.user);
-            alert("Login successful!");
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error("Login error:", error);
-            alert(`Login failed: ${error.message}`);
-        }
-    });
-}
+    if (loginButton) { loginButton.addEventListener('click', () => { if (!loginEmailInput || !loginPasswordInput) return; const email = loginEmailInput.value; const password = loginPasswordInput.value; if(loginErrorP) loginErrorP.textContent = ''; signInWithEmailAndPassword(auth, email, password).catch((err) => { if(loginErrorP) loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(err)}`;}); }); }
     // Updated Signup Listener
     if (signupButton) {
         signupButton.addEventListener('click', () => {
