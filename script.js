@@ -443,16 +443,15 @@ async function initializeAppAndListeners() {
 // --- Run Initialization ---
 document.addEventListener('DOMContentLoaded', initializeAppAndListeners);
 
-// Modal handling logic
+// Modal handling logic (starting at line 445)
 const authModal = document.getElementById('authModal');
-const loginButton = document.getElementById('loginButton');
 const closeModal = document.getElementById('closeModal');
 const loginForm = document.getElementById('login-form');
 const signupForm = document.getElementById('signup-form');
 const showSignup = document.getElementById('show-signup');
 const showLogin = document.getElementById('show-login');
 
-// Open Modal
+// Use the existing `loginButton` variable instead of redeclaring it
 loginButton.addEventListener('click', () => {
     authModal.style.display = 'block';
 });
