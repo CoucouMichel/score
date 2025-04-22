@@ -10,16 +10,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<script>
-    // Example check for user authentication
-    const userIsAuthenticated = false; // Replace with actual authentication logic
-
-    if (!userIsAuthenticated) {
-        // Redirect to home.html for login
-        window.location.href = 'home.html';
-    }
-</script>
     
 <header>
     <div class="header-content">
@@ -38,6 +28,25 @@
 </header>
 
 <main>
+    <section id="auth-section">
+        <div id="login-form">
+            <h3>Login</h3>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button id="login-button">Login</button>
+            <p>Don't have an account? <button id="show-signup" class="link-button">Sign Up</button></p>
+            <p id="login-error" class="error-message"></p>
+        </div>
+
+        <div id="signup-form" style="display: none;">
+            <h3>Sign Up</h3>
+            <input type="text" id="signup-username" placeholder="Username (min 3 chars)" required="" minlength="3">
+            <input type="email" id="signup-email" placeholder="Email" required>
+            <input type="password" id="signup-password" placeholder="Password" required>
+            <button id="signup-button">Sign Up</button>
+            <p>Already have an account? <button id="show-login" class="link-button">Login</button></p>
+            <p id="signup-error" class="error-message"></p>
+        </div>
 
         <div id="user-info" style="display: none;">
              <p>Welcome, <span id="user-display-name"></span>!</p>
@@ -59,11 +68,6 @@
          <div id="fixture-list">Loading matches...</div>
     </section>
 
-    <section id="scoring-history">
-        <h2>Your Recent Scores</h2>
-        <ul id="score-list"><li>No scores yet.</li></ul>
-    </section>
-
     <section style="text-align: center; background: none; border: none; box-shadow: none;">
           <a href="ranking.html" class="back-link">View Rankings</a>
      </section>
@@ -74,6 +78,6 @@
 </footer>
 
 <script src="script.js" type="module"></script>
-    
+
 </body>
 </html>
