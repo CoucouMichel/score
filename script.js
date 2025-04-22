@@ -412,11 +412,11 @@ async function initializeAppAndListeners() {
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
     if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
-  const loginButton = document.getElementById('loginButton');
+const loginButton = document.getElementById('loginButton');
 
 if (loginButton) {
     loginButton.addEventListener('click', async (event) => {
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault();
 
         const emailInput = document.getElementById('loginEmail');
         const passwordInput = document.getElementById('loginPassword');
@@ -431,12 +431,12 @@ if (loginButton) {
 
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log("Login successful:", userCredential.user.email);
+            console.log("Login successful:", userCredential.user);
             alert("Login successful!");
-            window.location.href = 'index.html'; // Redirect to index.html
+            window.location.href = 'index.html';
         } catch (error) {
             console.error("Login error:", error);
-            alert("Login failed. Please check your credentials.");
+            alert(`Login failed: ${error.message}`);
         }
     });
 }
