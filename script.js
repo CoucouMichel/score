@@ -236,34 +236,31 @@ function handleSlicerClick(event) {
 }
 
 async function updateDisplayedFixtures() {
-    if (isUpdatingFixtures) { console.log("UpdateDisplayedFixtures already running..."); return; }
+    if (isUpdatingFixtures) {
+        console.log("UpdateDisplayedFixtures already running...");
+        return;
+    }
+
+    if (!fixtureListDiv || !leagueSlicerContainer) {
+        console.error("UI containers not ready for updateDisplayedFixtures");
+        return;
+    }
+
     isUpdatingFixtures = true;
-    if (!fixtureListDiv || !leagueSlicerContainer) { console.error("UI containers not ready for updateDisplayedFixtures"); isUpdatingFixtures = false; return; }
-    const selectedDateStr = getDateString(selectedDate);
-    const realCurrentTime = new Date();
-    console.log(`Updating display for date: ${selectedDateStr}, league: ${selectedLeagueFilter}`);
-    fixtureListDiv.innerHTML = '<p style="color: var(--text-secondary-color); text-align: center; grid-column: 1 / -1;">Loading matches...</p>';
 
+    // Fetch and display the fixtures
     try {
+        const selectedDateStr = getDateString(selectedDate);
         const fixturesForDay = await fetchFixturesFromFirestore(selectedDateStr);
-        currentFixtures = fixturesForDay; // Store globally
-
-        populateDailyLeagueSlicers(fixturesForDay); // Update slicers
-
-        const filteredFixtures = currentFixtures.filter(fixture => { // Filter global data
-            if (!fixture) return false;
-            if (selectedLeagueFilter !== 'ALL' && fixture.competition !== selectedLeagueFilter) return false;
-            return true;
-        });
-        console.log(`Found ${filteredFixtures.length} fixtures to display after filtering.`);
-        filteredFixtures.sort((a, b) => { try { return new Date(a.kickOffTime) - new Date(b.kickOffTime); } catch(e) { return 0; }});
-        displayFixtures(filteredFixtures, realCurrentTime); // Display the filtered list
-
+        currentFixtures = fixturesForDay;
+        console.log(`Found ${fixturesForDay.length} fixtures for ${selectedDateStr}`);
+        // Update UI
+        populateDailyLeagueSlicers(fixturesForDay);
+        displayFixtures(currentFixtures, new Date());
     } catch (error) {
         console.error("Error during updateDisplayedFixtures:", error);
-        if(fixtureListDiv) fixtureListDiv.innerHTML = '<p style="color: var(--error-text-color); text-align: center; grid-column: 1 / -1;">Error loading fixtures.</p>';
     } finally {
-        isUpdatingFixtures = false; // Reset flag
+        isUpdatingFixtures = false;
     }
 }
 
