@@ -11,24 +11,61 @@
       <div class="bg-img">
          <div class="content">
             <header>Login Form</header>
-            <form id="loginForm">
-               <div class="field">
+            <div id="auth-section">
+              <form id="login-form">
+                <div class="field">
                   <span class="fa fa-user"></span>
                   <input type="text" id="loginEmail" required placeholder="Email or Phone">
-               </div>
-               <div class="field space">
+                </div>
+                <div class="field space">
                   <span class="fa fa-lock"></span>
                   <input type="password" id="loginPassword" class="pass-key" required placeholder="Password">
                   <span class="show" id="togglePassword">SHOW</span>
-               </div>
-               <div class="pass">
+                </div>
+                <div class="pass">
                   <a href="#">Forgot Password?</a>
-               </div>
-               <div class="field">
+                </div>
+                <div class="field">
                   <input type="submit" id="loginButton" value="LOGIN">
-               </div>
-               <p id="loginError" class="error-message"></p>
-            </form>
+                </div>
+                <p id="loginError" class="error-message"></p>
+              </form>
+
+              <form id="signup-form" style="display: none;">
+                <div class="field">
+                  <span class="fa fa-envelope"></span>
+                  <input type="text" id="signup-email" required placeholder="Email">
+                </div>
+                <div class="field">
+                  <span class="fa fa-lock"></span>
+                  <input type="password" id="signup-password" required placeholder="Password">
+                </div>
+                <div class="field">
+                  <span class="fa fa-user"></span>
+                  <input type="text" id="signup-username" required placeholder="Username">
+                </div>
+                <div class="field">
+                  <input type="submit" id="signup-button" value="SIGN UP">
+                </div>
+                <p id="signup-error" class="error-message"></p>
+              </form>
+
+              <div id="user-info" style="display: none;">
+                <span id="user-display-name"></span>
+                <button id="logout-button">LOG OUT</button>
+              </div>
+
+              <div>
+                <button id="show-signup">Go to Signup</button>
+                <button id="show-login" style="display: none;">Go to Login</button>
+              </div>
+            </div>
+
+            <div id="week-view"></div>
+            <div id="fixture-list"></div>
+            <div id="league-slicer-container"></div>
+            <div id="score-list"></div>
+
             <div class="login">
                Or login with
             </div>
