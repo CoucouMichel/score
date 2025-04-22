@@ -133,17 +133,24 @@ function calculateForm(teamId, allRecentEvents, numGames = 5) {
  * @param {number} awayPrevRank - Previous season rank
  * // Removed avgGamesPlayed for now, keeping it simple
  */
+// admin.js
+
+/**
+ * Calculates SYNTHETIC Home Win and Away Win odds based on TIERED rank difference,
+ * form percentage difference, and previous rank difference.
+ * **Added logic to temper odds when Away team is strong favorite.**
+ */
 function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, homePrevRank, awayPrevRank) {
 
     // --- Tweakable Parameters ---
     const MIN_ODD = 1.25; // Your requested minimum odd
     const RANK_DIFF_TIERS = [2, 7, 12]; // Tier 0: <=2, T1: 3-7, T2: 8-12, T3: >12
     // Base odds when Home team is Favored (H / A) - Tweak these to adjust baseline
-    const ODDS_TIERS_H = [2.40, 1.85, 1.55, 1.40]; // Tier 0, 1, 2, 3
+    const ODDS_TIERS_H = [2.40, 1.95, 1.65, 1.40]; // Tier 0, 1, 2, 3
     const ODDS_TIERS_A = [2.85, 4.40, 6.20, 8.00]; // Tier 0, 1, 2, 3
     // Adjustment Scales
-    const FORM_PERC_SCALE = 0.2;   // How much form % diff adjusts base tier odd
-    const PREV_RANK_SCALE = 0.03;  // How much previous rank diff adjusts base tier odd
+    const FORM_PERC_SCALE = 0.15;   // How much form % diff adjusts base tier odd
+    const PREV_RANK_SCALE = 0.015;  // How much previous rank diff adjusts base tier odd
     const PREV_RANK_CAP = 15;     // Max previous rank difference to consider
     // --- End Tweakable Parameters ---
 
@@ -206,6 +213,9 @@ function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, ho
         awayWin: parseFloat(finalAwayOdd.toFixed(2))
     };
 }
+
+// --- Ensure the rest of your admin.js is present ---
+// (Firebase Init, Helpers, Fetch Logic, Form Calc, Mapping, Saving, Listeners)
 
 
 function mapTheSportsDbToFixtures(apiEvents, leagueName, leagueCountry, rankings, prevRankings, recentEventsMap) {
