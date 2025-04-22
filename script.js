@@ -376,21 +376,6 @@ async function handleSelection(fixtureId, teamId, teamName /* removed odds param
 
     // --- If checks pass, handle Select / Deselect / Overwrite ---
 
-    // 4. Handle Deselection (Clicking the *same already selected* team again)
-    if (existingSelection && existingSelection.fixtureId === fixtureId && String(existingSelection.teamId) === String(teamId)) {
-        console.log(`Deselecting team ${teamId} for ${selectedDateStr}`);
-        // Attempt to delete from Firestore FIRST
-        const deleteSuccess = await deletePickFromFirestore(userId, selectedDateStr);
-        if (deleteSuccess) {
-            delete userSelections[selectedDateStr]; // Remove from local state only on success
-            // saveUserDataToLocal(); // Keep removed or add back if needed for immediate offline state
-            generateCalendar();
-            updateDisplayedFixtures();
-        } else {
-            console.error("Failed to delete pick from Firestore. Local state not changed.");
-            // Optional: alert user deletion failed
-        }
-    }
     // 5. Handle New Selection or Overwriting an Existing (unlocked) Pick
     else {
         // Get odds from the fixture data
