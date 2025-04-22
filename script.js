@@ -177,32 +177,59 @@ async function deletePickFromFirestore(userId, dateStr) {
 
 // --- Core Game Functions ---
 
+/**
+ * Generates calendar navigation (5 days: -1, Selected, +1, +2, +3 relative to selectedDate).
+ */
 function generateCalendar() {
-    if (!weekViewContainer) return;
-    weekViewContainer.innerHTML = '';
-    const todayForCalendar = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    // Ensure elements are assigned before running
+    if (!weekViewContainer) { console.error("Calendar container not found"); return; }
+
+    weekViewContainer.innerHTML = ''; // Clear previous calendar
+    const todayActual = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Actual 'today' date for comparison
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']; // Using uppercase abbreviations
+
+    // Loop for 5 days relative to selectedDate: Day-1, Day, Day+1, Day+2, Day+3
     for (let i = -1; i <= 3; i++) {
-        const date = new Date(todayForCalendar.getTime() + i * oneDay);
+        const date = new Date(selectedDate.getTime() + i * oneDay); // Calculate date based on selectedDate
         const dateStr = getDateString(date);
         if (!dateStr) continue;
+
         const dayButton = document.createElement('button');
-        dayButton.classList.add('calendar-day'); dayButton.dataset.date = dateStr;
-        let line1Text = `${dayNames[date.getDay()]} ${date.getDate()}`;
-        if (i === 0) line1Text = `<b>TODAY ${date.getDate()}</b>`;
-        let line2Text = "No Pick"; let line3Text = "&nbsp;";
-        const selection = userSelections[dateStr];
-        if (selection?.teamName) line2Text = `<b>${selection.teamName}</b>`;
+        dayButton.classList.add('calendar-day');
+        dayButton.dataset.date = dateStr;
+
+        // --- Determine content for each line ---
+        let line1Text = `${dayNames[date.getDay()]} ${date.getDate()}`; // e.g., "FRI 18"
+        // Check if this button's date IS the actual current date
+        if (dateStr === getDateString(todayActual)) {
+            line1Text = `<b>TODAY ${date.getDate()}</b>`; // Bold Today + Date
+        }
+
+        let line2Text = "No Pick";
+        let line3Text = "&nbsp;";
+        const selection = userSelections[dateStr]; // Check loaded userSelections
+        if (selection?.teamName) {
+            line2Text = `<b>${selection.teamName}</b>`;
+        }
+
+        // Create and append spans
         const line1Span = document.createElement('span'); line1Span.classList.add('cal-line', 'cal-line-1'); line1Span.innerHTML = line1Text;
         const line2Span = document.createElement('span'); line2Span.classList.add('cal-line', 'cal-line-2'); line2Span.innerHTML = line2Text;
         const line3Span = document.createElement('span'); line3Span.classList.add('cal-line', 'cal-line-3'); line3Span.innerHTML = line3Text;
         dayButton.appendChild(line1Span); dayButton.appendChild(line2Span); dayButton.appendChild(line3Span);
-        if (getDateString(selectedDate) === dateStr) dayButton.classList.add('active');
+
+        // Set active state if this button's date IS the selectedDate
+        if (getDateString(selectedDate) === dateStr) {
+            dayButton.classList.add('active');
+        }
+
+        // Click listener - select this specific day
         dayButton.addEventListener('click', async () => {
             if (getDateString(selectedDate) !== dateStr) {
                 selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                selectedLeagueFilter = 'ALL'; generateCalendar();
-                await updateDisplayedFixtures();
+                selectedLeagueFilter = 'ALL';
+                generateCalendar(); // Redraw calendar to update active state
+                await updateDisplayedFixtures(); // Fetch/display fixtures for newly selected day
             }
         });
         weekViewContainer.appendChild(dayButton);
