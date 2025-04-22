@@ -298,7 +298,15 @@ document.addEventListener('DOMContentLoaded', () => {
     statusDiv = document.getElementById('status');
     // fetchSingleButton = document.getElementById('fetch-single-button'); // Uncomment if using
     // singleDateInput = document.getElementById('single-date-input'); // Uncomment if using
+    const fetchTeamsButton = document.getElementById('fetch-teams-button');
 
+     if (!fetchButton || !statusDiv || !fetchTeamsButton) { // Add check for new button
+         console.error("One or more admin page elements are missing!");
+         if(statusDiv) statusDiv.textContent = "Error: Page elements missing.";
+         return;
+     }
+
+    
      if (!fetchButton || !statusDiv) {
          console.error("Required admin page elements (fetch button or status div) are missing!");
          if(statusDiv) statusDiv.textContent = "Error: Page elements missing.";
@@ -379,6 +387,57 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchButton.disabled = false; // Re-enable button
             console.log("Fetch process finished.");
         }
+    });
+      // --- ADD NEW Listener for Fetching Teams ---
+    fetchTeamsButton.addEventListener('click', async () => {
+        if (isAdminFetchRunning) { console.log("Fetch already running."); statusDiv.textContent = "Fetch running..."; return; }
+        isAdminFetchRunning = true; fetchButton.disabled = true; fetchTeamsButton.disabled = true;
+        statusDiv.textContent = `Fetching team lists for ${leagueEntries.length} leagues...`; statusDiv.className = '';
+        console.log("--- Fetching Team Lists ---");
+
+        const promises = [];
+        // Use leagueEntries defined globally or near the top of admin.js
+        leagueEntries.forEach(([name, leagueInfo]) => {
+            // Fetch all teams for each desired league
+            promises.push(fetchTSDBData('lookup_all_teams.php', { id: leagueInfo.id }));
+        });
+
+        const results = await Promise.allSettled(promises);
+        const allTeamsData = {}; // Use object { "TeamID": "Team Name" }
+        let errorCount = 0;
+
+        results.forEach((result, index) => {
+            const [leagueName, leagueInfo] = leagueEntries[index];
+            if (result.status === 'fulfilled' && result.value?.teams) {
+                console.log(`Found ${result.value.teams.length} teams for ${leagueName}`);
+                result.value.teams.forEach(team => {
+                    if (team.idTeam && team.strTeam) {
+                        // Add to map - duplicates will be overwritten, keeping unique IDs
+                        allTeamsData[String(team.idTeam)] = team.strTeam;
+                    }
+                });
+            } else {
+                console.error(`Failed to fetch teams for ${leagueName}:`, result.reason || "No teams data");
+                errorCount++;
+            }
+        });
+
+        if (errorCount > 0) {
+            statusDiv.textContent = `Completed team fetch with ${errorCount} errors. Check console.`;
+            statusDiv.className = 'error';
+        } else {
+            statusDiv.textContent = `Successfully fetched team lists. Found ${Object.keys(allTeamsData).length} unique teams. See console for list.`;
+            statusDiv.className = 'success';
+        }
+
+        // Log the combined list as JSON for easy copy-paste
+        console.log("--- Combined Unique Team List (ID: Name) ---");
+        console.log(JSON.stringify(allTeamsData, Object.keys(allTeamsData).sort((a,b) => allTeamsData[a].localeCompare(allTeamsData[b])), 2)); // Log sorted by name
+        alert("Team list logged to console (Press F12). Copy the JSON output.");
+
+
+        isAdminFetchRunning = false; fetchButton.disabled = false; fetchTeamsButton.disabled = false;
+        console.log("Team fetch process finished.");
     });
 
     // Add listener for single date fetch if button exists
