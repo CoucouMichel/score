@@ -154,11 +154,11 @@ function calculateSyntheticOdds(homeRank, awayRank, homeFormPts, awayFormPts, ho
     const MIN_ODD = 1.25; // Your requested minimum odd
     const RANK_DIFF_TIERS = [2, 7, 12]; // Tier 0: <=2, T1: 3-7, T2: 8-12, T3: >12
     // Base odds when Home team is Favored (H / A) - Tweak these to adjust baseline
-    const ODDS_TIERS_H = [2.40, 1.85, 1.55, 1.40]; // Tier 0, 1, 2, 3
+    const ODDS_TIERS_H = [2.40, 2.00, 1.70, 1.50]; // Tier 0, 1, 2, 3
     const ODDS_TIERS_A = [2.85, 4.40, 6.20, 8.00]; // Tier 0, 1, 2, 3
     // Adjustment Scales
     const FORM_PERC_SCALE = 0.7;   // How much form % diff adjusts base tier odd
-    const PREV_RANK_SCALE = 0.15;  // How much previous rank diff adjusts base tier odd
+    const PREV_RANK_SCALE = 0.03;  // How much previous rank diff adjusts base tier odd
     const PREV_RANK_CAP = 18;     // Max previous rank difference to consider
     // --- End Tweakable Parameters ---
 
