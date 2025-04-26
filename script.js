@@ -74,51 +74,80 @@ let isUpdatingFixtures = false;
 // --- DOM Element References (Declared globally, assigned in init) ---
 let weekViewContainer, fixtureListDiv, leagueSlicerContainer, scoreListUl;
 let authSection, loginForm, signupForm, userInfo;
+let headerLoginLink, headerUserInfo, headerUsername, headerLogoutButton;
+let authModal, modalOverlay, modalCloseBtn;
+let modalLoginForm, modalSignupForm, showLoginTab, showSignupTab;
 let loginEmailInput, loginPasswordInput, loginButton, loginErrorP;
 let showSignupButton, signupEmailInput, signupPasswordInput, signupUsernameInput, signupButton, signupErrorP;
 let showLoginButton, userDisplayNameSpan, logoutButton;
 
+// --- Modal Control Functions ---
+function showAuthModal() {
+    if (authModal && modalOverlay) {
+        authModal.classList.remove('modal-hidden'); authModal.classList.add('modal-visible');
+        modalOverlay.classList.remove('modal-hidden'); modalOverlay.classList.add('modal-visible');
+        // Default to login tab shown
+        showTab('login');
+    }
+}
+function hideAuthModal() {
+    if (authModal && modalOverlay) {
+        authModal.classList.add('modal-hidden'); authModal.classList.remove('modal-visible');
+        modalOverlay.classList.add('modal-hidden'); modalOverlay.classList.remove('modal-visible');
+        // Clear errors when closing
+        if(loginErrorP) loginErrorP.textContent = '';
+        if(signupErrorP) signupErrorP.textContent = '';
+    }
+}
+function showTab(tabName) {
+    if (!modalLoginForm || !modalSignupForm || !showLoginTab || !showSignupTab) return;
+    if (tabName === 'login') {
+        modalLoginForm.style.display = 'block'; modalSignupForm.style.display = 'none';
+        showLoginTab.classList.add('active'); showSignupTab.classList.remove('active');
+        if(signupErrorP) signupErrorP.textContent = ''; // Clear other tab's error
+    } else { // signup
+        modalLoginForm.style.display = 'none'; modalSignupForm.style.display = 'block';
+        showLoginTab.classList.remove('active'); showSignupTab.classList.add('active');
+         if(loginErrorP) loginErrorP.textContent = ''; // Clear other tab's error
+    }
+}
+
 
 // --- Authentication State Listener ---
-onAuthStateChanged(auth, async (user) => { // Make async to fetch profile & picks
-    // Ensure elements exist before manipulating
-    loginErrorP?.textContent && (loginErrorP.textContent = '');
-    signupErrorP?.textContent && (signupErrorP.textContent = '');
-
+onAuthStateChanged(auth, async (user) => {
+    // Update header based on auth state
     if (user) { // User signed in
-        currentUserId = user.uid;
-        console.log("Auth State Changed: User logged in:", user.email, currentUserId);
-        if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'none'; if(userInfo) userInfo.style.display = 'block';
-        if(authSection) { /* Hide auth section styles */ /* ... */ }
+        currentUserId = user.uid; console.log("Auth State: Logged In", user.uid);
+        if(headerLoginLink) headerLoginLink.style.display = 'none';
+        if(headerUserInfo) headerUserInfo.style.display = 'flex'; // Show user info
+        if(headerUsername) headerUsername.textContent = user.email; // Default to email
 
-        // Fetch Profile first
+        // Fetch Profile to get username
         try {
             const userDocRef = doc(db, "users", user.uid); const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) { currentUserProfile = docSnap.data(); if (userDisplayNameSpan && currentUserProfile.username) userDisplayNameSpan.textContent = currentUserProfile.username; }
-            else { console.log("No user profile found"); currentUserProfile = { email: user.email }; if(userDisplayNameSpan) userDisplayNameSpan.textContent = user.email + " (No Profile)"; }
-        } catch (error) { console.error("Error fetching profile:", error); currentUserProfile = { email: user.email }; if(userDisplayNameSpan) userDisplayNameSpan.textContent = user.email + " (Profile Error)";}
+            if (docSnap.exists()) { currentUserProfile = docSnap.data(); if (headerUsername && currentUserProfile.username) headerUsername.textContent = currentUserProfile.username; }
+            else { console.log("No user profile found"); currentUserProfile = { email: user.email }; }
+        } catch (error) { console.error("Error fetching profile:", error); currentUserProfile = { email: user.email }; }
 
-        // THEN Load user picks from Firestore
-        await loadUserPicksFromFirestore(user.uid);
-
-        // THEN Trigger initial UI draw after picks are loaded
-        generateCalendar(); // Redraw calendar with potentially loaded picks
-        updateDisplayedFixtures(); // Fetch fixtures and display them
+        hideAuthModal(); // Close modal if it was open
+        await loadUserPicksFromFirestore(user.uid); // Load user picks
 
     } else { // User signed out
-        console.log("Auth State Changed: User logged out");
-        currentUserId = null; currentUserProfile = null; userSelections = {}; // Clear state
-        localStorage.removeItem('footballGameSelections'); // Clear any old local backup
-        if(userDisplayNameSpan) userDisplayNameSpan.textContent = '';
-        if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(userInfo) userInfo.style.display = 'none';
-         if(authSection) { /* Restore section styling */ /* ... */ }
-        // Refresh UI immediately after logout
+        console.log("Auth State: Logged Out");
+        currentUserId = null; currentUserProfile = null; userSelections = {};
+        localStorage.removeItem('footballGameSelections');
+        if(headerLoginLink) headerLoginLink.style.display = 'block'; // Show Login link
+        if(headerUserInfo) headerUserInfo.style.display = 'none'; // Hide user info
+        if(headerUsername) headerUsername.textContent = '';
+
+        // Refresh UI for logged-out state
         requestAnimationFrame(() => {
              if(typeof generateCalendar === 'function') generateCalendar();
              if(typeof updateDisplayedFixtures === 'function') updateDisplayedFixtures();
         });
     }
 });
+
 
 // --- Firestore Interaction ---
 
@@ -445,6 +474,9 @@ async function initializeAppAndListeners() {
     leagueSlicerContainer = document.getElementById('league-slicer-container');
     scoreListUl = document.getElementById('score-list');
     authSection = document.getElementById('auth-section');
+    headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); headerLogoutButton = document.getElementById('header-logout-button');
+   authModal = document.getElementById('auth-modal'); modalOverlay = document.getElementById('modal-overlay'); modalCloseBtn = document.getElementById('modal-close-btn');
+    modalLoginForm = document.getElementById('modal-login-form'); modalSignupForm = document.getElementById('modal-signup-form'); showLoginTab = document.getElementById('show-login-tab'); showSignupTab = document.getElementById('show-signup-tab');
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
     userInfo = document.getElementById('user-info');
@@ -493,6 +525,18 @@ async function initializeAppAndListeners() {
         });
     }
     if (logoutButton) { logoutButton.addEventListener('click', () => { signOut(auth).catch(/*...*/); }); }
+
+   // Modal Control Listeners
+    headerLoginLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal(); });
+    modalCloseBtn.addEventListener('click', hideAuthModal);
+    modalOverlay.addEventListener('click', hideAuthModal);
+    showLoginTab.addEventListener('click', () => showTab('login'));
+    showSignupTab.addEventListener('click', () => showTab('signup'));
+
+    // Auth Form Submit Listeners (inside modal now)
+    if (loginButton) { loginButton.addEventListener('click', () => { /* ... keep signIn call from #119 ... */ }); }
+    if (signupButton) { signupButton.addEventListener('click', () => { /* ... keep createUser & setDoc logic from #119 ... */ }); }
+    if (headerLogoutButton) { headerLogoutButton.addEventListener('click', () => { signOut(auth).catch(/*...*/); }); }
   
   // *** ADD Event Listeners for Calendar Navigation ***
     prevWeekBtn.addEventListener('click', async () => {
