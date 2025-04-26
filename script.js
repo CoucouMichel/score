@@ -511,7 +511,22 @@ async function initializeAppAndListeners() {
                 .catch((error) => { console.error("Signup/Profile Save Error:", error); if(signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(error)}`; });
         });
     }
-    if (logoutButton) { logoutButton.addEventListener('click', () => { signOut(auth).catch(/*...*/); }); }
+    if (headerLogoutButton) {
+        headerLogoutButton.addEventListener('click', () => {
+            console.log("Logout button clicked"); // Add log
+            signOut(auth)
+                .then(() => {
+                    console.log("Sign out successful (onAuthStateChanged will handle UI)");
+                    // No UI changes needed here, onAuthStateChanged does it
+                })
+                .catch((error) => {
+                    // *** ADD ERROR HANDLING HERE ***
+                    console.error("Logout Error:", error);
+                    alert(`Logout failed: ${error.message}`);
+                    // *** END ERROR HANDLING ***
+                });
+        });
+    }
   
   // *** ADD Event Listeners for Calendar Navigation ***
     prevWeekBtn.addEventListener('click', async () => {
