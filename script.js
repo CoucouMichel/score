@@ -74,51 +74,80 @@ let isUpdatingFixtures = false;
 // --- DOM Element References (Declared globally, assigned in init) ---
 let weekViewContainer, fixtureListDiv, leagueSlicerContainer, scoreListUl;
 let authSection, loginForm, signupForm, userInfo;
+let headerLoginLink, headerUserInfo, headerUsername, headerLogoutButton;
+let authModal, modalOverlay, modalCloseBtn;
+let modalLoginForm, modalSignupForm, showLoginTab, showSignupTab;
 let loginEmailInput, loginPasswordInput, loginButton, loginErrorP;
 let showSignupButton, signupEmailInput, signupPasswordInput, signupUsernameInput, signupButton, signupErrorP;
 let showLoginButton, userDisplayNameSpan, logoutButton;
 
+// --- Modal Control Functions ---
+function showAuthModal() {
+    if (authModal && modalOverlay) {
+        authModal.classList.remove('modal-hidden'); authModal.classList.add('modal-visible');
+        modalOverlay.classList.remove('modal-hidden'); modalOverlay.classList.add('modal-visible');
+        showTab('login'); // Default to login tab
+    }
+}
+function hideAuthModal() {
+    if (authModal && modalOverlay) {
+        authModal.classList.add('modal-hidden'); authModal.classList.remove('modal-visible');
+        modalOverlay.classList.add('modal-hidden'); modalOverlay.classList.remove('modal-visible');
+        if(loginErrorP) loginErrorP.textContent = ''; // Clear errors
+        if(signupErrorP) signupErrorP.textContent = '';
+    }
+}
+function showTab(tabName) {
+    if (!modalLoginForm || !modalSignupForm || !showLoginTab || !showSignupTab) return;
+    if (tabName === 'login') {
+        modalLoginForm.style.display = 'block'; modalSignupForm.style.display = 'none';
+        showLoginTab.classList.add('active'); showSignupTab.classList.remove('active');
+        if(signupErrorP) signupErrorP.textContent = '';
+    } else { // signup
+        modalLoginForm.style.display = 'none'; modalSignupForm.style.display = 'block';
+        showLoginTab.classList.remove('active'); showSignupTab.classList.add('active');
+        if(loginErrorP) loginErrorP.textContent = '';
+    }
+}
 
 // --- Authentication State Listener ---
-onAuthStateChanged(auth, async (user) => { // Make async to fetch profile & picks
-    // Ensure elements exist before manipulating
-    loginErrorP?.textContent && (loginErrorP.textContent = '');
+onAuthStateChanged(auth, async (user) => {
+    loginErrorP?.textContent && (loginErrorP.textContent = ''); // Clear potential modal errors on state change
     signupErrorP?.textContent && (signupErrorP.textContent = '');
 
     if (user) { // User signed in
         currentUserId = user.uid;
-        console.log("Auth State Changed: User logged in:", user.email, currentUserId);
-        if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'none'; if(userInfo) userInfo.style.display = 'block';
-        if(authSection) { /* Hide auth section styles */ /* ... */ }
+        console.log("Auth State: Logged In", user.uid);
+        if(headerLoginLink) headerLoginLink.style.display = 'none';
+        if(headerUserInfo) headerUserInfo.style.display = 'flex';
+        if(headerUsername) headerUsername.textContent = 'Loading...'; // Placeholder
 
-        // Fetch Profile first
+        // Fetch Profile
         try {
             const userDocRef = doc(db, "users", user.uid); const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) { currentUserProfile = docSnap.data(); if (userDisplayNameSpan && currentUserProfile.username) userDisplayNameSpan.textContent = currentUserProfile.username; }
-            else { console.log("No user profile found"); currentUserProfile = { email: user.email }; if(userDisplayNameSpan) userDisplayNameSpan.textContent = user.email + " (No Profile)"; }
-        } catch (error) { console.error("Error fetching profile:", error); currentUserProfile = { email: user.email }; if(userDisplayNameSpan) userDisplayNameSpan.textContent = user.email + " (Profile Error)";}
+            if (docSnap.exists()) { currentUserProfile = docSnap.data(); if (headerUsername && currentUserProfile.username) headerUsername.textContent = currentUserProfile.username; else if(headerUsername) headerUsername.textContent = user.email;}
+            else { console.log("No user profile found"); currentUserProfile = { email: user.email }; if(headerUsername) headerUsername.textContent = user.email; }
+        } catch (error) { console.error("Error fetching profile:", error); currentUserProfile = { email: user.email }; if(headerUsername) headerUsername.textContent = user.email; }
 
-        // THEN Load user picks from Firestore
-        await loadUserPicksFromFirestore(user.uid);
-
-        // THEN Trigger initial UI draw after picks are loaded
-        generateCalendar(); // Redraw calendar with potentially loaded picks
-        updateDisplayedFixtures(); // Fetch fixtures and display them
+        hideAuthModal(); // Close modal on successful login/signup handled here
+        await loadUserPicksFromFirestore(user.uid); // Load user picks
 
     } else { // User signed out
-        console.log("Auth State Changed: User logged out");
-        currentUserId = null; currentUserProfile = null; userSelections = {}; // Clear state
-        localStorage.removeItem('footballGameSelections'); // Clear any old local backup
-        if(userDisplayNameSpan) userDisplayNameSpan.textContent = '';
-        if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(userInfo) userInfo.style.display = 'none';
-         if(authSection) { /* Restore section styling */ /* ... */ }
-        // Refresh UI immediately after logout
+        console.log("Auth State: Logged Out");
+        currentUserId = null; currentUserProfile = null; userSelections = {};
+        localStorage.removeItem('footballGameSelections'); // Clear old local backup just in case
+        if(headerLoginLink) headerLoginLink.style.display = 'block';
+        if(headerUserInfo) headerUserInfo.style.display = 'none';
+        if(headerUsername) headerUsername.textContent = '';
+
+        // Refresh UI for logged-out state immediately
         requestAnimationFrame(() => {
              if(typeof generateCalendar === 'function') generateCalendar();
              if(typeof updateDisplayedFixtures === 'function') updateDisplayedFixtures();
         });
     }
 });
+
 
 // --- Firestore Interaction ---
 
@@ -448,16 +477,11 @@ async function initializeAppAndListeners() {
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
     userInfo = document.getElementById('user-info');
-    loginEmailInput = document.getElementById('login-email');
-    loginPasswordInput = document.getElementById('login-password');
-    loginButton = document.getElementById('login-button');
-    loginErrorP = document.getElementById('login-error');
-    showSignupButton = document.getElementById('show-signup');
-    signupEmailInput = document.getElementById('signup-email');
-    signupPasswordInput = document.getElementById('signup-password');
-    signupUsernameInput = document.getElementById('signup-username'); // Assign new input
-    signupButton = document.getElementById('signup-button');
-    signupErrorP = document.getElementById('signup-error');
+    headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); headerLogoutButton = document.getElementById('header-logout-button');
+    authModal = document.getElementById('auth-modal'); modalOverlay = document.getElementById('modal-overlay'); modalCloseBtn = document.getElementById('modal-close-btn');
+    modalLoginForm = document.getElementById('modal-login-form'); modalSignupForm = document.getElementById('modal-signup-form'); showLoginTab = document.getElementById('show-login-tab'); showSignupTab = document.getElementById('show-signup-tab');
+    loginEmailInput = document.getElementById('login-email'); loginPasswordInput = document.getElementById('login-password'); loginButton = document.getElementById('login-button'); loginErrorP = document.getElementById('login-error');
+    signupUsernameInput = document.getElementById('signup-username'); signupEmailInput = document.getElementById('signup-email'); signupPasswordInput = document.getElementById('signup-password'); signupButton = document.getElementById('signup-button'); signupErrorP = document.getElementById('signup-error');
     showLoginButton = document.getElementById('show-login');
     userDisplayNameSpan = document.getElementById('user-display-name'); // Use new ID
     logoutButton = document.getElementById('logout-button');
