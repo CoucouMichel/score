@@ -476,21 +476,19 @@ async function initializeAppAndListeners() {
     authSection = document.getElementById('auth-section');
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
-    userInfo = document.getElementById('user-info');
     headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); headerLogoutButton = document.getElementById('header-logout-button');
     authModal = document.getElementById('auth-modal'); modalOverlay = document.getElementById('modal-overlay'); modalCloseBtn = document.getElementById('modal-close-btn');
     modalLoginForm = document.getElementById('modal-login-form'); modalSignupForm = document.getElementById('modal-signup-form'); showLoginTab = document.getElementById('show-login-tab'); showSignupTab = document.getElementById('show-signup-tab');
     loginEmailInput = document.getElementById('login-email'); loginPasswordInput = document.getElementById('login-password'); loginButton = document.getElementById('login-button'); loginErrorP = document.getElementById('login-error');
     signupUsernameInput = document.getElementById('signup-username'); signupEmailInput = document.getElementById('signup-email'); signupPasswordInput = document.getElementById('signup-password'); signupButton = document.getElementById('signup-button'); signupErrorP = document.getElementById('signup-error');
     showLoginButton = document.getElementById('show-login');
-    userDisplayNameSpan = document.getElementById('user-display-name'); // Use new ID
     logoutButton = document.getElementById('logout-button');
     const prevWeekBtn = document.getElementById('cal-prev-week');
     const nextWeekBtn = document.getElementById('cal-next-week');
 
-     if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !userInfo || !leagueSlicerContainer || !signupUsernameInput || !userDisplayNameSpan) {
-         console.error("One or more critical DOM elements not found!"); return;
-     }
+ if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !leagueSlicerContainer || !signupUsernameInput || !headerLoginLink /* Check elements that MUST exist */) {
+       console.error("One or more critical DOM elements not found!"); return;
+   }
 
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
