@@ -486,9 +486,6 @@ async function initializeAppAndListeners() {
     const prevWeekBtn = document.getElementById('cal-prev-week');
     const nextWeekBtn = document.getElementById('cal-next-week');
 
- if (!weekViewContainer || !fixtureListDiv || !loginForm || !signupForm || !leagueSlicerContainer || !signupUsernameInput || !headerLoginLink /* Check elements that MUST exist */) {
-       console.error("One or more critical DOM elements not found!"); return;
-   }
 
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
