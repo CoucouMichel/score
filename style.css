@@ -270,8 +270,10 @@ button.cal-nav-button:hover {
     button.cal-nav-button {
          width: 26px; height: 26px; font-size: 1rem;
     }
-    .calendar-container { gap: 4px; }
-    button.calendar-day { min-width: 55px; } /* Adjust min-width */
+
+    button.calendar-day {
+    min-width: 50px; /* Make buttons smaller */
+    padding: 0.3rem 0.1rem; /* Reduce padding */
 }
 /* Calendar Button Style */
 button.calendar-day { flex-grow: 1; min-width: 85px; width: auto; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.5rem 0.25rem; border: 1px solid var(--divider-color); background-color: var(--card-background-color); color: var(--text-secondary-color); cursor: pointer; border-radius: 4px; text-align: center; transition: all 0.2s ease-out; font-weight: 500; } /* Removed flex-shrink: 0 */
