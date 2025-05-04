@@ -72,14 +72,17 @@ let currentFixtures = []; // Holds fixtures for the currently displayed day (fet
 let isUpdatingFixtures = false;
 
 // --- DOM Element References (Declared globally, assigned in init) ---
+// Game UI
 let weekViewContainer, fixtureListDiv, leagueSlicerContainer, scoreListUl;
-let authSection, loginForm, signupForm, userInfo;
+// Calendar Nav
+let prevWeekBtn, nextWeekBtn; // If using weekly calendar
+// Header Auth Area
 let headerLoginLink, headerUserInfo, headerUsername, headerLogoutButton;
-let authModal, modalOverlay, modalCloseBtn;
-let modalLoginForm, modalSignupForm, showLoginTab, showSignupTab;
+// Modal Elements
+let authModal, modalOverlay, modalCloseBtn, modalLoginForm, modalSignupForm, showLoginTab, showSignupTab;
+// Modal Form Inputs/Buttons/Errors (These use IDs *inside* the modal)
 let loginEmailInput, loginPasswordInput, loginButton, loginErrorP;
-let showSignupButton, signupEmailInput, signupPasswordInput, signupUsernameInput, signupButton, signupErrorP;
-let showLoginButton, userDisplayNameSpan, headerLogoutButton;
+let signupUsernameInput, signupEmailInput, signupPasswordInput, signupButton, signupErrorP;
 
 // --- Modal Control Functions ---
 function showAuthModal() {
