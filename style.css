@@ -153,27 +153,30 @@ button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !impo
 .cal-line-3 span[style*="color:var(--error-text-color)"] { color: var(--error-text-color) !important; font-style: italic; }
 
 
-/* Add this rule (can go near other modal styles) */
+
+/* --- Add/Ensure these Modal Visibility rules exist --- */
+
 .modal-visible {
     opacity: 1;
     visibility: visible;
-    pointer-events: auto; /* Allow interaction */
-    /* Ensure transform is correct for centering */
+    pointer-events: auto; /* Allow clicking inside */
+    /* Ensure transform is reset for centered display */
     transform: translate(-50%, -50%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* Ensure the hidden rule is also correct */
 .modal-hidden {
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
-    /* Optional: slight move up effect */
+    pointer-events: none; /* Prevent interaction */
+    /* Optional: Slight move up effect when hiding */
     transform: translate(-50%, -60%);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s; /* Delay visibility change */
 }
-/* Ensure #auth-modal also gets the transform when hidden */
-#auth-modal.modal-hidden {
+/* Ensure the modal itself also gets the transform when hidden */
+ #auth-modal.modal-hidden {
      transform: translate(-50%, -60%);
-}
+ }
 
 /* --- Sections within Main --- */
 section { background-color: var(--card-background-color); padding: 1.5rem; border-radius: 6px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; border: 1px solid var(--divider-color); }
