@@ -131,7 +131,7 @@ button.cal-nav-button:hover {
 /* Responsive: Maybe reduce size of nav buttons */
 @media (max-width: 480px) {
     button.cal-nav-button {
-         width: 26px; height: 26px; font-size: 1rem;
+         width: 0px; height: 0px; font-size: 1.2rem;
     }
     .calendar-container { gap: 4px; }
     button.calendar-day { min-width: 55px; } /* Adjust min-width */
