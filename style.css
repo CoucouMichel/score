@@ -153,10 +153,33 @@ button.calendar-day.active .cal-line-3 b { color: var(--accent-color-text) !impo
 .cal-line-3 span[style*="color:var(--error-text-color)"] { color: var(--error-text-color) !important; font-style: italic; }
 
 
+/* Add this rule (can go near other modal styles) */
+.modal-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* Allow interaction */
+    /* Ensure transform is correct for centering */
+    transform: translate(-50%, -50%);
+}
+
+/* Ensure the hidden rule is also correct */
+.modal-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    /* Optional: slight move up effect */
+    transform: translate(-50%, -60%);
+}
+/* Ensure #auth-modal also gets the transform when hidden */
+#auth-modal.modal-hidden {
+     transform: translate(-50%, -60%);
+}
+
 /* --- Sections within Main --- */
 section { background-color: var(--card-background-color); padding: 1.5rem; border-radius: 6px; box-shadow: var(--elevation-1); margin-bottom: 1.5rem; border: 1px solid var(--divider-color); }
 section h2 { padding-left: 0; padding-right: 0; font-size: 1.5rem; font-weight: 500; color: var(--text-primary-color); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--divider-color); margin-top: 0; }
 #available-fixtures { padding: 0; border: none; box-shadow: none; background: none; margin-bottom: 1.5rem; }
+
 
 /* --- Daily League Slicer Area --- */
 #available-fixtures .slicer-area { padding: 1rem 1.5rem; margin-bottom: 0; /* Remove margin below slicers */ border-bottom: none; /* Remove border, list below has top border */ display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background-color: var(--card-background-color); border-radius: 6px 6px 0 0; box-shadow: var(--elevation-1); border: 1px solid var(--divider-color); border-bottom: none; }
@@ -189,6 +212,7 @@ button.league-slicer.active { background-color: var(--primary-color); border-col
 .fixture-details-bottom { font-size: 0.75rem; color: var(--text-secondary-color); margin-top: 0.3rem; text-align: left; padding-top: 0.3rem; border-top: 1px dashed var(--divider-color); min-height: 1.2em; }
 .fixture-details-bottom em { color: var(--text-primary-color); font-style: normal; font-weight: 500; }
 .fixture-details-bottom span[style*="color:red"] { color: var(--error-text-color) !important; font-style: italic; }
+
 
 
 /* --- Scoring History --- */
