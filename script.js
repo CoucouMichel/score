@@ -74,7 +74,7 @@ let isUpdatingFixtures = false;
 // --- DOM Element References (Declared globally, assigned in init) ---
 let weekViewContainer, fixtureListDiv, leagueSlicerContainer, scoreListUl;
 let authSection, loginForm, signupForm, userInfo;
-let headerLoginLink, headerUserInfo, headerUsername, headerLogoutButton;
+let headerLoginLink, headerUserInfo, headerUsername, logoutButton;
 let authModal, modalOverlay, modalCloseBtn;
 let modalLoginForm, modalSignupForm, showLoginTab, showSignupTab;
 let loginEmailInput, loginPasswordInput, loginButton, loginErrorP;
@@ -476,13 +476,13 @@ async function initializeAppAndListeners() {
     authSection = document.getElementById('auth-section');
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
-    headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); headerLogoutButton = document.getElementById('header-logout-button');
+    headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); logoutButton = document.getElementById('header-logout-button');
     authModal = document.getElementById('auth-modal'); modalOverlay = document.getElementById('modal-overlay'); modalCloseBtn = document.getElementById('modal-close-btn');
     modalLoginForm = document.getElementById('modal-login-form'); modalSignupForm = document.getElementById('modal-signup-form'); showLoginTab = document.getElementById('show-login-tab'); showSignupTab = document.getElementById('show-signup-tab');
     loginEmailInput = document.getElementById('login-email'); loginPasswordInput = document.getElementById('login-password'); loginButton = document.getElementById('login-button'); loginErrorP = document.getElementById('login-error');
     signupUsernameInput = document.getElementById('signup-username'); signupEmailInput = document.getElementById('signup-email'); signupPasswordInput = document.getElementById('signup-password'); signupButton = document.getElementById('signup-button'); signupErrorP = document.getElementById('signup-error');
     showLoginButton = document.getElementById('show-login');
-    headerLogoutButton = document.getElementById('headerLogout-button');
+    logoutButton = document.getElementById('logout-button');
     const prevWeekBtn = document.getElementById('cal-prev-week');
     const nextWeekBtn = document.getElementById('cal-next-week');
 
@@ -490,44 +490,79 @@ async function initializeAppAndListeners() {
     // Attach Auth Event Listeners
     if (showSignupButton) { showSignupButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'none'; if(signupForm) signupForm.style.display = 'block'; if(loginErrorP) loginErrorP.textContent = ''; }); }
     if (showLoginButton) { showLoginButton.addEventListener('click', () => { if(loginForm) loginForm.style.display = 'block'; if(signupForm) signupForm.style.display = 'none'; if(signupErrorP) signupErrorP.textContent = ''; }); }
-    if (loginButton) { loginButton.addEventListener('click', () => { if (!loginEmailInput || !loginPasswordInput) return; const email = loginEmailInput.value; const password = loginPasswordInput.value; if(loginErrorP) loginErrorP.textContent = ''; signInWithEmailAndPassword(auth, email, password).catch((err) => { if(loginErrorP) loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(err)}`;}); }); }
-    // Updated Signup Listener
-    if (signupButton) {
-        signupButton.addEventListener('click', () => {
-             if (!signupEmailInput || !signupPasswordInput || !signupUsernameInput) return;
-             const email = signupEmailInput.value; const password = signupPasswordInput.value; const username = signupUsernameInput.value.trim();
-             if(signupErrorP) signupErrorP.textContent = '';
-             if (username.length < 3) { if(signupErrorP) signupErrorP.textContent = 'Username must be at least 3 characters.'; return; }
-             if (/\s/.test(username)) { if(signupErrorP) signupErrorP.textContent = 'Username cannot contain spaces.'; return; }
-             console.log(`Attempting signup for ${email} with username ${username}`);
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user; console.log("Signup successful:", user.uid);
-                    const userDocRef = doc(db, "users", user.uid);
-                    // Use serverTimestamp import
-                    return setDoc(userDocRef, { username: username, email: user.email, joinedAt: serverTimestamp() });
-                })
-                .then(() => { console.log("User profile saved."); if(signupUsernameInput) signupUsernameInput.value = ''; if(signupEmailInput) signupEmailInput.value = ''; if(signupPasswordInput) signupPasswordInput.value = ''; })
-                .catch((error) => { console.error("Signup/Profile Save Error:", error); if(signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(error)}`; });
-        });
-    }
-if (headerLogoutButton) { // Use the correct variable name
-    headerLogoutButton.addEventListener('click', () => {
-        console.log("Logout button clicked"); // Log click
-        signOut(auth)
-            .then(() => {
-                console.log("Sign out successful initiated.");
-                // onAuthStateChanged listener will handle UI updates
+    if (loginButton) {
+    loginButton.addEventListener('click', () => {
+        if (!loginEmailInput || !loginPasswordInput) return;
+        const email = loginEmailInput.value;
+        const password = loginPasswordInput.value;
+        if (loginErrorP) loginErrorP.textContent = '';
+        signInWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                // Login successful!
+                console.log("Login OK:", userCredential.user.uid);
+                hideAuthModal(); // <<< CLOSE MODAL ON SUCCESS
+                // onAuthStateChanged will handle other UI updates
             })
-            .catch((error) => {
-                // ADDED Proper error handling
-                console.error("Logout Error:", error);
-                alert(`Logout failed: ${error.message}`);
+            .catch((err) => {
+                console.error("Login Failed:", err);
+                if (loginErrorP) loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(err)}`;
             });
     });
-} else {
-    console.error("Header logout button not found!");
 }
+// Inside initializeAppAndListeners function
+
+if (signupButton) {
+    signupButton.addEventListener('click', () => {
+        if (!signupEmailInput || !signupPasswordInput || !signupUsernameInput) return;
+        const email = signupEmailInput.value;
+        const password = signupPasswordInput.value;
+        const username = signupUsernameInput.value.trim();
+        if (signupErrorP) signupErrorP.textContent = '';
+
+        // Basic validation
+        if (username.length < 3) { if (signupErrorP) signupErrorP.textContent = 'Username must be at least 3 characters.'; return; }
+        if (/\s/.test(username)) { if (signupErrorP) signupErrorP.textContent = 'Username cannot contain spaces.'; return; }
+        // TODO: Add check for username uniqueness in Firestore before creating user
+
+        console.log(`Attempting signup for ${email} with username ${username}`);
+        createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                console.log("Signup auth successful:", user.uid);
+                // Save profile to Firestore
+                const userDocRef = doc(db, "users", user.uid);
+                return setDoc(userDocRef, { username: username, email: user.email, joinedAt: serverTimestamp() });
+            })
+            .then(() => {
+                console.log("User profile saved.");
+                // Clear form
+                if (signupUsernameInput) signupUsernameInput.value = '';
+                if (signupEmailInput) signupEmailInput.value = '';
+                if (signupPasswordInput) signupPasswordInput.value = '';
+                hideAuthModal(); // <<< CLOSE MODAL AFTER PROFILE SAVE
+                // onAuthStateChanged will handle other UI updates
+            })
+            .catch((error) => {
+                console.error("Signup/Profile Save Error:", error);
+                // If error is 'auth/email-already-in-use', user might already exist
+                // If error is Firestore related, user might be created but profile failed
+                if (signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(error)}`;
+            });
+    });
+}
+    if (logoutButton) { // Use the correct variable
+        logoutButton.addEventListener('click', () => {
+            console.log("Logout button clicked");
+            signOut(auth)
+                .then(() => { console.log("Sign out successful initiated."); })
+                .catch((error) => {
+                    console.error("Logout Error:", error);
+                    alert(`Logout failed: ${error.message}`);
+                });
+        });
+    } else {
+         console.error("Header logout button not found!");
+    }
   
   // *** ADD Event Listeners for Calendar Navigation ***
     prevWeekBtn.addEventListener('click', async () => {
