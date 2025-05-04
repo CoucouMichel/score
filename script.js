@@ -523,6 +523,16 @@ async function initializeAppAndListeners() {
             });
     });
 }
+
+  if (headerLoginLink) { // Check if element was found
+    headerLoginLink.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent default link behavior
+        console.log("Header Login Link Clicked!"); // Add log
+        showAuthModal();
+    });
+} else {
+    console.error("Header login link element not found!");
+}
 // Inside initializeAppAndListeners function
 
 if (signupButton) {
