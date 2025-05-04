@@ -482,7 +482,7 @@ async function initializeAppAndListeners() {
     loginEmailInput = document.getElementById('login-email'); loginPasswordInput = document.getElementById('login-password'); loginButton = document.getElementById('login-button'); loginErrorP = document.getElementById('login-error');
     signupUsernameInput = document.getElementById('signup-username'); signupEmailInput = document.getElementById('signup-email'); signupPasswordInput = document.getElementById('signup-password'); signupButton = document.getElementById('signup-button'); signupErrorP = document.getElementById('signup-error');
     showLoginButton = document.getElementById('show-login');
-    logoutButton = document.getElementById('logout-button');
+    headerLogoutButton = document.getElementById('headerLogout-button');
     const prevWeekBtn = document.getElementById('cal-prev-week');
     const nextWeekBtn = document.getElementById('cal-next-week');
 
@@ -511,22 +511,23 @@ async function initializeAppAndListeners() {
                 .catch((error) => { console.error("Signup/Profile Save Error:", error); if(signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(error)}`; });
         });
     }
-    if (headerLogoutButton) {
-        headerLogoutButton.addEventListener('click', () => {
-            console.log("Logout button clicked"); // Add log
-            signOut(auth)
-                .then(() => {
-                    console.log("Sign out successful (onAuthStateChanged will handle UI)");
-                    // No UI changes needed here, onAuthStateChanged does it
-                })
-                .catch((error) => {
-                    // *** ADD ERROR HANDLING HERE ***
-                    console.error("Logout Error:", error);
-                    alert(`Logout failed: ${error.message}`);
-                    // *** END ERROR HANDLING ***
-                });
-        });
-    }
+if (headerLogoutButton) { // Use the correct variable name
+    headerLogoutButton.addEventListener('click', () => {
+        console.log("Logout button clicked"); // Log click
+        signOut(auth)
+            .then(() => {
+                console.log("Sign out successful initiated.");
+                // onAuthStateChanged listener will handle UI updates
+            })
+            .catch((error) => {
+                // ADDED Proper error handling
+                console.error("Logout Error:", error);
+                alert(`Logout failed: ${error.message}`);
+            });
+    });
+} else {
+    console.error("Header logout button not found!");
+}
   
   // *** ADD Event Listeners for Calendar Navigation ***
     prevWeekBtn.addEventListener('click', async () => {
