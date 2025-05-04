@@ -504,20 +504,26 @@ async function initializeAppAndListeners() {
     signupButton = document.getElementById('signup-button');
     signupErrorP = document.getElementById('signup-error');
 
-    if (loginButton) {
+// Corrected Login Button Listener
+if (loginButton) {
     loginButton.addEventListener('click', () => {
-        if (!loginEmailInput || !loginPasswordInput) return;
+        // Validate inputs exist
+        if (!loginEmailInput || !loginPasswordInput) {
+             console.error("Login input elements not found"); return;
+        }
         const email = loginEmailInput.value;
         const password = loginPasswordInput.value;
-        if (loginErrorP) loginErrorP.textContent = '';
+        if (loginErrorP) loginErrorP.textContent = ''; // Clear previous errors
+
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 // Login successful!
                 console.log("Login OK:", userCredential.user.uid);
                 hideAuthModal(); // <<< CLOSE MODAL ON SUCCESS
-                // onAuthStateChanged will handle other UI updates
+                // onAuthStateChanged will handle displaying user info etc.
             })
             .catch((err) => {
+                // Handle login errors
                 console.error("Login Failed:", err);
                 if (loginErrorP) loginErrorP.textContent = `Login Failed: ${getFriendlyAuthError(err)}`;
             });
@@ -535,13 +541,17 @@ async function initializeAppAndListeners() {
 }
 // Inside initializeAppAndListeners function
 
+// Corrected Signup Button Listener
 if (signupButton) {
     signupButton.addEventListener('click', () => {
-        if (!signupEmailInput || !signupPasswordInput || !signupUsernameInput) return;
+        // Validate inputs exist
+        if (!signupEmailInput || !signupPasswordInput || !signupUsernameInput) {
+             console.error("Signup input elements not found"); return;
+        }
         const email = signupEmailInput.value;
         const password = signupPasswordInput.value;
         const username = signupUsernameInput.value.trim();
-        if (signupErrorP) signupErrorP.textContent = '';
+        if (signupErrorP) signupErrorP.textContent = ''; // Clear previous errors
 
         // Basic validation
         if (username.length < 3) { if (signupErrorP) signupErrorP.textContent = 'Username must be at least 3 characters.'; return; }
@@ -549,27 +559,29 @@ if (signupButton) {
         // TODO: Add check for username uniqueness in Firestore before creating user
 
         console.log(`Attempting signup for ${email} with username ${username}`);
+        // 1. Create Auth User
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
+                // 2. Save Profile to Firestore
                 const user = userCredential.user;
                 console.log("Signup auth successful:", user.uid);
-                // Save profile to Firestore
                 const userDocRef = doc(db, "users", user.uid);
+                // Ensure serverTimestamp is imported from Firestore SDK
                 return setDoc(userDocRef, { username: username, email: user.email, joinedAt: serverTimestamp() });
             })
             .then(() => {
+                // 3. Post-Save Actions (if profile save succeeds)
                 console.log("User profile saved.");
                 // Clear form
-                if (signupUsernameInput) signupUsernameInput.value = '';
-                if (signupEmailInput) signupEmailInput.value = '';
-                if (signupPasswordInput) signupPasswordInput.value = '';
-                hideAuthModal(); // <<< CLOSE MODAL AFTER PROFILE SAVE
-                // onAuthStateChanged will handle other UI updates
+                if(signupUsernameInput) signupUsernameInput.value = '';
+                if(signupEmailInput) signupEmailInput.value = '';
+                if(signupPasswordInput) signupPasswordInput.value = '';
+                hideAuthModal(); // <<< CLOSE MODAL ON SUCCESS
+                // onAuthStateChanged will handle displaying user info etc.
             })
             .catch((error) => {
+                // Handle errors from Auth creation OR Firestore save
                 console.error("Signup/Profile Save Error:", error);
-                // If error is 'auth/email-already-in-use', user might already exist
-                // If error is Firestore related, user might be created but profile failed
                 if (signupErrorP) signupErrorP.textContent = `Signup Failed: ${getFriendlyAuthError(error)}`;
             });
     });
