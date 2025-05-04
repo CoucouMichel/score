@@ -471,23 +471,38 @@ function getFriendlyAuthError(error) {
 async function initializeAppAndListeners() {
     console.log("DOM Loaded, assigning elements and listeners...");
 
-    // Assign DOM Elements
+    // --- Assign DOM Elements (Using Modal IDs where appropriate) ---
+    // Game UI
     weekViewContainer = document.getElementById('week-view');
     fixtureListDiv = document.getElementById('fixture-list');
     leagueSlicerContainer = document.getElementById('league-slicer-container');
     scoreListUl = document.getElementById('score-list');
-    authSection = document.getElementById('auth-section');
-    loginForm = document.getElementById('login-form');
-    signupForm = document.getElementById('signup-form');
-    headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); headerLogoutButton = document.getElementById('header-logout-button');
-    authModal = document.getElementById('auth-modal'); modalOverlay = document.getElementById('modal-overlay'); modalCloseBtn = document.getElementById('modal-close-btn');
-    modalLoginForm = document.getElementById('modal-login-form'); modalSignupForm = document.getElementById('modal-signup-form'); showLoginTab = document.getElementById('show-login-tab'); showSignupTab = document.getElementById('show-signup-tab');
-    loginEmailInput = document.getElementById('login-email'); loginPasswordInput = document.getElementById('login-password'); loginButton = document.getElementById('login-button'); loginErrorP = document.getElementById('login-error');
-    signupUsernameInput = document.getElementById('signup-username'); signupEmailInput = document.getElementById('signup-email'); signupPasswordInput = document.getElementById('signup-password'); signupButton = document.getElementById('signup-button'); signupErrorP = document.getElementById('signup-error');
-    showLoginButton = document.getElementById('show-login');
-    logoutButton = document.getElementById('logout-button');
-    const prevWeekBtn = document.getElementById('cal-prev-week');
-    const nextWeekBtn = document.getElementById('cal-next-week');
+    // Calendar Nav
+    prevWeekBtn = document.getElementById('cal-prev-week');
+    nextWeekBtn = document.getElementById('cal-next-week');
+    // Header Auth Area
+    headerLoginLink = document.getElementById('header-login-link');
+    headerUserInfo = document.getElementById('header-user-info');
+    headerUsername = document.getElementById('header-username');
+    headerLogoutButton = document.getElementById('header-logout-button'); // Uses the correct variable
+    // Modal Elements
+    authModal = document.getElementById('auth-modal');
+    modalOverlay = document.getElementById('modal-overlay');
+    modalCloseBtn = document.getElementById('modal-close-btn');
+    modalLoginForm = document.getElementById('modal-login-form'); // Container inside modal
+    modalSignupForm = document.getElementById('modal-signup-form'); // Container inside modal
+    showLoginTab = document.getElementById('show-login-tab'); // Tab button
+    showSignupTab = document.getElementById('show-signup-tab'); // Tab button
+    // Modal Form Inputs/Buttons/Errors (Uses IDs within the modal divs)
+    loginEmailInput = document.getElementById('login-email');
+    loginPasswordInput = document.getElementById('login-password');
+    loginButton = document.getElementById('login-button');
+    loginErrorP = document.getElementById('login-error');
+    signupUsernameInput = document.getElementById('signup-username');
+    signupEmailInput = document.getElementById('signup-email');
+    signupPasswordInput = document.getElementById('signup-password');
+    signupButton = document.getElementById('signup-button');
+    signupErrorP = document.getElementById('signup-error');
 
 
     // Attach Auth Event Listeners
