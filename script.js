@@ -74,12 +74,12 @@ let isUpdatingFixtures = false;
 // --- DOM Element References (Declared globally, assigned in init) ---
 let weekViewContainer, fixtureListDiv, leagueSlicerContainer, scoreListUl;
 let authSection, loginForm, signupForm, userInfo;
-let headerLoginLink, headerUserInfo, headerUsername, logoutButton;
+let headerLoginLink, headerUserInfo, headerUsername, headerLogoutButton;
 let authModal, modalOverlay, modalCloseBtn;
 let modalLoginForm, modalSignupForm, showLoginTab, showSignupTab;
 let loginEmailInput, loginPasswordInput, loginButton, loginErrorP;
 let showSignupButton, signupEmailInput, signupPasswordInput, signupUsernameInput, signupButton, signupErrorP;
-let showLoginButton, userDisplayNameSpan, logoutButton;
+let showLoginButton, userDisplayNameSpan, headerLogoutButton;
 
 // --- Modal Control Functions ---
 function showAuthModal() {
@@ -476,7 +476,7 @@ async function initializeAppAndListeners() {
     authSection = document.getElementById('auth-section');
     loginForm = document.getElementById('login-form');
     signupForm = document.getElementById('signup-form');
-    headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); logoutButton = document.getElementById('header-logout-button');
+    headerLoginLink = document.getElementById('header-login-link'); headerUserInfo = document.getElementById('header-user-info'); headerUsername = document.getElementById('header-username'); headerLogoutButton = document.getElementById('header-logout-button');
     authModal = document.getElementById('auth-modal'); modalOverlay = document.getElementById('modal-overlay'); modalCloseBtn = document.getElementById('modal-close-btn');
     modalLoginForm = document.getElementById('modal-login-form'); modalSignupForm = document.getElementById('modal-signup-form'); showLoginTab = document.getElementById('show-login-tab'); showSignupTab = document.getElementById('show-signup-tab');
     loginEmailInput = document.getElementById('login-email'); loginPasswordInput = document.getElementById('login-password'); loginButton = document.getElementById('login-button'); loginErrorP = document.getElementById('login-error');
@@ -550,8 +550,8 @@ if (signupButton) {
             });
     });
 }
-    if (logoutButton) { // Use the correct variable
-        logoutButton.addEventListener('click', () => {
+    if (headerLogoutButton) { // Use the correct variable
+        headerLogoutButton.addEventListener('click', () => {
             console.log("Logout button clicked");
             signOut(auth)
                 .then(() => { console.log("Sign out successful initiated."); })
